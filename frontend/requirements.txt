@@ -1,0 +1,6 @@
+# Python dependencies for the Vercel serverless detection API (api/index.py).
+# Installs the engine from the sibling backend package so detection logic is
+# shared, not duplicated. Requires the project's "Include files outside the root
+# directory in the Build Step" setting to be enabled (it is) so ../backend is
+# reachable at build time.
+../backend

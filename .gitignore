@@ -16,6 +16,8 @@ eggs/
 .eggs/
 lib/
 lib64/
+# The lib/ rule above targets Python build output; keep the frontend's source lib/.
+!frontend/lib/
 parts/
 sdist/
 var/

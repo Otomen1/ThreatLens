@@ -1,6 +1,48 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { detect, type DetectResponse } from "@/lib/api";
+import { SearchResult } from "@/components/SearchResult";
+
 export default function HomePage() {
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<DetectResponse | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Cancel any in-flight request on unmount.
+  useEffect(() => () => abortRef.current?.abort(), []);
+
+  const runSearch = useCallback(async () => {
+    const trimmed = query.trim();
+    if (!trimmed) return;
+
+    // A new search supersedes any in-flight one.
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await detect(trimmed, controller.signal);
+      setResult(res);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      // Only the most recent request clears the loading state.
+      if (abortRef.current === controller) {
+        setLoading(false);
+        abortRef.current = null;
+      }
+    }
+  }, [query]);
+
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-4">
+    <main className="min-h-screen flex flex-col items-center px-4 py-16 sm:py-24">
       <div className="w-full max-w-2xl space-y-10">
         {/* Logo + heading */}
         <div className="text-center space-y-3">
@@ -51,46 +93,63 @@ export default function HomePage() {
             </svg>
             <input
               type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") runSearch();
+              }}
               placeholder="8.8.8.8 · emotet · T1059.001 · CVE-2024-3094 · rundll32.exe…"
-              className="w-full bg-transparent pl-12 pr-32 py-4 text-white placeholder-zinc-700 text-sm focus:outline-none font-mono"
-              disabled
+              aria-label="Search query"
+              autoFocus
+              spellCheck={false}
+              autoComplete="off"
+              className="w-full bg-transparent pl-12 pr-28 py-4 text-white placeholder-zinc-700 text-sm focus:outline-none font-mono"
             />
             <button
-              disabled
+              onClick={runSearch}
+              disabled={loading || !query.trim()}
               className="absolute right-3 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 text-xs font-medium px-4 py-2 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Search
+              {loading ? "Searching…" : "Search"}
             </button>
           </div>
         </div>
 
-        {/* Entity type pills */}
-        <div className="flex flex-wrap justify-center gap-2">
-          {[
-            "IP Address",
-            "Domain",
-            "File Hash",
-            "CVE",
-            "MITRE Technique",
-            "Malware Family",
-            "Threat Actor",
-            "Registry Key",
-          ].map((type) => (
-            <span
-              key={type}
-              className="px-3 py-1 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-600 text-xs"
-            >
-              {type}
-            </span>
-          ))}
-        </div>
+        {/* Error */}
+        {error && (
+          <div
+            role="alert"
+            className="bg-red-500/10 border border-red-500/30 text-red-300 text-sm rounded-xl px-4 py-3 text-center"
+          >
+            {error}
+          </div>
+        )}
 
-        {/* Status */}
-        <div className="text-center space-y-1">
-          <p className="text-zinc-700 text-xs">
-            Phase 1 in development — Universal Search Engine
-          </p>
-        </div>
+        {/* Result */}
+        {result && !error && <SearchResult result={result} />}
+
+        {/* Entity type hints (shown before the first search) */}
+        {!result && !error && (
+          <div className="flex flex-wrap justify-center gap-2">
+            {[
+              "IP Address",
+              "Domain",
+              "File Hash",
+              "CVE",
+              "MITRE Technique",
+              "Malware Family",
+              "Threat Actor",
+              "Registry Key",
+            ].map((type) => (
+              <span
+                key={type}
+                className="px-3 py-1 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-600 text-xs"
+              >
+                {type}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </main>
   );
