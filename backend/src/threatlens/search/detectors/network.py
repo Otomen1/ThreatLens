@@ -11,7 +11,7 @@ from __future__ import annotations
 import ipaddress
 import re
 from typing import ClassVar
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import SplitResult, urlsplit, urlunsplit
 
 from ...entities.types import EntityType
 from ..tld import extract as tld_extract
@@ -48,7 +48,7 @@ class UrlDetector(EntityDetector):
     entity_type: ClassVar[EntityType] = EntityType.URL
     priority: ClassVar[int] = 10
 
-    def _parse(self, ctx: DetectionContext):
+    def _parse(self, ctx: DetectionContext) -> SplitResult | None:
         s = ctx.normalized
         if "://" not in s:
             return None
