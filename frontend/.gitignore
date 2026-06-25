@@ -10,3 +10,6 @@ next-env.d.ts
 
 # Vercel
 .vercel
+
+# Build artifact: engine source vendored in by scripts/vendor-engine.mjs
+/vendor/

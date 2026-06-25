@@ -1,6 +1,8 @@
-# Python dependencies for the Vercel serverless detection API (api/index.py).
-# Installs the engine from the sibling backend package so detection logic is
-# shared, not duplicated. Requires the project's "Include files outside the root
-# directory in the Build Step" setting to be enabled (it is) so ../backend is
-# reachable at build time.
-../backend
+# Runtime dependencies for the Vercel serverless detection API (api/index.py).
+# These are the engine's own dependencies, installed from PyPI. The engine
+# SOURCE is vendored into ./vendor at build time (see scripts/vendor-engine.mjs)
+# rather than pip-installed, because Vercel's Python builder cannot reach the
+# sibling ../backend package above the root directory.
+fastapi>=0.115
+pydantic>=2.6
+tldextract>=5.1

@@ -1,7 +1,12 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "node scripts/vendor-engine.mjs && npm run build",
   "outputDirectory": ".next",
   "framework": "nextjs",
+  "functions": {
+    "api/index.py": {
+      "includeFiles": "vendor/**"
+    }
+  },
   "rewrites": [
     { "source": "/api/v1/:path*", "destination": "/api/index" }
   ]
