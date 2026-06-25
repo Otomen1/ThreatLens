@@ -1,0 +1,37 @@
+"""Seed list of well-known Windows process / binary names.
+
+Any input shaped like an executable filename is classified as a process; names
+in this list (legitimate system binaries and common LOLBAS abuse targets) get
+higher confidence than a bare extension match. ``KNOWN_PROCESSES`` is a set of
+lowercased filenames.
+"""
+
+from __future__ import annotations
+
+_PROCESSES: tuple[str, ...] = (
+    # Core OS
+    "explorer.exe", "svchost.exe", "lsass.exe", "csrss.exe", "winlogon.exe",
+    "services.exe", "smss.exe", "wininit.exe", "spoolsv.exe", "dwm.exe",
+    "taskhostw.exe", "userinit.exe", "conhost.exe", "ctfmon.exe", "RuntimeBroker.exe",
+    "fontdrvhost.exe", "sihost.exe", "dllhost.exe", "searchindexer.exe",
+    # Shells / scripting (frequent abuse)
+    "cmd.exe", "powershell.exe", "powershell_ise.exe", "pwsh.exe", "wscript.exe",
+    "cscript.exe", "mshta.exe", "bash.exe", "wsl.exe",
+    # LOLBAS / dual-use
+    "rundll32.exe", "regsvr32.exe", "msbuild.exe", "installutil.exe",
+    "regasm.exe", "regsvcs.exe", "certutil.exe", "bitsadmin.exe", "mshta.exe",
+    "wmic.exe", "schtasks.exe", "at.exe", "sc.exe", "net.exe", "net1.exe",
+    "reg.exe", "msiexec.exe", "control.exe", "forfiles.exe", "pcalua.exe",
+    "odbcconf.exe", "cmstp.exe", "ieexec.exe", "presentationhost.exe",
+    "installutil.exe", "msdt.exe", "wuauclt.exe", "verclsid.exe", "mavinject.exe",
+    "rundll32.exe", "dfsvc.exe", "extexport.exe", "extrac32.exe",
+    # Admin / sysinternals
+    "psexec.exe", "psexesvc.exe", "procdump.exe", "tasklist.exe", "taskkill.exe",
+    "whoami.exe", "ipconfig.exe", "netstat.exe", "nltest.exe", "ping.exe",
+    "ntdsutil.exe", "vssadmin.exe", "wbadmin.exe", "bcdedit.exe", "fsutil.exe",
+    # Browsers / office (common parents)
+    "chrome.exe", "msedge.exe", "firefox.exe", "iexplore.exe",
+    "winword.exe", "excel.exe", "powerpnt.exe", "outlook.exe",
+)
+
+KNOWN_PROCESSES: frozenset[str] = frozenset(name.lower() for name in _PROCESSES)

@@ -1,0 +1,59 @@
+"""PowerShell approved verbs and a seed list of common cmdlets.
+
+PowerShell commands follow a ``Verb-Noun`` convention drawn from a fixed set of
+Microsoft "approved verbs". The detector recognizes that structure
+deterministically (verb must be approved); ``KNOWN_CMDLETS`` raises confidence
+and supplies canonical casing for frequently-seen cmdlets.
+"""
+
+from __future__ import annotations
+
+# Official PowerShell approved verbs (Get-Verb), lowercased.
+APPROVED_VERBS: frozenset[str] = frozenset(
+    v.lower()
+    for v in (
+        # Common
+        "Add", "Clear", "Close", "Copy", "Enter", "Exit", "Find", "Format",
+        "Get", "Hide", "Join", "Lock", "Move", "New", "Open", "Optimize",
+        "Pop", "Push", "Redo", "Remove", "Rename", "Reset", "Resize", "Search",
+        "Select", "Set", "Show", "Skip", "Split", "Step", "Switch", "Undo",
+        "Unlock", "Watch",
+        # Data
+        "Backup", "Checkpoint", "Compare", "Compress", "Convert", "ConvertFrom",
+        "ConvertTo", "Dismount", "Edit", "Expand", "Export", "Group", "Import",
+        "Initialize", "Limit", "Merge", "Mount", "Out", "Publish", "Restore",
+        "Save", "Sync", "Unpublish", "Update",
+        # Lifecycle
+        "Approve", "Assert", "Build", "Complete", "Confirm", "Deny", "Deploy",
+        "Disable", "Enable", "Install", "Invoke", "Register", "Request",
+        "Restart", "Resume", "Start", "Stop", "Submit", "Suspend", "Uninstall",
+        "Unregister", "Wait",
+        # Diagnostic
+        "Debug", "Measure", "Ping", "Repair", "Resolve", "Test", "Trace",
+        # Communications
+        "Connect", "Disconnect", "Read", "Receive", "Send", "Write",
+        # Security
+        "Block", "Grant", "Protect", "Revoke", "Unblock", "Unprotect", "Use",
+    )
+)
+
+# Frequently-seen cmdlets (incl. offensive favorites): lowercased -> canonical.
+_CMDLETS: tuple[str, ...] = (
+    "Invoke-WebRequest", "Invoke-Expression", "Invoke-Command", "Invoke-Item",
+    "Invoke-RestMethod", "Invoke-WmiMethod", "Invoke-CimMethod", "Invoke-Mimikatz",
+    "Invoke-Shellcode", "Invoke-DllInjection", "Invoke-Obfuscation",
+    "Get-Process", "Get-Service", "Get-Content", "Get-ChildItem", "Get-Item",
+    "Get-ItemProperty", "Get-WmiObject", "Get-CimInstance", "Get-Credential",
+    "Get-LocalUser", "Get-ADUser", "Get-Command", "Get-Member", "Get-Help",
+    "Set-ExecutionPolicy", "Set-ItemProperty", "Set-Content", "Set-Location",
+    "New-Object", "New-Item", "New-ItemProperty", "New-Service", "New-PSSession",
+    "Start-Process", "Start-Service", "Start-Job", "Start-Sleep",
+    "Stop-Process", "Stop-Service", "Stop-Computer", "Restart-Computer",
+    "Add-MpPreference", "Remove-Item", "Remove-MpPreference",
+    "ConvertTo-SecureString", "ConvertFrom-Base64", "Out-File", "Write-Output",
+    "Write-Host", "Import-Module", "Export-Csv", "Enter-PSSession",
+    "Add-Type", "Test-Connection", "Test-Path", "Copy-Item", "Move-Item",
+    "Register-ScheduledTask", "Disable-WindowsOptionalFeature",
+)
+
+KNOWN_CMDLETS: dict[str, str] = {name.lower(): name for name in _CMDLETS}
