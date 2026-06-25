@@ -1,8 +1,8 @@
-// Typed client for the ThreatLens detection API.
+// Typed client for the ThreatLens API.
 //
-// Detection lives entirely in the backend engine; this module only transports
-// the request and types the response. The base URL is configurable so the same
-// build works same-origin (default) or against a separately-hosted backend.
+// Detection and enrichment live entirely in the backend; this module only
+// transports requests and types responses. The base URL is configurable so the
+// same build works same-origin (default) or against a separately-hosted backend.
 
 export type EntityType =
   | "ipv4"
@@ -51,6 +51,85 @@ export interface DetectResponse {
   entity: Entity;
 }
 
+// --- intelligence (provider results) ---
+
+export type ResultStatus =
+  | "ok"
+  | "not_found"
+  | "unsupported"
+  | "partial"
+  | "error"
+  | "timeout"
+  | "rate_limited"
+  | "unauthorized";
+
+export type ReputationLevel =
+  | "unknown"
+  | "benign"
+  | "likely_benign"
+  | "suspicious"
+  | "likely_malicious"
+  | "malicious";
+
+export interface Reputation {
+  level: ReputationLevel;
+  score: number | null;
+  malicious_count: number | null;
+  total_count: number | null;
+  summary: string | null;
+}
+
+export interface Evidence {
+  type: string;
+  summary: string;
+  value: string | null;
+  confidence: number | null;
+  observed_at: string | null;
+  data: Record<string, unknown>;
+}
+
+export interface Relationship {
+  relationship: string;
+  target_type: string;
+  target_value: string;
+  confidence: number | null;
+  description: string | null;
+}
+
+export interface Reference {
+  title: string;
+  url: string;
+  description: string | null;
+}
+
+export interface ResultError {
+  message: string;
+  retryable: boolean;
+  detail: string | null;
+}
+
+export interface IntelligenceResult {
+  provider: string;
+  provider_display_name: string | null;
+  entity_type: EntityType;
+  entity_value: string;
+  status: ResultStatus;
+  error: ResultError | null;
+  reputation: Reputation | null;
+  evidence: Evidence[];
+  relationships: Relationship[];
+  references: Reference[];
+  tags: string[];
+  fetched_at: string | null;
+  metadata: Record<string, unknown>;
+}
+
+export interface IntelligenceResponse {
+  search_id: string;
+  entity: Entity;
+  results: IntelligenceResult[];
+}
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
 
 /** Error raised for any non-success API response or unreachable backend. */
@@ -65,18 +144,19 @@ export class ApiError extends Error {
 }
 
 /**
- * Classify a query via the backend detection engine.
+ * POST `{ query }` to an API path and return the parsed JSON.
  *
  * Pass an {@link AbortSignal} to cancel an in-flight request; an abort
  * propagates as a `DOMException` named `AbortError` (re-thrown, not wrapped).
  */
-export async function detect(
+async function postQuery<T>(
+  path: string,
   query: string,
   signal?: AbortSignal,
-): Promise<DetectResponse> {
+): Promise<T> {
   let res: Response;
   try {
-    res = await fetch(`${API_BASE}/detect`, {
+    res = await fetch(`${API_BASE}${path}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query }),
@@ -93,5 +173,18 @@ export async function detect(
     throw new ApiError(message, res.status);
   }
 
-  return (await res.json()) as DetectResponse;
+  return (await res.json()) as T;
+}
+
+/** Classify a query into a normalized entity (detection only). */
+export function detect(query: string, signal?: AbortSignal): Promise<DetectResponse> {
+  return postQuery<DetectResponse>("/detect", query, signal);
+}
+
+/** Detect an entity and gather provider intelligence for it. */
+export function intelligence(
+  query: string,
+  signal?: AbortSignal,
+): Promise<IntelligenceResponse> {
+  return postQuery<IntelligenceResponse>("/intelligence", query, signal);
 }

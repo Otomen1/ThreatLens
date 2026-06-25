@@ -8,14 +8,17 @@ transport, validation, and a per-request ``search_id``.
 
 from __future__ import annotations
 
+import asyncio
 import os
+from typing import Annotated
 from uuid import uuid4
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from ..providers import IntelligenceResult, ProviderRouter, build_default_router
 from ..search import detect
-from .schemas import DetectRequest, DetectResponse
+from .schemas import DetectRequest, DetectResponse, IntelligenceResponse
 
 app = FastAPI(
     title="ThreatLens API",
@@ -41,6 +44,16 @@ app.add_middleware(
 )
 
 
+# Process-wide router over the default provider registry. Built once; providers
+# are stateless aside from their (network-only) HTTP client.
+_provider_router = build_default_router()
+
+
+def get_provider_router() -> ProviderRouter:
+    """Provide the provider router (overridable in tests)."""
+    return _provider_router
+
+
 @app.get("/api/v1/health")
 def health() -> dict[str, str]:
     """Liveness probe."""
@@ -57,3 +70,22 @@ def detect_entity(request: DetectRequest) -> DetectResponse:
     """
     entity = detect(request.query)
     return DetectResponse(search_id=uuid4(), entity=entity)
+
+
+@app.post("/api/v1/intelligence", response_model=IntelligenceResponse)
+async def gather_intelligence(
+    request: DetectRequest,
+    router: Annotated[ProviderRouter, Depends(get_provider_router)],
+) -> IntelligenceResponse:
+    """Detect the entity, then run every capable provider concurrently.
+
+    Returns one :class:`IntelligenceResult` per routed provider. Providers that
+    fail return a failure result rather than raising, so a partial outage never
+    fails the request. No merging or scoring happens here.
+    """
+    entity = detect(request.query)
+    providers = router.route(entity)
+    results: list[IntelligenceResult] = list(
+        await asyncio.gather(*(provider.search(entity) for provider in providers))
+    )
+    return IntelligenceResponse(search_id=uuid4(), entity=entity, results=results)

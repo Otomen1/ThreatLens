@@ -1,6 +1,12 @@
 import type { ReactNode } from "react";
 
-import type { DetectResponse, EntityType, ValidationStatus } from "@/lib/api";
+import type {
+  EntityType,
+  IntelligenceResponse,
+  IntelligenceResult,
+  ReputationLevel,
+  ValidationStatus,
+} from "@/lib/api";
 
 // Human-readable labels for the engine's entity vocabulary.
 const ENTITY_LABELS: Record<EntityType, string> = {
@@ -31,20 +37,27 @@ const VALIDATION_STYLES: Record<ValidationStatus, string> = {
   unvalidated: "text-zinc-400 border-zinc-600/40 bg-zinc-700/20",
 };
 
-// Sections wired in later phases. Present structurally so the result page does
-// not need redesigning when their functionality lands.
-const FUTURE_SECTIONS = [
-  "Threat Intelligence",
-  "AI Analysis",
-  "Related Intelligence",
-] as const;
+const REPUTATION_STYLES: Record<ReputationLevel, string> = {
+  unknown: "text-zinc-400 border-zinc-600/40 bg-zinc-700/20",
+  benign: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10",
+  likely_benign: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10",
+  suspicious: "text-amber-400 border-amber-500/30 bg-amber-500/10",
+  likely_malicious: "text-red-400 border-red-500/30 bg-red-500/10",
+  malicious: "text-red-400 border-red-500/30 bg-red-500/10",
+};
 
 function labelFor(type: EntityType): string {
   return ENTITY_LABELS[type] ?? type;
 }
 
-export function SearchResult({ result }: { result: DetectResponse }) {
-  const { entity, search_id } = result;
+function metaStr(meta: Record<string, unknown>, key: string): string | null {
+  const value = meta[key];
+  return typeof value === "string" && value ? value : null;
+}
+
+export function SearchResult({ data }: { data: IntelligenceResponse }) {
+  const { entity, results, search_id } = data;
+  const malwareBazaar = results.find((r) => r.provider === "malwarebazaar");
 
   return (
     <div className="w-full space-y-4 text-left">
@@ -103,8 +116,20 @@ export function SearchResult({ result }: { result: DetectResponse }) {
         </p>
       </section>
 
+      {/* Threat Intelligence — MalwareBazaar when applicable, else a placeholder. */}
+      <section className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-4">
+        <h2 className="text-sm font-semibold text-white">Threat Intelligence</h2>
+        {malwareBazaar ? (
+          <MalwareBazaarCard result={malwareBazaar} />
+        ) : (
+          <p className="text-xs text-zinc-600">
+            No intelligence providers apply to this entity type yet.
+          </p>
+        )}
+      </section>
+
       {/* Future-phase placeholders (structural only). */}
-      {FUTURE_SECTIONS.map((title) => (
+      {["AI Analysis", "Related Intelligence"].map((title) => (
         <section
           key={title}
           className="bg-zinc-900/40 border border-dashed border-zinc-800/70 rounded-2xl p-5"
@@ -119,6 +144,99 @@ export function SearchResult({ result }: { result: DetectResponse }) {
       ))}
     </div>
   );
+}
+
+function MalwareBazaarCard({ result }: { result: IntelligenceResult }) {
+  const name = result.provider_display_name ?? "MalwareBazaar";
+
+  if (result.status !== "ok") {
+    return (
+      <div className="space-y-1">
+        <p className="text-xs text-zinc-500">{name}</p>
+        <p className="text-sm text-zinc-400">{malwareBazaarStatusMessage(result)}</p>
+      </div>
+    );
+  }
+
+  const family = metaStr(result.metadata, "signature");
+  const fileType = metaStr(result.metadata, "file_type");
+  const firstSeen = metaStr(result.metadata, "first_seen");
+  const sampleAvailable = result.metadata.sample_available === true;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-xs text-zinc-500">{name}</span>
+        {result.reputation && (
+          <span
+            className={`px-2 py-0.5 rounded-md border text-xs font-medium capitalize ${REPUTATION_STYLES[result.reputation.level]}`}
+          >
+            {result.reputation.level.replace(/_/g, " ")}
+          </span>
+        )}
+      </div>
+
+      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+        <ResultField label="Malware Family" value={family ?? "—"} />
+        <ResultField label="File Type" value={fileType ?? "—"} />
+        <ResultField label="Signature" value={family ?? "—"} />
+        <ResultField label="First Seen" value={firstSeen ?? "—"} />
+        <ResultField
+          label="Sample Status"
+          value={sampleAvailable ? "Available in MalwareBazaar" : "Not available"}
+        />
+      </dl>
+
+      {result.tags.length > 0 && (
+        <div>
+          <p className="text-xs text-zinc-500 mb-2">Tags</p>
+          <div className="flex flex-wrap gap-2">
+            {result.tags.map((tag) => (
+              <span
+                key={tag}
+                className="px-2.5 py-1 rounded-lg bg-zinc-800/60 border border-zinc-700/60 text-xs text-zinc-300"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {result.references.length > 0 && (
+        <div>
+          <p className="text-xs text-zinc-500 mb-2">References</p>
+          <ul className="space-y-1">
+            {result.references.map((ref) => (
+              <li key={ref.url}>
+                <a
+                  href={ref.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-400 hover:text-blue-300 break-all"
+                >
+                  {ref.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function malwareBazaarStatusMessage(result: IntelligenceResult): string {
+  switch (result.status) {
+    case "not_found":
+      return "No MalwareBazaar results found.";
+    case "unauthorized":
+      return "MalwareBazaar requires an API key. Set MALWAREBAZAAR_AUTH_KEY (free at auth.abuse.ch).";
+    case "rate_limited":
+      return "MalwareBazaar rate limit reached — try again shortly.";
+    default:
+      return "MalwareBazaar is temporarily unavailable.";
+  }
 }
 
 function ResultField({

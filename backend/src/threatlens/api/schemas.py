@@ -12,6 +12,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field, field_validator
 
 from ..entities.models import Entity
+from ..providers import IntelligenceResult
 
 # Generous upper bound for a single query (long URLs, registry keys) while still
 # rejecting obvious abuse and keeping request handling cheap.
@@ -38,3 +39,16 @@ class DetectResponse(BaseModel):
 
     search_id: UUID
     entity: Entity
+
+
+class IntelligenceResponse(BaseModel):
+    """A detected entity plus the per-provider intelligence gathered for it.
+
+    ``results`` is one canonical :class:`IntelligenceResult` per routed provider
+    (just MalwareBazaar today). This is not aggregation — results are returned
+    side by side, not merged or scored.
+    """
+
+    search_id: UUID
+    entity: Entity
+    results: list[IntelligenceResult]

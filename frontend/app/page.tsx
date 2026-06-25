@@ -2,14 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { detect, type DetectResponse } from "@/lib/api";
+import { intelligence, type IntelligenceResponse } from "@/lib/api";
 import { SearchResult } from "@/components/SearchResult";
 
 export default function HomePage() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<DetectResponse | null>(null);
+  const [result, setResult] = useState<IntelligenceResponse | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   // Cancel any in-flight request on unmount.
@@ -27,7 +27,7 @@ export default function HomePage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await detect(trimmed, controller.signal);
+      const res = await intelligence(trimmed, controller.signal);
       setResult(res);
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
@@ -126,7 +126,7 @@ export default function HomePage() {
         )}
 
         {/* Result */}
-        {result && !error && <SearchResult result={result} />}
+        {result && !error && <SearchResult data={result} />}
 
         {/* Entity type hints (shown before the first search) */}
         {!result && !error && (

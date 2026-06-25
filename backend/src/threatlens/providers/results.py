@@ -36,6 +36,7 @@ class ResultStatus(StrEnum):
 
     OK = "ok"
     NOT_FOUND = "not_found"
+    UNSUPPORTED = "unsupported"
     PARTIAL = "partial"
     ERROR = "error"
     TIMEOUT = "timeout"
@@ -217,7 +218,9 @@ _HARD_ERRORS = frozenset(
         ResultStatus.UNAUTHORIZED,
     }
 )
-_NO_ERROR_STATES = frozenset({ResultStatus.OK, ResultStatus.NOT_FOUND})
+_NO_ERROR_STATES = frozenset(
+    {ResultStatus.OK, ResultStatus.NOT_FOUND, ResultStatus.UNSUPPORTED}
+)
 
 
 class IntelligenceResult(BaseModel):
@@ -292,6 +295,28 @@ class IntelligenceResult(BaseModel):
             entity_type=entity_type,
             entity_value=entity_value,
             status=ResultStatus.NOT_FOUND,
+        )
+
+    @classmethod
+    def unsupported(
+        cls,
+        *,
+        provider: str,
+        entity_type: EntityType,
+        entity_value: str,
+        provider_display_name: str | None = None,
+    ) -> IntelligenceResult:
+        """Build a result for an entity type the provider does not handle.
+
+        A structured, non-exception signal — the router normally prevents this,
+        but a provider called directly still answers gracefully.
+        """
+        return cls(
+            provider=provider,
+            provider_display_name=provider_display_name,
+            entity_type=entity_type,
+            entity_value=entity_value,
+            status=ResultStatus.UNSUPPORTED,
         )
 
     @classmethod

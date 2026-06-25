@@ -113,6 +113,19 @@ def test_not_found_result() -> None:
     assert result.error is None
 
 
+def test_unsupported_result() -> None:
+    result = IntelligenceResult.unsupported(
+        provider="malwarebazaar",
+        entity_type=EntityType.IPV4,
+        entity_value="8.8.8.8",
+    )
+    assert result.status is ResultStatus.UNSUPPORTED
+    assert result.is_ok is False
+    assert result.is_error is False
+    assert result.has_findings is False
+    assert result.error is None
+
+
 # --- partial result ---
 
 
