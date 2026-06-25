@@ -16,6 +16,7 @@ from typing import Any
 from ..entities.models import Entity
 from ..entities.types import EntityType
 from .models import ProviderHealth, ProviderMetadata
+from .results import IntelligenceResult
 from .types import ProviderCapability, ProviderStatus
 
 
@@ -70,10 +71,18 @@ class IntelligenceProvider(ABC):
 
     # --- implemented by concrete providers in later phases ---
 
-    async def search(self, entity: Entity) -> Any:
-        """Query the provider for intelligence about ``entity`` (stub)."""
+    async def search(self, entity: Entity) -> IntelligenceResult:
+        """Look up ``entity`` and return a canonical result (stub).
+
+        Concrete providers fetch from their API and delegate to
+        :meth:`normalize`; the return type is the contract every provider honors.
+        """
         raise NotImplementedError(f"{self.name}.search is not implemented yet")
 
-    async def normalize(self, raw: Any) -> Any:
-        """Map a raw provider payload into the common result shape (stub)."""
+    async def normalize(self, raw: Any) -> IntelligenceResult:
+        """Map a raw provider payload into an :class:`IntelligenceResult` (stub).
+
+        This is the normalization contract: raw vendor JSON enters here and never
+        leaves — only the canonical result does.
+        """
         raise NotImplementedError(f"{self.name}.normalize is not implemented yet")

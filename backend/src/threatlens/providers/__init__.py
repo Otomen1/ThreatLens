@@ -13,12 +13,28 @@ from __future__ import annotations
 from .base import IntelligenceProvider
 from .models import ProviderHealth, ProviderMetadata
 from .registry import DuplicateProviderError, ProviderRegistry
+from .results import (
+    Evidence,
+    EvidenceType,
+    IntelligenceResult,
+    Reference,
+    Relationship,
+    RelationshipTargetType,
+    RelationshipType,
+    Reputation,
+    ReputationLevel,
+    ResultError,
+    ResultStatus,
+)
 from .router import ProviderRouter
 from .types import ProviderAuthType, ProviderCapability, ProviderStatus
 
 __all__ = [
     "DuplicateProviderError",
+    "Evidence",
+    "EvidenceType",
     "IntelligenceProvider",
+    "IntelligenceResult",
     "ProviderAuthType",
     "ProviderCapability",
     "ProviderHealth",
@@ -26,4 +42,12 @@ __all__ = [
     "ProviderRegistry",
     "ProviderRouter",
     "ProviderStatus",
+    "Reference",
+    "Relationship",
+    "RelationshipTargetType",
+    "RelationshipType",
+    "Reputation",
+    "ReputationLevel",
+    "ResultError",
+    "ResultStatus",
 ]
