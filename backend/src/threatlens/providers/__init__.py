@@ -24,6 +24,7 @@ from .defaults import build_default_registry, build_default_router
 from .http import HttpClient, ProviderHttpError, ProviderNetworkError, ProviderTimeout
 from .malwarebazaar import MalwareBazaarProvider
 from .models import ProviderHealth, ProviderMetadata
+from .otx import OTXProvider
 from .registry import DuplicateProviderError, ProviderRegistry
 from .results import (
     Evidence,
@@ -72,6 +73,7 @@ __all__ = [
     "RelationshipType",
     "Reputation",
     "ReputationLevel",
+    "OTXProvider",
     "ResultError",
     "ResultStatus",
     "UrlhausProvider",

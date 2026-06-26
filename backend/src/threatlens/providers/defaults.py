@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from .abuseipdb import AbuseIPDBProvider
 from .malwarebazaar import MalwareBazaarProvider
+from .otx import OTXProvider
 from .registry import ProviderRegistry
 from .router import ProviderRouter
 from .urlhaus import UrlhausProvider
@@ -20,6 +21,7 @@ def build_default_registry() -> ProviderRegistry:
     registry.register(MalwareBazaarProvider())
     registry.register(UrlhausProvider())
     registry.register(AbuseIPDBProvider())
+    registry.register(OTXProvider())
     return registry
 
 
