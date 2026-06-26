@@ -20,6 +20,17 @@ from ..providers import ProviderRouter, aggregate, build_default_router
 from ..search import detect
 from .schemas import DetectRequest, DetectResponse, IntelligenceResponse
 
+# Local-development convenience: load backend/.env (if present) before anything
+# reads the environment, so secrets like MALWAREBAZAAR_AUTH_KEY are available.
+# Platforms that inject env vars directly (e.g. Vercel) have no .env, so this is
+# a harmless no-op there. python-dotenv is a dev-only dependency.
+try:
+    from dotenv import load_dotenv
+except ModuleNotFoundError:
+    pass
+else:
+    load_dotenv()
+
 app = FastAPI(
     title="ThreatLens API",
     version="0.1.0",
