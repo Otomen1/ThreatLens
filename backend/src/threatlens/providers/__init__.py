@@ -39,6 +39,7 @@ from .results import (
 )
 from .router import ProviderRouter
 from .types import ProviderAuthType, ProviderCapability, ProviderStatus
+from .urlhaus import UrlhausProvider
 
 __all__ = [
     "AggregatedResult",
@@ -71,6 +72,7 @@ __all__ = [
     "ReputationLevel",
     "ResultError",
     "ResultStatus",
+    "UrlhausProvider",
     "aggregate",
     "build_default_registry",
     "build_default_router",

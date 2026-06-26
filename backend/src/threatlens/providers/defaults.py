@@ -10,12 +10,14 @@ from __future__ import annotations
 from .malwarebazaar import MalwareBazaarProvider
 from .registry import ProviderRegistry
 from .router import ProviderRouter
+from .urlhaus import UrlhausProvider
 
 
 def build_default_registry() -> ProviderRegistry:
     """Build a registry populated with all production providers."""
     registry = ProviderRegistry()
     registry.register(MalwareBazaarProvider())
+    registry.register(UrlhausProvider())
     return registry
 
 
