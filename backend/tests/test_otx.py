@@ -11,6 +11,7 @@ from collections.abc import Callable
 from urllib.parse import unquote
 
 import httpx
+import pytest
 
 from threatlens.entities.models import Entity
 from threatlens.entities.types import EntityType, ValidationStatus
@@ -150,7 +151,10 @@ async def test_url_value_is_encoded_once_in_path() -> None:
 # --- anonymous mode / auth ---
 
 
-async def test_anonymous_mode_omits_key_header_and_still_requests() -> None:
+async def test_anonymous_mode_omits_key_header_and_still_requests(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("OTX_API_KEY", raising=False)
     seen: dict[str, bool] = {}
 
     def handler(request: httpx.Request) -> httpx.Response:
