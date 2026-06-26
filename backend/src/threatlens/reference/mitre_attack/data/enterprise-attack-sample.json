@@ -1,0 +1,278 @@
+{
+  "type": "bundle",
+  "id": "bundle--threatlens-mitre-attack-sample",
+  "spec_version": "2.1",
+  "_comment": "Curated subset of MITRE ATT&CK Enterprise in official STIX 2.1 format, bundled so the provider works offline out of the box and powers deterministic tests. ATT&CK IDs for techniques/groups/software/mitigations are real; the campaign is illustrative. Replace with the full official enterprise-attack.json (set MITRE_ATTACK_DATASET_PATH) for complete coverage. Source: https://github.com/mitre-attack/attack-stix-data (CC BY 4.0).",
+  "objects": [
+    {
+      "type": "x-mitre-collection",
+      "id": "x-mitre-collection--threatlens-sample",
+      "spec_version": "2.1",
+      "name": "Enterprise ATT&CK (ThreatLens curated sample)",
+      "x_mitre_version": "15.1",
+      "created": "2024-10-31T00:00:00.000Z",
+      "modified": "2024-10-31T00:00:00.000Z"
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--00000000-0000-0000-0000-000000001059",
+      "spec_version": "2.1",
+      "name": "Command and Scripting Interpreter",
+      "description": "Adversaries may abuse command and script interpreters to execute commands, scripts, or binaries. These interfaces and languages provide ways of interacting with computer systems and are a common feature across many different platforms.",
+      "kill_chain_phases": [
+        { "kill_chain_name": "mitre-attack", "phase_name": "execution" }
+      ],
+      "x_mitre_platforms": ["Linux", "macOS", "Windows", "Network"],
+      "x_mitre_detection": "Command-line and scripting activities can be captured through proper logging of process execution with command-line arguments.",
+      "x_mitre_is_subtechnique": false,
+      "x_mitre_permissions_required": ["User", "Administrator", "SYSTEM"],
+      "x_mitre_data_sources": [
+        "Command: Command Execution",
+        "Process: Process Creation",
+        "Script: Script Execution"
+      ],
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1059",
+          "url": "https://attack.mitre.org/techniques/T1059"
+        },
+        {
+          "source_name": "capec",
+          "external_id": "CAPEC-136",
+          "url": "https://capec.mitre.org/data/definitions/136.html"
+        },
+        {
+          "source_name": "Wikipedia Scripting",
+          "description": "Scripting language overview",
+          "url": "https://en.wikipedia.org/wiki/Scripting_language"
+        }
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--00000000-0000-0000-0000-000000059001",
+      "spec_version": "2.1",
+      "name": "PowerShell",
+      "description": "Adversaries may abuse PowerShell commands and scripts for execution. PowerShell is a powerful interactive command-line interface and scripting environment included in the Windows operating system.",
+      "kill_chain_phases": [
+        { "kill_chain_name": "mitre-attack", "phase_name": "execution" }
+      ],
+      "x_mitre_platforms": ["Windows"],
+      "x_mitre_detection": "Monitor for loading and/or execution of artifacts associated with PowerShell specific assemblies, such as System.Management.Automation.dll.",
+      "x_mitre_is_subtechnique": true,
+      "x_mitre_permissions_required": ["User", "Administrator"],
+      "x_mitre_data_sources": [
+        "Command: Command Execution",
+        "Module: Module Load",
+        "Process: Process Creation",
+        "Script: Script Execution"
+      ],
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1059.001",
+          "url": "https://attack.mitre.org/techniques/T1059/001"
+        },
+        {
+          "source_name": "Microsoft PowerShell",
+          "description": "PowerShell documentation",
+          "url": "https://learn.microsoft.com/powershell/"
+        }
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--00000000-0000-0000-0000-000000001105",
+      "spec_version": "2.1",
+      "name": "Ingress Tool Transfer",
+      "description": "Adversaries may transfer tools or other files from an external system into a compromised environment. Files may be copied from an external adversary-controlled system to the victim network through the command and control channel or through alternate protocols.",
+      "kill_chain_phases": [
+        { "kill_chain_name": "mitre-attack", "phase_name": "command-and-control" }
+      ],
+      "x_mitre_platforms": ["Linux", "macOS", "Windows"],
+      "x_mitre_detection": "Monitor for file creation and files transferred into the network. Unusual processes with external network connections creating files on-system may be suspicious.",
+      "x_mitre_is_subtechnique": false,
+      "x_mitre_data_sources": [
+        "File: File Creation",
+        "Network Traffic: Network Connection Creation",
+        "Network Traffic: Network Traffic Flow"
+      ],
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1105",
+          "url": "https://attack.mitre.org/techniques/T1105"
+        }
+      ]
+    },
+    {
+      "type": "course-of-action",
+      "id": "course-of-action--00000000-0000-0000-0000-000000001038",
+      "spec_version": "2.1",
+      "name": "Execution Prevention",
+      "description": "Block execution of code on a system through application control, and/or script blocking.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "M1038",
+          "url": "https://attack.mitre.org/mitigations/M1038"
+        }
+      ]
+    },
+    {
+      "type": "course-of-action",
+      "id": "course-of-action--00000000-0000-0000-0000-000000001042",
+      "spec_version": "2.1",
+      "name": "Disable or Remove Feature or Program",
+      "description": "Remove or deny access to unnecessary and potentially vulnerable software to prevent abuse by adversaries.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "M1042",
+          "url": "https://attack.mitre.org/mitigations/M1042"
+        }
+      ]
+    },
+    {
+      "type": "intrusion-set",
+      "id": "intrusion-set--00000000-0000-0000-0000-000000000007",
+      "spec_version": "2.1",
+      "name": "APT28",
+      "description": "APT28 is a threat group that has been attributed to a nation-state and has been active since at least 2004.",
+      "aliases": ["APT28", "Fancy Bear", "Sofacy", "Sednit", "STRONTIUM"],
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "G0007",
+          "url": "https://attack.mitre.org/groups/G0007"
+        }
+      ]
+    },
+    {
+      "type": "tool",
+      "id": "tool--00000000-0000-0000-0000-000000000154",
+      "spec_version": "2.1",
+      "name": "Cobalt Strike",
+      "description": "Cobalt Strike is a commercial, full-featured, remote access tool that is frequently abused by adversaries to emulate post-exploitation actions.",
+      "x_mitre_aliases": ["Cobalt Strike"],
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "S0154",
+          "url": "https://attack.mitre.org/software/S0154"
+        }
+      ]
+    },
+    {
+      "type": "malware",
+      "id": "malware--00000000-0000-0000-0000-000000000367",
+      "spec_version": "2.1",
+      "name": "Emotet",
+      "description": "Emotet is a modular malware variant historically used as a banking Trojan and later as a downloader/loader for other malware families.",
+      "is_family": true,
+      "x_mitre_aliases": ["Emotet", "Geodo"],
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "S0367",
+          "url": "https://attack.mitre.org/software/S0367"
+        }
+      ]
+    },
+    {
+      "type": "campaign",
+      "id": "campaign--00000000-0000-0000-0000-000000000011",
+      "spec_version": "2.1",
+      "name": "Sample Intrusion Campaign",
+      "description": "Illustrative campaign included in the curated sample to exercise campaign relationships. Replace with the official ATT&CK bundle for real campaign data.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "C0011",
+          "url": "https://attack.mitre.org/campaigns/C0011"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--00000000-0000-0000-0000-000000000001",
+      "spec_version": "2.1",
+      "relationship_type": "subtechnique-of",
+      "source_ref": "attack-pattern--00000000-0000-0000-0000-000000059001",
+      "target_ref": "attack-pattern--00000000-0000-0000-0000-000000001059"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--00000000-0000-0000-0000-000000000002",
+      "spec_version": "2.1",
+      "relationship_type": "mitigates",
+      "source_ref": "course-of-action--00000000-0000-0000-0000-000000001038",
+      "target_ref": "attack-pattern--00000000-0000-0000-0000-000000001059"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--00000000-0000-0000-0000-000000000003",
+      "spec_version": "2.1",
+      "relationship_type": "mitigates",
+      "source_ref": "course-of-action--00000000-0000-0000-0000-000000001042",
+      "target_ref": "attack-pattern--00000000-0000-0000-0000-000000059001"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--00000000-0000-0000-0000-000000000004",
+      "spec_version": "2.1",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--00000000-0000-0000-0000-000000000007",
+      "target_ref": "attack-pattern--00000000-0000-0000-0000-000000001059"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--00000000-0000-0000-0000-000000000005",
+      "spec_version": "2.1",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--00000000-0000-0000-0000-000000000007",
+      "target_ref": "attack-pattern--00000000-0000-0000-0000-000000001105"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--00000000-0000-0000-0000-000000000006",
+      "spec_version": "2.1",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--00000000-0000-0000-0000-000000000007",
+      "target_ref": "tool--00000000-0000-0000-0000-000000000154"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--00000000-0000-0000-0000-000000000007",
+      "spec_version": "2.1",
+      "relationship_type": "uses",
+      "source_ref": "tool--00000000-0000-0000-0000-000000000154",
+      "target_ref": "attack-pattern--00000000-0000-0000-0000-000000001059"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--00000000-0000-0000-0000-000000000008",
+      "spec_version": "2.1",
+      "relationship_type": "uses",
+      "source_ref": "tool--00000000-0000-0000-0000-000000000154",
+      "target_ref": "attack-pattern--00000000-0000-0000-0000-000000001105"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--00000000-0000-0000-0000-000000000009",
+      "spec_version": "2.1",
+      "relationship_type": "uses",
+      "source_ref": "malware--00000000-0000-0000-0000-000000000367",
+      "target_ref": "attack-pattern--00000000-0000-0000-0000-000000059001"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--00000000-0000-0000-0000-000000000010",
+      "spec_version": "2.1",
+      "relationship_type": "uses",
+      "source_ref": "campaign--00000000-0000-0000-0000-000000000011",
+      "target_ref": "attack-pattern--00000000-0000-0000-0000-000000001059"
+    }
+  ]
+}

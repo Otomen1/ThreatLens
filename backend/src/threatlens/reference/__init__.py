@@ -15,6 +15,8 @@ existing ``providers.aggregate`` — no new aggregation engine.
 from __future__ import annotations
 
 from .base import ReferenceProvider
+from .defaults import build_default_reference_registry, build_default_reference_router
+from .mitre_attack import MitreAttackDataset, MitreAttackProvider
 from .models import ReferenceMetadata
 from .registry import DuplicateReferenceProviderError, ReferenceRegistry
 from .router import ReferenceRouter
@@ -22,9 +24,13 @@ from .types import ReferenceCapability
 
 __all__ = [
     "DuplicateReferenceProviderError",
+    "MitreAttackDataset",
+    "MitreAttackProvider",
     "ReferenceCapability",
     "ReferenceMetadata",
     "ReferenceProvider",
     "ReferenceRegistry",
     "ReferenceRouter",
+    "build_default_reference_registry",
+    "build_default_reference_router",
 ]
