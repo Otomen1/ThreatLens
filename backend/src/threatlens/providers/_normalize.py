@@ -45,3 +45,13 @@ def parse_datetime(
         except ValueError:
             continue
     return None
+
+
+def parse_iso_datetime(value: str | None) -> datetime | None:
+    """Parse an ISO-8601 timestamp (e.g. AbuseIPDB's ``lastReportedAt``)."""
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError:
+        return None

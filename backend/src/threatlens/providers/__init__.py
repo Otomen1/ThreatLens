@@ -10,6 +10,7 @@ wired in one place — ``defaults.build_default_registry``.
 
 from __future__ import annotations
 
+from .abuseipdb import AbuseIPDBProvider
 from .aggregation import (
     AggregatedResult,
     AttributedEvidence,
@@ -42,6 +43,7 @@ from .types import ProviderAuthType, ProviderCapability, ProviderStatus
 from .urlhaus import UrlhausProvider
 
 __all__ = [
+    "AbuseIPDBProvider",
     "AggregatedResult",
     "AttributedEvidence",
     "AttributedReference",

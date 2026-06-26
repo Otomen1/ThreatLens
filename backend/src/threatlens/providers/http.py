@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any
 
@@ -71,19 +72,39 @@ class HttpClient:
         data: dict[str, str],
         headers: dict[str, str] | None = None,
     ) -> HttpResponse:
-        """POST form-encoded ``data``; retry transient failures, then raise.
+        """POST form-encoded ``data``; retry transient failures, then raise."""
+        merged_headers = {"User-Agent": _USER_AGENT, **(headers or {})}
+        return await self._send(lambda client: client.post(url, data=data, headers=merged_headers))
+
+    async def get(
+        self,
+        url: str,
+        *,
+        params: dict[str, str] | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> HttpResponse:
+        """GET ``url`` with query ``params``; retry transient failures, then raise."""
+        merged_headers = {"User-Agent": _USER_AGENT, **(headers or {})}
+        return await self._send(
+            lambda client: client.get(url, params=params, headers=merged_headers)
+        )
+
+    async def _send(
+        self,
+        request: Callable[[httpx.AsyncClient], Awaitable[httpx.Response]],
+    ) -> HttpResponse:
+        """Run ``request`` with timeout + bounded retry-with-backoff.
 
         Returns the response for any non-5xx status (4xx included — those are
         definitive answers the provider maps). Raises :class:`ProviderTimeout`
         or :class:`ProviderNetworkError` if a transient failure persists.
         """
-        merged_headers = {"User-Agent": _USER_AGENT, **(headers or {})}
         last_error: ProviderHttpError | None = None
 
         async with httpx.AsyncClient(timeout=self._timeout, transport=self._transport) as client:
             for attempt in range(self._max_retries + 1):
                 try:
-                    response = await client.post(url, data=data, headers=merged_headers)
+                    response = await request(client)
                 except httpx.TimeoutException as exc:
                     last_error = ProviderTimeout(str(exc) or "request timed out")
                 except httpx.TransportError as exc:

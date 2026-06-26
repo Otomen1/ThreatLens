@@ -7,6 +7,7 @@ phase is a one-line change here and nowhere else.
 
 from __future__ import annotations
 
+from .abuseipdb import AbuseIPDBProvider
 from .malwarebazaar import MalwareBazaarProvider
 from .registry import ProviderRegistry
 from .router import ProviderRouter
@@ -18,6 +19,7 @@ def build_default_registry() -> ProviderRegistry:
     registry = ProviderRegistry()
     registry.register(MalwareBazaarProvider())
     registry.register(UrlhausProvider())
+    registry.register(AbuseIPDBProvider())
     return registry
 
 
