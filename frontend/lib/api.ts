@@ -108,26 +108,46 @@ export interface ResultError {
   detail: string | null;
 }
 
-export interface IntelligenceResult {
+// Aggregated across all providers; the client never sees per-provider payloads.
+
+export interface ProviderSummary {
   provider: string;
   provider_display_name: string | null;
+  status: ResultStatus;
+  reputation: Reputation | null;
+  error: ResultError | null;
+}
+
+export interface AttributedEvidence {
+  evidence: Evidence;
+  sources: string[];
+}
+
+export interface AttributedRelationship {
+  relationship: Relationship;
+  sources: string[];
+}
+
+export interface AttributedReference {
+  reference: Reference;
+  sources: string[];
+}
+
+export interface AggregatedResult {
   entity_type: EntityType;
   entity_value: string;
-  status: ResultStatus;
-  error: ResultError | null;
-  reputation: Reputation | null;
-  evidence: Evidence[];
-  relationships: Relationship[];
-  references: Reference[];
+  providers: ProviderSummary[];
+  evidence: AttributedEvidence[];
+  relationships: AttributedRelationship[];
+  references: AttributedReference[];
   tags: string[];
-  fetched_at: string | null;
   metadata: Record<string, unknown>;
 }
 
 export interface IntelligenceResponse {
   search_id: string;
   entity: Entity;
-  results: IntelligenceResult[];
+  intelligence: AggregatedResult;
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";

@@ -10,6 +10,14 @@ wired in one place — ``defaults.build_default_registry``.
 
 from __future__ import annotations
 
+from .aggregation import (
+    AggregatedResult,
+    AttributedEvidence,
+    AttributedReference,
+    AttributedRelationship,
+    ProviderSummary,
+    aggregate,
+)
 from .base import IntelligenceProvider
 from .defaults import build_default_registry, build_default_router
 from .http import HttpClient, ProviderHttpError, ProviderNetworkError, ProviderTimeout
@@ -33,6 +41,10 @@ from .router import ProviderRouter
 from .types import ProviderAuthType, ProviderCapability, ProviderStatus
 
 __all__ = [
+    "AggregatedResult",
+    "AttributedEvidence",
+    "AttributedReference",
+    "AttributedRelationship",
     "DuplicateProviderError",
     "Evidence",
     "EvidenceType",
@@ -49,6 +61,7 @@ __all__ = [
     "ProviderRegistry",
     "ProviderRouter",
     "ProviderStatus",
+    "ProviderSummary",
     "ProviderTimeout",
     "Reference",
     "Relationship",
@@ -58,6 +71,7 @@ __all__ = [
     "ReputationLevel",
     "ResultError",
     "ResultStatus",
+    "aggregate",
     "build_default_registry",
     "build_default_router",
 ]

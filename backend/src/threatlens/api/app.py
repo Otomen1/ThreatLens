@@ -16,7 +16,7 @@ from uuid import uuid4
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from ..providers import IntelligenceResult, ProviderRouter, build_default_router
+from ..providers import ProviderRouter, aggregate, build_default_router
 from ..search import detect
 from .schemas import DetectRequest, DetectResponse, IntelligenceResponse
 
@@ -77,15 +77,18 @@ async def gather_intelligence(
     request: DetectRequest,
     router: Annotated[ProviderRouter, Depends(get_provider_router)],
 ) -> IntelligenceResponse:
-    """Detect the entity, then run every capable provider concurrently.
+    """Detect the entity, run every capable provider concurrently, and aggregate.
 
-    Returns one :class:`IntelligenceResult` per routed provider. Providers that
-    fail return a failure result rather than raising, so a partial outage never
-    fails the request. No merging or scoring happens here.
+    Providers that fail return a failure result rather than raising, so a partial
+    outage never fails the request. The aggregator merges all results into one
+    canonical response (attribution + de-duplicated findings); no scoring here.
     """
     entity = detect(request.query)
     providers = router.route(entity)
-    results: list[IntelligenceResult] = list(
-        await asyncio.gather(*(provider.search(entity) for provider in providers))
+    results = await asyncio.gather(*(provider.search(entity) for provider in providers))
+    intelligence = aggregate(
+        results, entity_type=entity.type, entity_value=entity.value
     )
-    return IntelligenceResponse(search_id=uuid4(), entity=entity, results=results)
+    return IntelligenceResponse(
+        search_id=uuid4(), entity=entity, intelligence=intelligence
+    )
