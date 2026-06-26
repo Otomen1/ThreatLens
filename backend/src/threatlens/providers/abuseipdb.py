@@ -110,12 +110,7 @@ class AbuseIPDBProvider(IntelligenceProvider):
     async def search(self, entity: Entity) -> IntelligenceResult:
         """Look up ``entity`` and return a canonical result (never raises)."""
         if not self.supports(entity.type):
-            return IntelligenceResult.unsupported(
-                provider=_NAME,
-                provider_display_name=_DISPLAY,
-                entity_type=entity.type,
-                entity_value=entity.value,
-            )
+            return self._unsupported(entity.type, entity.value)
 
         try:
             ip = ipaddress.ip_address(entity.value)
@@ -126,12 +121,7 @@ class AbuseIPDBProvider(IntelligenceProvider):
 
         if not ip.is_global:
             # Private/reserved/loopback/link-local: no public reputation applies.
-            return IntelligenceResult.not_found(
-                provider=_NAME,
-                provider_display_name=_DISPLAY,
-                entity_type=entity.type,
-                entity_value=entity.value,
-            )
+            return self._not_found(entity.type, entity.value)
 
         if not self._api_key:
             return self._fail(
@@ -278,26 +268,6 @@ class AbuseIPDBProvider(IntelligenceProvider):
             tags=categories,
             fetched_at=datetime.now(UTC),
             metadata=_metadata(data),
-        )
-
-    def _fail(
-        self,
-        entity: Entity,
-        status: ResultStatus,
-        message: str,
-        *,
-        retryable: bool = False,
-        detail: str | None = None,
-    ) -> IntelligenceResult:
-        return IntelligenceResult.failure(
-            provider=_NAME,
-            provider_display_name=_DISPLAY,
-            entity_type=entity.type,
-            entity_value=entity.value,
-            message=message,
-            status=status,
-            retryable=retryable,
-            detail=detail,
         )
 
 

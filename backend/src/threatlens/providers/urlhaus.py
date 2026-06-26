@@ -82,12 +82,7 @@ class UrlhausProvider(IntelligenceProvider):
     async def search(self, entity: Entity) -> IntelligenceResult:
         """Look up ``entity`` and return a canonical result (never raises)."""
         if not self.supports(entity.type):
-            return IntelligenceResult.unsupported(
-                provider=_NAME,
-                provider_display_name=_DISPLAY,
-                entity_type=entity.type,
-                entity_value=entity.value,
-            )
+            return self._unsupported(entity.type, entity.value)
 
         is_url = entity.type is EntityType.URL
         endpoint = _URL_ENDPOINT if is_url else _HOST_ENDPOINT
@@ -325,34 +320,6 @@ class UrlhausProvider(IntelligenceProvider):
     def _references(self, payload: Mapping[str, Any], title: str) -> list[Reference]:
         ref = opt_str(payload, "urlhaus_reference")
         return [Reference(title=title, url=ref)] if ref else []
-
-    def _not_found(self, entity_type: EntityType, entity_value: str) -> IntelligenceResult:
-        return IntelligenceResult.not_found(
-            provider=_NAME,
-            provider_display_name=_DISPLAY,
-            entity_type=entity_type,
-            entity_value=entity_value,
-        )
-
-    def _fail(
-        self,
-        entity: Entity,
-        status: ResultStatus,
-        message: str,
-        *,
-        retryable: bool = False,
-        detail: str | None = None,
-    ) -> IntelligenceResult:
-        return IntelligenceResult.failure(
-            provider=_NAME,
-            provider_display_name=_DISPLAY,
-            entity_type=entity.type,
-            entity_value=entity.value,
-            message=message,
-            status=status,
-            retryable=retryable,
-            detail=detail,
-        )
 
 
 def _as_list(value: Any) -> list[Any]:

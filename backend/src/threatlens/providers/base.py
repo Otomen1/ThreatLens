@@ -16,7 +16,7 @@ from typing import Any
 from ..entities.models import Entity
 from ..entities.types import EntityType
 from .models import ProviderHealth, ProviderMetadata
-from .results import IntelligenceResult
+from .results import IntelligenceResult, ResultStatus
 from .types import ProviderCapability, ProviderStatus
 
 
@@ -56,6 +56,50 @@ class IntelligenceProvider(ABC):
     def provider_info(self) -> ProviderMetadata:
         """Return this provider's metadata."""
         return self.metadata
+
+    # --- result construction helpers (shared by every provider) ---
+
+    def _fail(
+        self,
+        entity: Entity,
+        status: ResultStatus,
+        message: str,
+        *,
+        retryable: bool = False,
+        detail: str | None = None,
+    ) -> IntelligenceResult:
+        """Build a failed result attributed to this provider."""
+        info = self.metadata
+        return IntelligenceResult.failure(
+            provider=info.name,
+            provider_display_name=info.display_name,
+            entity_type=entity.type,
+            entity_value=entity.value,
+            message=message,
+            status=status,
+            retryable=retryable,
+            detail=detail,
+        )
+
+    def _not_found(self, entity_type: EntityType, entity_value: str) -> IntelligenceResult:
+        """Build a 'no data' result attributed to this provider."""
+        info = self.metadata
+        return IntelligenceResult.not_found(
+            provider=info.name,
+            provider_display_name=info.display_name,
+            entity_type=entity_type,
+            entity_value=entity_value,
+        )
+
+    def _unsupported(self, entity_type: EntityType, entity_value: str) -> IntelligenceResult:
+        """Build an 'unsupported entity type' result attributed to this provider."""
+        info = self.metadata
+        return IntelligenceResult.unsupported(
+            provider=info.name,
+            provider_display_name=info.display_name,
+            entity_type=entity_type,
+            entity_value=entity_value,
+        )
 
     async def health(self) -> ProviderHealth:
         """Report provider health.
