@@ -13,13 +13,13 @@ still runs and degrades gracefully (an auth rejection becomes ``UNAUTHORIZED``).
 
 from __future__ import annotations
 
-import os
 from collections.abc import Callable, Mapping
 from datetime import UTC, datetime
 from typing import Any
 
 from ..entities.models import Entity
 from ..entities.types import EntityType
+from ._auth import abuse_ch_auth_key
 from ._normalize import opt_str, parse_datetime, str_list
 from .base import IntelligenceProvider
 from .http import HttpClient, ProviderNetworkError, ProviderTimeout
@@ -43,8 +43,6 @@ _DISPLAY = "URLhaus"
 _URL_ENDPOINT = "https://urlhaus-api.abuse.ch/v1/url/"
 _HOST_ENDPOINT = "https://urlhaus-api.abuse.ch/v1/host/"
 _SUPPORTED = frozenset({EntityType.URL, EntityType.DOMAIN})
-_AUTH_ENV = "URLHAUS_AUTH_KEY"
-_SHARED_AUTH_ENV = "ABUSE_CH_AUTH_KEY"
 
 _Builder = Callable[[EntityType, str, Mapping[str, Any]], IntelligenceResult]
 
@@ -59,11 +57,7 @@ class UrlhausProvider(IntelligenceProvider):
         http_client: HttpClient | None = None,
         enabled: bool = True,
     ) -> None:
-        self._auth_key = (
-            auth_key
-            if auth_key is not None
-            else os.getenv(_AUTH_ENV) or os.getenv(_SHARED_AUTH_ENV)
-        )
+        self._auth_key = auth_key if auth_key is not None else abuse_ch_auth_key()
         self._http = http_client or HttpClient()
         self._enabled = enabled
 
