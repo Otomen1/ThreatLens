@@ -113,6 +113,23 @@ class IntelligenceProvider(ABC):
         )
         return ProviderHealth(name=self.name, status=status)
 
+    async def safe_search(self, entity: Entity) -> IntelligenceResult:
+        """Run :meth:`search`, converting any unexpected exception into a result.
+
+        Providers are contracted never to raise, but this enforces the invariant
+        at the framework boundary: a single buggy provider can never fail (or
+        crash) a search. Orchestration should call this, not ``search`` directly.
+        """
+        try:
+            return await self.search(entity)
+        except Exception as exc:
+            return self._fail(
+                entity,
+                ResultStatus.ERROR,
+                "Provider raised an unexpected error",
+                detail=str(exc),
+            )
+
     # --- implemented by concrete providers in later phases ---
 
     async def search(self, entity: Entity) -> IntelligenceResult:

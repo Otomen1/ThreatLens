@@ -22,6 +22,7 @@ from threatlens.providers import (
     ProviderRegistry,
     ProviderRouter,
     ProviderStatus,
+    ResultStatus,
 )
 
 
@@ -299,3 +300,13 @@ def test_search_and_normalize_are_stubbed() -> None:
         asyncio.run(provider.search(entity_of(EntityType.IPV4)))
     with pytest.raises(NotImplementedError):
         asyncio.run(provider.normalize({}))
+
+
+def test_safe_search_converts_provider_errors_to_failures() -> None:
+    # The fake provider inherits the raising search() stub; safe_search must
+    # convert that into a structured failure instead of propagating.
+    provider = make_provider("boom", types={EntityType.IPV4})
+    result = asyncio.run(provider.safe_search(entity_of(EntityType.IPV4, "8.8.8.8")))
+    assert result.status is ResultStatus.ERROR
+    assert result.provider == "boom"
+    assert result.error is not None

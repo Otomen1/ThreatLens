@@ -96,7 +96,7 @@ async def gather_intelligence(
     """
     entity = detect(request.query)
     providers = router.route(entity)
-    results = await asyncio.gather(*(provider.search(entity) for provider in providers))
+    results = await asyncio.gather(*(provider.safe_search(entity) for provider in providers))
     intelligence = aggregate(
         results, entity_type=entity.type, entity_value=entity.value
     )
