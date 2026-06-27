@@ -81,11 +81,11 @@ class TestReason:
         summary = reason(_entity(), ti, _empty(), now=NOW)
         assert summary.overall_confidence.band is not ConfidenceBand.INSUFFICIENT
         assert summary.overall_confidence.score > 0
-        # 3.1b: a malicious IP now yields a finding; recommendations stay empty.
+        # 3.1c: a malicious IP yields a finding and its recommendations.
         assert any(
             FindingCategory.MALICIOUS_INFRASTRUCTURE in f.categories for f in summary.findings
         )
-        assert summary.recommendations == []
+        assert summary.recommendations
 
     def test_deterministic_for_fixed_now(self) -> None:
         ti = AggregatedResult(
@@ -124,9 +124,9 @@ class TestInvestigateSummaryIntegration:
             "generated_at",
         ):
             assert key in summary
-        # 3.1b: T1059 now produces an attack-technique finding; recommendations empty.
+        # 3.1c: T1059 produces an attack-technique finding and its recommendations.
         assert len(summary["findings"]) >= 1
-        assert summary["recommendations"] == []
+        assert len(summary["recommendations"]) >= 1
         assert summary["engine_version"] == ENGINE_VERSION
 
     def test_existing_fields_unchanged(self) -> None:

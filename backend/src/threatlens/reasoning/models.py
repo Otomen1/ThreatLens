@@ -166,7 +166,13 @@ class Confidence(BaseModel):
 
 
 class Recommendation(BaseModel):
-    """A deterministic, finding-owned recommended action (model only in 3.1a)."""
+    """A deterministic, finding-owned recommended action.
+
+    ``finding_ids`` is empty on a finding-owned recommendation (it lives inside
+    its Finding, which is its context). It is populated only on the
+    InvestigationSummary rollup, where recommendations are detached from their
+    findings and need to retain provenance back to the originating finding ids.
+    """
 
     model_config = ConfigDict(frozen=True)
 
@@ -177,6 +183,7 @@ class Recommendation(BaseModel):
     target_value: str = Field(min_length=1)
     rationale: str
     rule_id: str
+    finding_ids: list[str] = Field(default_factory=list)  # populated only in the rollup
 
 
 # --------------------------------------------------------------------------- #

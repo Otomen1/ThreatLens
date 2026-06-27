@@ -328,4 +328,5 @@ class TestEndToEnd:
         body = TestClient(app).post("/api/v1/investigate", json={"query": "CVE-2021-44228"}).json()
         summary = body["investigation_summary"]
         assert summary["posture"] == int(Severity.CRITICAL)
-        assert summary["recommendations"] == []
+        # 3.1c populates recommendations; finding generation itself is unchanged.
+        assert len(summary["recommendations"]) >= 1

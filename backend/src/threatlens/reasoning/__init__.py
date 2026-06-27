@@ -27,16 +27,26 @@ from .models import (
     Severity,
     WeightedEvidence,
 )
+from .recommendations import (
+    DEFAULT_RECOMMENDATION_RULES,
+    DuplicateRecommendationRuleError,
+    RecommendationEngine,
+    RecommendationRegistry,
+    RecommendationRule,
+    build_default_recommendation_registry,
+)
 from .registry import DuplicateRuleError, RuleRegistry, build_default_rule_registry
 from .rules import DEFAULT_FINDING_RULES, FindingDraft, FindingRule, RuleContext
 
 __all__ = [
     "DEFAULT_FINDING_RULES",
+    "DEFAULT_RECOMMENDATION_RULES",
     "ENGINE_VERSION",
     "Confidence",
     "ConfidenceBand",
     "ConfidenceFactor",
     "ConfidenceScorer",
+    "DuplicateRecommendationRuleError",
     "DuplicateRuleError",
     "EvidenceAssembler",
     "EvidenceDimension",
@@ -51,10 +61,14 @@ __all__ = [
     "Recommendation",
     "RecommendationAction",
     "RecommendationCategory",
+    "RecommendationEngine",
+    "RecommendationRegistry",
+    "RecommendationRule",
     "RuleContext",
     "RuleRegistry",
     "Severity",
     "WeightedEvidence",
+    "build_default_recommendation_registry",
     "build_default_rule_registry",
     "compute_finding_id",
     "overall_posture",

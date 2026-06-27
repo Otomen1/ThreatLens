@@ -1,15 +1,16 @@
 """The reasoning entry point — assembles evidence, generates findings, summarizes.
 
 ``reason()`` is the pure, deterministic public contract of the Investigation
-Intelligence Engine. As of Phase 3.1b it:
+Intelligence Engine. As of Phase 3.1c it:
 
 1. assembles the weighted evidence ledger (EvidenceAssembler),
 2. generates findings via the FindingEngine (typed rules + merge + per-finding
    confidence from the unchanged ConfidenceScorer),
-3. derives the overall posture and headline confidence,
+3. attaches finding-owned recommendations (RecommendationEngine, findings only),
+4. derives the overall posture, headline confidence, and the recommendation rollup,
 
-and returns an InvestigationSummary. Recommendations remain empty until 3.1c;
-InvestigationContext-aware priority arrives in 3.1d.
+and returns an InvestigationSummary. InvestigationContext-aware priority arrives
+in 3.1d.
 
 Determinism: for identical inputs *and* an identical ``now``, the output is
 identical. ``now`` is injectable so tests are fully reproducible.
@@ -25,9 +26,10 @@ from .confidence import ConfidenceScorer
 from .evidence import EvidenceAssembler
 from .findings import FindingEngine, overall_posture
 from .models import FindingCategory, InvestigationSummary
+from .recommendations import RecommendationEngine, build_default_recommendation_registry
 from .registry import build_default_rule_registry
 
-ENGINE_VERSION = "3.1b"
+ENGINE_VERSION = "3.1c"
 
 
 def reason(
@@ -41,6 +43,13 @@ def reason(
     moment = now or datetime.now(UTC)
     ledger = EvidenceAssembler().assemble(ti, knowledge, now=moment)
     findings = FindingEngine(build_default_rule_registry()).generate(entity, ledger, now=moment)
+
+    # Attach finding-owned recommendations (downstream consumer of findings only).
+    rec_engine = RecommendationEngine(build_default_recommendation_registry())
+    findings = [
+        finding.model_copy(update={"recommendations": rec_engine.for_finding(finding)})
+        for finding in findings
+    ]
 
     if findings:
         # Findings are sorted worst-first; the headline finding drives confidence.
@@ -60,7 +69,7 @@ def reason(
         overall_confidence=overall_confidence,
         categories=categories,
         findings=findings,
-        recommendations=[],  # 3.1c
+        recommendations=rec_engine.rollup(findings),
         engine_version=ENGINE_VERSION,
         generated_at=moment,
     )
