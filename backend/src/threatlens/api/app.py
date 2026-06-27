@@ -17,6 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from ..investigation import InvestigationService
 from ..providers import build_default_router
+from ..reasoning import reason
 from ..reference import build_default_reference_router
 from ..search import detect
 from .schemas import DetectRequest, DetectResponse, InvestigationResponse
@@ -100,9 +101,11 @@ async def investigate_entity(
     """
     entity = detect(request.query)
     threat_intelligence, knowledge = await service.investigate(entity)
+    investigation_summary = reason(entity, threat_intelligence, knowledge)
     return InvestigationResponse(
         investigation_id=uuid4(),
         entity=entity,
         threat_intelligence=threat_intelligence,
         knowledge=knowledge,
+        investigation_summary=investigation_summary,
     )

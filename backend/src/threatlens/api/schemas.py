@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from ..entities.models import Entity
 from ..providers import AggregatedResult
+from ..reasoning import InvestigationSummary
 
 # Generous upper bound for a single query (long URLs, registry keys) while still
 # rejecting obvious abuse and keeping request handling cheap.
@@ -49,9 +50,14 @@ class InvestigationResponse(BaseModel):
     findings (MITRE ATT&CK, CVE/NVD, …). Either may be empty when no providers
     support the entity type — the client hides those sections rather than
     receiving an error.
+
+    ``investigation_summary`` is the deterministic Investigation Intelligence
+    Engine output (Phase 3). In 3.1a it carries the evidence-derived overall
+    confidence; findings and recommendations arrive in later slices.
     """
 
     investigation_id: UUID
     entity: Entity
     threat_intelligence: AggregatedResult
     knowledge: AggregatedResult
+    investigation_summary: InvestigationSummary
