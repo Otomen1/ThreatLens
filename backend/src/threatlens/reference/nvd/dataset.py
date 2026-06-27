@@ -294,7 +294,7 @@ def _parse_time(value: Any) -> datetime | None:
         return None
     for fmt in ("%Y.%m.%d", "%Y-%m-%d", "%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S"):
         try:
-            return datetime.strptime(text[: len(fmt)], fmt)
+            return datetime.strptime(text, fmt)
         except ValueError:
             continue
     return None
