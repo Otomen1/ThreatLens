@@ -117,6 +117,7 @@ class RelationshipTargetType(StrEnum):
     THREAT_ACTOR = "threat_actor"
     CAMPAIGN = "campaign"
     VULNERABILITY = "vulnerability"
+    WEAKNESS = "weakness"
     ATTACK_PATTERN = "attack_pattern"
     INFRASTRUCTURE = "infrastructure"
     TOOL = "tool"

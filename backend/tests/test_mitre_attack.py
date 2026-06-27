@@ -299,8 +299,7 @@ async def test_safe_lookup_returns_result_without_raising() -> None:
 def test_registered_in_default_reference_registry() -> None:
     registry = build_default_reference_registry()
     assert "mitre_attack" in registry
-    names = [p.name for p in registry.providers]
-    assert names == ["mitre_attack"]
+    assert "mitre_attack" in {p.name for p in registry.providers}
 
 
 # --- dataset unit & normalize() --------------------------------------------- #

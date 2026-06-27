@@ -251,6 +251,24 @@ export function extractKeyAttributes(
         attrs.push({ label: "Mitigations", value: String(mitigations.length) });
       }
     }
+  } else if (entity.type === "cve") {
+    const meta = kb.metadata["nvd"] as Record<string, unknown> | undefined;
+    if (meta) {
+      const cvss = meta.cvss as Record<string, unknown> | undefined;
+      if (cvss) {
+        attrs.push({ label: "CVSS Score", value: `${cvss.base_score} (${cvss.base_severity})` });
+        if (cvss.attack_vector) attrs.push({ label: "Attack Vector", value: String(cvss.attack_vector) });
+        if (cvss.attack_complexity) attrs.push({ label: "Attack Complexity", value: String(cvss.attack_complexity) });
+        if (cvss.privileges_required) attrs.push({ label: "Privileges Required", value: String(cvss.privileges_required) });
+        if (cvss.user_interaction) attrs.push({ label: "User Interaction", value: String(cvss.user_interaction) });
+      }
+      if (meta.published) attrs.push({ label: "Published", value: String(meta.published) });
+      if (meta.last_modified) attrs.push({ label: "Last Modified", value: String(meta.last_modified) });
+      const cwes = meta.cwes as string[] | undefined;
+      if (cwes?.length) attrs.push({ label: "Weaknesses", value: cwes.join(", ") });
+      const products = meta.affected_products as unknown[] | undefined;
+      if (products?.length) attrs.push({ label: "Affected Products", value: String(products.length) });
+    }
   } else if (entity.type === "threat_actor" || entity.type === "malware_family") {
     if (kb.tags.length > 0) {
       attrs.push({ label: "Aliases", value: kb.tags.slice(0, 6).join(", ") });
@@ -290,6 +308,7 @@ export function formatTargetType(targetType: string): string {
     tool: "Tool",
     campaign: "Campaign",
     vulnerability: "CVE",
+    weakness: "CWE",
     domain: "Domain",
     ipv4: "IPv4",
     ipv6: "IPv6",

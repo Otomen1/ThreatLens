@@ -18,6 +18,7 @@ from .base import ReferenceProvider
 from .defaults import build_default_reference_registry, build_default_reference_router
 from .mitre_attack import MitreAttackDataset, MitreAttackProvider
 from .models import ReferenceMetadata
+from .nvd import NvdDataset, NvdProvider
 from .registry import DuplicateReferenceProviderError, ReferenceRegistry
 from .router import ReferenceRouter
 from .types import ReferenceCapability
@@ -26,6 +27,8 @@ __all__ = [
     "DuplicateReferenceProviderError",
     "MitreAttackDataset",
     "MitreAttackProvider",
+    "NvdDataset",
+    "NvdProvider",
     "ReferenceCapability",
     "ReferenceMetadata",
     "ReferenceProvider",
