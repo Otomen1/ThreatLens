@@ -20,7 +20,7 @@ const IOC_SET: ReadonlySet<EntityType> = new Set([
 ]);
 
 const REFERENCE_SET: ReadonlySet<EntityType> = new Set([
-  "mitre_technique", "threat_actor", "malware_family", "cve",
+  "mitre_technique", "threat_actor", "malware_family", "cve", "cwe", "capec",
 ]);
 
 export function isIocType(type: EntityType): boolean {
@@ -44,6 +44,7 @@ export const ENTITY_LABELS: Record<EntityType, string> = {
   sha256: "SHA-256 Hash",
   cve: "CVE",
   cwe: "CWE",
+  capec: "CAPEC",
   mitre_technique: "MITRE ATT&CK Technique",
   registry_key: "Registry Key",
   process_name: "Process Name",
@@ -287,6 +288,25 @@ export function extractKeyAttributes(
       const capecs = meta.related_attack_patterns as string[] | undefined;
       if (capecs?.length)
         attrs.push({ label: "Related CAPEC", value: capecs.slice(0, 4).join(", ") });
+    }
+  } else if (entity.type === "capec") {
+    const meta = kb.metadata["capec"] as Record<string, unknown> | undefined;
+    if (meta) {
+      if (meta.typical_severity)
+        attrs.push({ label: "Severity", value: String(meta.typical_severity) });
+      if (meta.likelihood_of_attack)
+        attrs.push({ label: "Likelihood", value: String(meta.likelihood_of_attack) });
+      if (meta.abstraction)
+        attrs.push({ label: "Abstraction", value: String(meta.abstraction) });
+      const weaknesses = meta.related_weaknesses as string[] | undefined;
+      if (weaknesses?.length)
+        attrs.push({ label: "Weaknesses", value: weaknesses.slice(0, 4).join(", ") });
+      const techniques = meta.related_techniques as string[] | undefined;
+      if (techniques?.length)
+        attrs.push({ label: "ATT&CK Techniques", value: techniques.slice(0, 4).join(", ") });
+      const mitigations = meta.mitigations as unknown[] | undefined;
+      if (mitigations?.length)
+        attrs.push({ label: "Mitigations", value: String(mitigations.length) });
     }
   } else if (entity.type === "threat_actor" || entity.type === "malware_family") {
     if (kb.tags.length > 0) {

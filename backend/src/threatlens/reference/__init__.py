@@ -15,6 +15,7 @@ existing ``providers.aggregate`` — no new aggregation engine.
 from __future__ import annotations
 
 from .base import ReferenceProvider
+from .capec import CapecDataset, CapecProvider
 from .cwe import CweDataset, CweProvider
 from .defaults import build_default_reference_registry, build_default_reference_router
 from .mitre_attack import MitreAttackDataset, MitreAttackProvider
@@ -25,6 +26,8 @@ from .router import ReferenceRouter
 from .types import ReferenceCapability
 
 __all__ = [
+    "CapecDataset",
+    "CapecProvider",
     "CweDataset",
     "CweProvider",
     "DuplicateReferenceProviderError",

@@ -15,6 +15,7 @@ export type EntityType =
   | "sha256"
   | "cve"
   | "cwe"
+  | "capec"
   | "mitre_technique"
   | "registry_key"
   | "process_name"

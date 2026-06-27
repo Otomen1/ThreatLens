@@ -1,0 +1,377 @@
+{
+  "_meta": {
+    "version": "3.9",
+    "release_date": "2023.01.24",
+    "source": "https://capec.mitre.org/data/xml/capec_latest.xml"
+  },
+  "attack_patterns": [
+    {
+      "id": 66,
+      "name": "SQL Injection",
+      "abstraction": "Standard",
+      "description": "This attack exploits target software that constructs SQL statements based on user input. An attacker crafts input strings so that when they are included in the SQL statement they modify the intended logic of the query.",
+      "extended_description": "SQL injection results from the failure of the application to appropriately validate or neutralize input before it is used to build a database query. A successful attack can read, modify, or delete data, and in some configurations execute administrative operations on the database.",
+      "typical_severity": "High",
+      "likelihood_of_attack": "High",
+      "prerequisites": [
+        "SQL queries used by the application to store, retrieve, or modify data.",
+        "User-controllable input is not properly validated or neutralized before being used in a query."
+      ],
+      "skills_required": [
+        {"level": "Low", "description": "It is fairly simple for someone with basic SQL knowledge to perform SQL injection."},
+        {"level": "Medium", "description": "Skilled attackers can craft injection strings that bypass weak input filters."}
+      ],
+      "resources_required": [
+        "An HTTP client or other means of submitting crafted input to the application."
+      ],
+      "indicators": [
+        "Database error messages returned to the client.",
+        "Anomalous query patterns or unexpected query results in database logs."
+      ],
+      "execution_flow": [
+        {"step": 1, "phase": "Explore", "description": "Use a spider to crawl the application and enumerate input fields that may reach a database query."},
+        {"step": 2, "phase": "Experiment", "description": "Inject SQL metacharacters into each input and observe error messages or behavioral changes."},
+        {"step": 3, "phase": "Exploit", "description": "Craft an injection string that alters the query logic to extract or modify data."}
+      ],
+      "mitigations": [
+        "Use parameterized queries (prepared statements) for all database access.",
+        "Apply strict allow-list input validation and least-privilege database accounts."
+      ],
+      "related_weaknesses": [89],
+      "related_attack_patterns": [
+        {"capec_id": 7, "nature": "ParentOf"},
+        {"capec_id": 242, "nature": "PeerOf"}
+      ],
+      "related_techniques": [],
+      "references": [
+        {"title": "CAPEC-66: SQL Injection", "url": "https://capec.mitre.org/data/definitions/66.html"},
+        {"title": "OWASP SQL Injection", "url": "https://owasp.org/www-community/attacks/SQL_Injection"}
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Blind SQL Injection",
+      "abstraction": "Detailed",
+      "description": "Blind SQL Injection results from an insufficient mitigation for SQL Injection. The attacker cannot see query results directly but infers them from observable application behavior such as response timing or boolean differences.",
+      "extended_description": "Although no data is returned to the attacker, blind SQL injection allows full extraction of database contents one bit at a time by asking true/false questions and observing how the application responds.",
+      "typical_severity": "High",
+      "likelihood_of_attack": "High",
+      "prerequisites": [
+        "The application uses SQL queries built from user input.",
+        "The application does not return query results or errors directly to the attacker."
+      ],
+      "skills_required": [
+        {"level": "Medium", "description": "The attacker must understand boolean and time-based inference techniques."}
+      ],
+      "resources_required": [],
+      "indicators": [
+        "Repeated requests that differ only in injected boolean conditions.",
+        "Requests that produce consistent timing differences."
+      ],
+      "execution_flow": [
+        {"step": 1, "phase": "Experiment", "description": "Submit boolean conditions and observe differences in application responses."},
+        {"step": 2, "phase": "Exploit", "description": "Iteratively infer data values from true/false or timing responses."}
+      ],
+      "mitigations": [
+        "Use parameterized queries and consistent error handling that does not leak behavioral differences."
+      ],
+      "related_weaknesses": [89],
+      "related_attack_patterns": [
+        {"capec_id": 66, "nature": "ChildOf"}
+      ],
+      "related_techniques": [],
+      "references": [
+        {"title": "CAPEC-7: Blind SQL Injection", "url": "https://capec.mitre.org/data/definitions/7.html"}
+      ]
+    },
+    {
+      "id": 86,
+      "name": "XSS Through HTTP Headers",
+      "abstraction": "Detailed",
+      "description": "An attacker injects malicious script into HTTP headers that the application later reflects into a web page without proper neutralization, causing the script to execute in a victim's browser.",
+      "extended_description": "Because some applications log or display header values (such as Referer or User-Agent), an attacker who controls those headers can achieve cross-site scripting even when standard input fields are well protected.",
+      "typical_severity": "High",
+      "likelihood_of_attack": "Medium",
+      "prerequisites": [
+        "The target reflects HTTP header values into a web page.",
+        "Header values are not properly encoded on output."
+      ],
+      "skills_required": [
+        {"level": "Medium", "description": "Knowledge of HTTP and browser script execution contexts."}
+      ],
+      "resources_required": [
+        "A client capable of setting arbitrary HTTP headers."
+      ],
+      "indicators": [
+        "Script-like content appearing in header values within logs or rendered pages."
+      ],
+      "execution_flow": [
+        {"step": 1, "phase": "Explore", "description": "Identify headers that are reflected into application output."},
+        {"step": 2, "phase": "Exploit", "description": "Set a header to a script payload that executes when the page is rendered."}
+      ],
+      "mitigations": [
+        "Contextually output-encode all header-derived data.",
+        "Apply a restrictive Content Security Policy."
+      ],
+      "related_weaknesses": [79],
+      "related_attack_patterns": [],
+      "related_techniques": [],
+      "references": [
+        {"title": "CAPEC-86: XSS Through HTTP Headers", "url": "https://capec.mitre.org/data/definitions/86.html"}
+      ]
+    },
+    {
+      "id": 100,
+      "name": "Overflow Buffers",
+      "abstraction": "Standard",
+      "description": "Buffer overflow attacks target improper or missing bounds checking on buffer operations, typically triggered by input that is larger than expected, allowing the attacker to overwrite adjacent memory.",
+      "extended_description": "By overwriting memory beyond the bounds of a buffer, an attacker can corrupt program state, crash the application, or hijack control flow to execute arbitrary code.",
+      "typical_severity": "Very High",
+      "likelihood_of_attack": "High",
+      "prerequisites": [
+        "Targeted software performs buffer operations without adequate bounds checking.",
+        "Attacker can supply input that reaches the vulnerable buffer."
+      ],
+      "skills_required": [
+        {"level": "Low", "description": "Triggering a crash via oversized input requires little skill."},
+        {"level": "High", "description": "Reliable code execution requires deep knowledge of memory layout and exploit mitigations."}
+      ],
+      "resources_required": [
+        "Ability to deliver crafted input; optionally a debugger to develop a working exploit."
+      ],
+      "indicators": [
+        "Application crashes on long or malformed input.",
+        "Segmentation faults correlated with specific input fields."
+      ],
+      "execution_flow": [
+        {"step": 1, "phase": "Explore", "description": "Identify inputs that flow into fixed-size buffers."},
+        {"step": 2, "phase": "Experiment", "description": "Send progressively larger inputs to find the overflow boundary."},
+        {"step": 3, "phase": "Exploit", "description": "Craft input that overwrites control data to redirect execution."}
+      ],
+      "mitigations": [
+        "Use memory-safe languages or safe string/buffer APIs.",
+        "Enable compiler and OS mitigations (stack canaries, ASLR, DEP/NX)."
+      ],
+      "related_weaknesses": [119, 120],
+      "related_attack_patterns": [],
+      "related_techniques": [],
+      "references": [
+        {"title": "CAPEC-100: Overflow Buffers", "url": "https://capec.mitre.org/data/definitions/100.html"}
+      ]
+    },
+    {
+      "id": 136,
+      "name": "LDAP Injection",
+      "abstraction": "Detailed",
+      "description": "An attacker manipulates an LDAP query by injecting special characters or filter syntax into input that the application uses to construct the query, altering its meaning.",
+      "extended_description": "LDAP injection can bypass authentication, disclose directory contents, or modify directory entries when applications build LDAP filters from unsanitized input.",
+      "typical_severity": "High",
+      "likelihood_of_attack": "Medium",
+      "prerequisites": [
+        "The application builds LDAP queries from user input.",
+        "Input is not neutralized for LDAP special characters."
+      ],
+      "skills_required": [
+        {"level": "Medium", "description": "Familiarity with LDAP filter syntax."}
+      ],
+      "resources_required": [],
+      "indicators": [
+        "LDAP errors or unexpected authentication outcomes following crafted input."
+      ],
+      "execution_flow": [
+        {"step": 1, "phase": "Experiment", "description": "Inject LDAP metacharacters such as parentheses and asterisks into inputs."},
+        {"step": 2, "phase": "Exploit", "description": "Craft a filter that returns unintended entries or bypasses checks."}
+      ],
+      "mitigations": [
+        "Escape all LDAP special characters in user input.",
+        "Use allow-list validation and parameterized directory APIs where available."
+      ],
+      "related_weaknesses": [90],
+      "related_attack_patterns": [],
+      "related_techniques": [],
+      "references": [
+        {"title": "CAPEC-136: LDAP Injection", "url": "https://capec.mitre.org/data/definitions/136.html"}
+      ]
+    },
+    {
+      "id": 242,
+      "name": "Code Injection",
+      "abstraction": "Standard",
+      "description": "An attacker introduces code into a target application that is subsequently executed by the application, typically by exploiting input that is interpreted as part of a program rather than data.",
+      "extended_description": "Code injection differs from command injection in that the injected code runs within the application's own interpreter or runtime. Successful exploitation commonly leads to arbitrary code execution with the privileges of the application.",
+      "typical_severity": "Very High",
+      "likelihood_of_attack": "Medium",
+      "prerequisites": [
+        "The application interprets or evaluates input as code.",
+        "Input reaching the interpreter is not properly validated or sandboxed."
+      ],
+      "skills_required": [
+        {"level": "Medium", "description": "The attacker must understand the target language and execution context."}
+      ],
+      "resources_required": [
+        "A means of delivering the crafted payload to the vulnerable interpreter."
+      ],
+      "indicators": [
+        "Unexpected interpreter or runtime errors following crafted input.",
+        "Spawning of unexpected child processes or scripts."
+      ],
+      "execution_flow": [
+        {"step": 1, "phase": "Explore", "description": "Identify inputs that are passed to an interpreter or eval-like construct."},
+        {"step": 2, "phase": "Experiment", "description": "Probe with small code fragments and observe execution side effects."},
+        {"step": 3, "phase": "Exploit", "description": "Deliver a payload that executes attacker-chosen code in the application runtime."}
+      ],
+      "mitigations": [
+        "Never pass untrusted input to interpreters or eval-like constructs.",
+        "Use strict input validation, sandboxing, and least privilege for the runtime."
+      ],
+      "related_weaknesses": [94],
+      "related_attack_patterns": [
+        {"capec_id": 66, "nature": "PeerOf"}
+      ],
+      "related_techniques": ["T1059"],
+      "references": [
+        {"title": "CAPEC-242: Code Injection", "url": "https://capec.mitre.org/data/definitions/242.html"}
+      ]
+    },
+    {
+      "id": 62,
+      "name": "Cross Site Request Forgery",
+      "abstraction": "Standard",
+      "description": "An attacker causes a victim's browser to issue an authenticated request to a target application that the victim did not intend, leveraging the victim's existing session.",
+      "extended_description": "Because the request rides on the victim's ambient credentials (such as session cookies), the application processes it as legitimate, allowing state-changing actions to be performed on the victim's behalf.",
+      "typical_severity": "Medium",
+      "likelihood_of_attack": "High",
+      "prerequisites": [
+        "The application relies on ambient authentication for state-changing requests.",
+        "Requests can be predicted and lack anti-CSRF protections."
+      ],
+      "skills_required": [
+        {"level": "Low", "description": "Crafting a forged request requires only basic web knowledge."}
+      ],
+      "resources_required": [],
+      "indicators": [
+        "State-changing requests missing or with invalid anti-CSRF tokens."
+      ],
+      "execution_flow": [
+        {"step": 1, "phase": "Explore", "description": "Identify state-changing requests that lack anti-CSRF protection."},
+        {"step": 2, "phase": "Exploit", "description": "Lure the victim to a page that auto-submits the forged request."}
+      ],
+      "mitigations": [
+        "Use anti-CSRF tokens bound to the user session.",
+        "Adopt SameSite cookies and require re-authentication for sensitive actions."
+      ],
+      "related_weaknesses": [352],
+      "related_attack_patterns": [],
+      "related_techniques": [],
+      "references": [
+        {"title": "CAPEC-62: Cross Site Request Forgery", "url": "https://capec.mitre.org/data/definitions/62.html"}
+      ]
+    },
+    {
+      "id": 126,
+      "name": "Path Traversal",
+      "abstraction": "Standard",
+      "description": "An attacker uses special path sequences such as '../' to escape an intended directory and access files or directories elsewhere on the system.",
+      "extended_description": "When an application builds filesystem paths from user input without canonicalization, an attacker can traverse outside the intended directory to read or modify sensitive files.",
+      "typical_severity": "High",
+      "likelihood_of_attack": "High",
+      "prerequisites": [
+        "The application constructs filesystem paths from user input.",
+        "Path input is not canonicalized or constrained to an intended directory."
+      ],
+      "skills_required": [
+        {"level": "Low", "description": "Basic understanding of filesystem path semantics."}
+      ],
+      "resources_required": [],
+      "indicators": [
+        "Requests containing '../' sequences or absolute paths.",
+        "File access errors referencing paths outside the application root."
+      ],
+      "execution_flow": [
+        {"step": 1, "phase": "Experiment", "description": "Insert traversal sequences into path parameters and observe responses."},
+        {"step": 2, "phase": "Exploit", "description": "Reference a sensitive file outside the intended directory."}
+      ],
+      "mitigations": [
+        "Canonicalize and validate paths against an allow-list before use.",
+        "Run with least privilege and use sandboxed filesystem access."
+      ],
+      "related_weaknesses": [22],
+      "related_attack_patterns": [],
+      "related_techniques": [],
+      "references": [
+        {"title": "CAPEC-126: Path Traversal", "url": "https://capec.mitre.org/data/definitions/126.html"}
+      ]
+    },
+    {
+      "id": 664,
+      "name": "Server Side Request Forgery",
+      "abstraction": "Standard",
+      "description": "An attacker induces a server-side application to make HTTP requests to an attacker-chosen destination, abusing the server's network position to reach internal or otherwise protected resources.",
+      "extended_description": "SSRF can expose internal services, cloud metadata endpoints, and other resources that are not directly reachable by the attacker, and can be chained to pivot deeper into a network.",
+      "typical_severity": "High",
+      "likelihood_of_attack": "Medium",
+      "prerequisites": [
+        "The application fetches a URL or resource supplied or influenced by the user.",
+        "The destination of the request is not constrained to an allow-list."
+      ],
+      "skills_required": [
+        {"level": "Medium", "description": "Understanding of internal network and cloud service addressing."}
+      ],
+      "resources_required": [],
+      "indicators": [
+        "Outbound requests to internal or link-local addresses originating from the application server."
+      ],
+      "execution_flow": [
+        {"step": 1, "phase": "Explore", "description": "Find input that controls the destination of a server-side request."},
+        {"step": 2, "phase": "Exploit", "description": "Point the request at an internal service or metadata endpoint."}
+      ],
+      "mitigations": [
+        "Constrain outbound destinations with an allow-list.",
+        "Deny requests to private, loopback, and link-local ranges; validate and re-resolve URLs."
+      ],
+      "related_weaknesses": [918],
+      "related_attack_patterns": [],
+      "related_techniques": [],
+      "references": [
+        {"title": "CAPEC-664: Server Side Request Forgery", "url": "https://capec.mitre.org/data/definitions/664.html"}
+      ]
+    },
+    {
+      "id": 586,
+      "name": "Object Injection",
+      "abstraction": "Detailed",
+      "description": "An attacker supplies crafted serialized objects to an application that deserializes untrusted data, causing unintended object creation or method invocation during deserialization.",
+      "extended_description": "When an application deserializes attacker-controlled data, gadget chains present in the runtime can be triggered to achieve denial of service, data tampering, or remote code execution.",
+      "typical_severity": "High",
+      "likelihood_of_attack": "Medium",
+      "prerequisites": [
+        "The application deserializes data from an untrusted source.",
+        "Exploitable gadget classes are present on the application classpath."
+      ],
+      "skills_required": [
+        {"level": "High", "description": "Constructing a working gadget chain requires deep knowledge of the runtime."}
+      ],
+      "resources_required": [
+        "Tooling to craft malicious serialized payloads."
+      ],
+      "indicators": [
+        "Deserialization of data received from clients or external systems.",
+        "Unexpected object instantiation during deserialization."
+      ],
+      "execution_flow": [
+        {"step": 1, "phase": "Explore", "description": "Identify endpoints that deserialize untrusted input."},
+        {"step": 2, "phase": "Exploit", "description": "Submit a crafted serialized payload that triggers a gadget chain."}
+      ],
+      "mitigations": [
+        "Avoid deserializing untrusted data; prefer simple data formats.",
+        "Enforce integrity checks and type allow-lists before deserialization."
+      ],
+      "related_weaknesses": [502],
+      "related_attack_patterns": [],
+      "related_techniques": [],
+      "references": [
+        {"title": "CAPEC-586: Object Injection", "url": "https://capec.mitre.org/data/definitions/586.html"}
+      ]
+    }
+  ]
+}

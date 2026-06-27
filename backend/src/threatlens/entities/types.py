@@ -34,6 +34,7 @@ class EntityType(StrEnum):
     # --- Structured references ---
     CVE = "cve"
     CWE = "cwe"
+    CAPEC = "capec"
     MITRE_TECHNIQUE = "mitre_technique"
     REGISTRY_KEY = "registry_key"
 

@@ -17,7 +17,13 @@ from .host_artifacts import (
     ProcessNameDetector,
     WindowsApiDetector,
 )
-from .identifiers import CveDetector, CweDetector, MitreTechniqueDetector, RegistryKeyDetector
+from .identifiers import (
+    CapecDetector,
+    CveDetector,
+    CweDetector,
+    MitreTechniqueDetector,
+    RegistryKeyDetector,
+)
 from .network import (
     DomainDetector,
     EmailDetector,
@@ -39,6 +45,7 @@ DEFAULT_DETECTORS: tuple[type[EntityDetector], ...] = (
     Sha256Detector,
     CveDetector,
     CweDetector,
+    CapecDetector,
     MitreTechniqueDetector,
     RegistryKeyDetector,
     DomainDetector,

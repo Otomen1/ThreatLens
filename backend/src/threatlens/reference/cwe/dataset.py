@@ -169,14 +169,20 @@ def _parse_cwe(obj: dict[str, Any]) -> Cwe | None:
     platforms = tuple(
         s for s in obj.get("applicable_platforms", []) if isinstance(s, str) and s.strip()
     )
-    consequences = tuple(_parse_consequence(c) for c in obj.get("common_consequences", []))
-    consequences = tuple(c for c in consequences if c is not None)
-    detection = tuple(_parse_detection(d) for d in obj.get("detection_methods", []))
-    detection = tuple(d for d in detection if d is not None)
-    mitigations = tuple(_parse_mitigation(m) for m in obj.get("mitigations", []))
-    mitigations = tuple(m for m in mitigations if m is not None)
-    related = tuple(_parse_related(r) for r in obj.get("related_weaknesses", []))
-    related = tuple(r for r in related if r is not None)
+    consequences = tuple(
+        c
+        for c in (_parse_consequence(x) for x in obj.get("common_consequences", []))
+        if c is not None
+    )
+    detection = tuple(
+        d for d in (_parse_detection(x) for x in obj.get("detection_methods", [])) if d is not None
+    )
+    mitigations = tuple(
+        m for m in (_parse_mitigation(x) for x in obj.get("mitigations", [])) if m is not None
+    )
+    related = tuple(
+        r for r in (_parse_related(x) for x in obj.get("related_weaknesses", [])) if r is not None
+    )
 
     capec_ids: list[int] = []
     seen_capec: set[int] = set()
@@ -185,8 +191,9 @@ def _parse_cwe(obj: dict[str, Any]) -> Cwe | None:
             seen_capec.add(raw)
             capec_ids.append(raw)
 
-    refs = tuple(_parse_reference(r) for r in obj.get("references", []))
-    refs = tuple(r for r in refs if r is not None)
+    refs = tuple(
+        r for r in (_parse_reference(x) for x in obj.get("references", [])) if r is not None
+    )
 
     return Cwe(
         id=cwe_id,
