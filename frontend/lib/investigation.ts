@@ -43,6 +43,7 @@ export const ENTITY_LABELS: Record<EntityType, string> = {
   sha1: "SHA-1 Hash",
   sha256: "SHA-256 Hash",
   cve: "CVE",
+  cwe: "CWE",
   mitre_technique: "MITRE ATT&CK Technique",
   registry_key: "Registry Key",
   process_name: "Process Name",
@@ -268,6 +269,24 @@ export function extractKeyAttributes(
       if (cwes?.length) attrs.push({ label: "Weaknesses", value: cwes.join(", ") });
       const products = meta.affected_products as unknown[] | undefined;
       if (products?.length) attrs.push({ label: "Affected Products", value: String(products.length) });
+    }
+  } else if (entity.type === "cwe") {
+    const meta = kb.metadata["cwe"] as Record<string, unknown> | undefined;
+    if (meta) {
+      if (meta.likelihood_of_exploit)
+        attrs.push({ label: "Likelihood", value: String(meta.likelihood_of_exploit) });
+      const platforms = meta.applicable_platforms as string[] | undefined;
+      if (platforms?.length)
+        attrs.push({ label: "Platforms", value: platforms.slice(0, 3).join(", ") });
+      const consequences = meta.common_consequences as unknown[] | undefined;
+      if (consequences?.length)
+        attrs.push({ label: "Consequences", value: String(consequences.length) });
+      const mitigations = meta.mitigations as unknown[] | undefined;
+      if (mitigations?.length)
+        attrs.push({ label: "Mitigations", value: String(mitigations.length) });
+      const capecs = meta.related_attack_patterns as string[] | undefined;
+      if (capecs?.length)
+        attrs.push({ label: "Related CAPEC", value: capecs.slice(0, 4).join(", ") });
     }
   } else if (entity.type === "threat_actor" || entity.type === "malware_family") {
     if (kb.tags.length > 0) {

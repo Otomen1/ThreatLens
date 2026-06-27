@@ -7,6 +7,7 @@ knowledge provider (NVD, CWE, CAPEC) is a one-line change here and nowhere else.
 
 from __future__ import annotations
 
+from .cwe import CweProvider
 from .mitre_attack import MitreAttackProvider
 from .nvd import NvdProvider
 from .registry import ReferenceRegistry
@@ -18,6 +19,7 @@ def build_default_reference_registry() -> ReferenceRegistry:
     registry = ReferenceRegistry()
     registry.register(MitreAttackProvider())
     registry.register(NvdProvider())
+    registry.register(CweProvider())
     return registry
 
 
