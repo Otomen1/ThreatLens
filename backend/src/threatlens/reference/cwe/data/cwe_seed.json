@@ -1,0 +1,285 @@
+{
+  "_meta": {
+    "version": "4.16",
+    "release_date": "2024.06.15",
+    "source": "https://cwe.mitre.org/data/published/cwe_latest.xml.zip"
+  },
+  "weaknesses": [
+    {
+      "id": 20,
+      "name": "Improper Input Validation",
+      "description": "The product receives input or data, but it does not validate or incorrectly validates that the input has the properties that are required to process the data safely and correctly.",
+      "extended_description": "Input validation is a frequently-used technique for checking potentially dangerous inputs in order to ensure that the inputs are safe for processing within the code, or when communicating with other components. When software does not validate input properly, an attacker is able to craft the input in a form that is not expected by the rest of the application.",
+      "likelihood_of_exploit": "Medium",
+      "applicable_platforms": ["Language: Any"],
+      "common_consequences": [
+        {"scope": "Availability", "impact": "DoS: Crash, Exit, or Restart"},
+        {"scope": "Confidentiality", "impact": "Read Application Data"},
+        {"scope": "Integrity", "impact": "Modify Application Data"}
+      ],
+      "detection_methods": [
+        {"method": "Automated Static Analysis", "description": "This weakness can often be detected using automated static analysis tools."},
+        {"method": "Fuzzing", "description": "Fuzzing can be useful for identifying unexpected inputs that lead to crashes or unexpected behavior."}
+      ],
+      "mitigations": [
+        {"phase": "Implementation", "description": "Assume all input is malicious. Use an 'accept known good' input validation strategy."},
+        {"phase": "Architecture and Design", "description": "Use libraries or frameworks that make it easier to generate properly constructed output."}
+      ],
+      "related_weaknesses": [],
+      "related_attack_patterns": [1, 8, 10, 13, 14],
+      "references": [
+        {"title": "CWE-20: Improper Input Validation", "url": "https://cwe.mitre.org/data/definitions/20.html"}
+      ]
+    },
+    {
+      "id": 22,
+      "name": "Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')",
+      "description": "The product uses external input to construct a pathname that is intended to identify a file or directory that is located underneath a restricted parent directory, but the product does not properly neutralize special elements within the pathname that can cause the pathname to resolve to a location that is outside of the restricted directory.",
+      "extended_description": "Many file operations are intended to take place within a restricted directory. By using special elements such as '..' and '/' separators, attackers can escape out of the restricted location to access files or directories that are elsewhere on the system.",
+      "likelihood_of_exploit": "High",
+      "applicable_platforms": ["Language: Any", "Operating System: Any"],
+      "common_consequences": [
+        {"scope": "Confidentiality", "impact": "Read Files or Directories"},
+        {"scope": "Integrity", "impact": "Modify Files or Directories"},
+        {"scope": "Availability", "impact": "DoS: Crash, Exit, or Restart"}
+      ],
+      "detection_methods": [
+        {"method": "Automated Static Analysis", "description": "Automated static analysis tools can detect path traversal issues."},
+        {"method": "Manual Code Analysis", "description": "Manual review of filesystem access code."}
+      ],
+      "mitigations": [
+        {"phase": "Implementation", "description": "Use canonicalization to resolve symbolic links, '..', and '.' before performing file operations."},
+        {"phase": "Architecture and Design", "description": "Use a sandbox or restricted environment that enforces strict boundaries on filesystem access."}
+      ],
+      "related_weaknesses": [
+        {"cwe_id": 20, "nature": "ChildOf"}
+      ],
+      "related_attack_patterns": [76, 139, 177],
+      "references": [
+        {"title": "CWE-22: Path Traversal", "url": "https://cwe.mitre.org/data/definitions/22.html"},
+        {"title": "OWASP Path Traversal", "url": "https://owasp.org/www-community/attacks/Path_Traversal"}
+      ]
+    },
+    {
+      "id": 79,
+      "name": "Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')",
+      "description": "The product does not neutralize or incorrectly neutralizes user-controllable input before it is placed in output that is used as a web page that is served to other users.",
+      "extended_description": "Cross-site scripting (XSS) vulnerabilities occur when: 1. Untrusted data enters a web application, typically from a web request. 2. The web application dynamically generates a web page that contains this untrusted data. 3. During page generation, the application does not prevent the data from containing content that is executable by a web browser.",
+      "likelihood_of_exploit": "High",
+      "applicable_platforms": ["Language: Any", "Technology: Web Server"],
+      "common_consequences": [
+        {"scope": "Confidentiality", "impact": "Read Application Data", "note": "Attacker can steal session cookies."},
+        {"scope": "Integrity", "impact": "Execute Unauthorized Code or Commands"},
+        {"scope": "Access Control", "impact": "Bypass Protection Mechanism"}
+      ],
+      "detection_methods": [
+        {"method": "Automated Static Analysis", "description": "Static analysis tools can identify reflected XSS but may miss stored or DOM-based variants."},
+        {"method": "Dynamic Analysis with Automated Attack", "description": "Web application vulnerability scanners can detect XSS automatically."}
+      ],
+      "mitigations": [
+        {"phase": "Implementation", "description": "Use a vetted library or framework that does not allow this weakness to occur or provides constructs that make this weakness easier to avoid."},
+        {"phase": "Implementation", "description": "Understand the context in which your data will be used and the encoding that will be expected."},
+        {"phase": "Architecture and Design", "description": "Implement Content Security Policy (CSP) to restrict where scripts can be loaded from."}
+      ],
+      "related_weaknesses": [
+        {"cwe_id": 20, "nature": "ChildOf"}
+      ],
+      "related_attack_patterns": [86, 198, 32, 86],
+      "references": [
+        {"title": "CWE-79: Cross-site Scripting", "url": "https://cwe.mitre.org/data/definitions/79.html"},
+        {"title": "OWASP XSS Prevention Cheat Sheet", "url": "https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html"}
+      ]
+    },
+    {
+      "id": 89,
+      "name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+      "description": "The product constructs all or part of an SQL command using externally-influenced input from an upstream component, but it does not neutralize or incorrectly neutralizes special elements that could modify the intended SQL command when it is sent to a downstream component.",
+      "extended_description": "Without sufficient removal or quoting of SQL syntax in user-controllable inputs, the generated SQL query can cause those inputs to be interpreted as SQL instead of ordinary user data. This can be used to alter query logic to bypass security checks, or to insert additional statements that modify the back-end database.",
+      "likelihood_of_exploit": "High",
+      "applicable_platforms": ["Language: Any", "Technology: Database Server"],
+      "common_consequences": [
+        {"scope": "Confidentiality", "impact": "Read Application Data"},
+        {"scope": "Integrity", "impact": "Modify Application Data"},
+        {"scope": "Authentication", "impact": "Gain Privileges or Assume Identity"},
+        {"scope": "Availability", "impact": "DoS: Crash, Exit, or Restart"}
+      ],
+      "detection_methods": [
+        {"method": "Automated Static Analysis", "description": "This weakness can be detected using automated taint-tracking analysis."},
+        {"method": "Dynamic Analysis with Automated Attack", "description": "SQL injection scanners can detect common injection points."}
+      ],
+      "mitigations": [
+        {"phase": "Architecture and Design", "description": "Use parameterized queries (prepared statements) for all database queries."},
+        {"phase": "Implementation", "description": "If you need to use dynamic queries, quote arguments and escape special characters specific to the SQL dialect being used."}
+      ],
+      "related_weaknesses": [
+        {"cwe_id": 20, "nature": "ChildOf"}
+      ],
+      "related_attack_patterns": [7, 66, 108],
+      "references": [
+        {"title": "CWE-89: SQL Injection", "url": "https://cwe.mitre.org/data/definitions/89.html"},
+        {"title": "OWASP SQL Injection Prevention", "url": "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html"}
+      ]
+    },
+    {
+      "id": 125,
+      "name": "Out-of-bounds Read",
+      "description": "The product reads data past the end, or before the beginning, of the intended buffer.",
+      "extended_description": "By reading out-of-bounds memory, an attacker might be able to get secret values, such as memory addresses, which can be bypass protection mechanisms such as ASLR in order to improve the reliability and likelihood of exploiting a separate weakness to achieve code execution instead of just denial of service.",
+      "likelihood_of_exploit": "Medium",
+      "applicable_platforms": ["Language: C", "Language: C++"],
+      "common_consequences": [
+        {"scope": "Confidentiality", "impact": "Read Memory", "note": "Can expose sensitive memory contents (e.g. Heartbleed)."},
+        {"scope": "Availability", "impact": "DoS: Crash, Exit, or Restart"}
+      ],
+      "detection_methods": [
+        {"method": "Fuzzing", "description": "Fuzzing can expose out-of-bounds reads through unexpected crashes."},
+        {"method": "Automated Static Analysis", "description": "Static analysis with memory safety tools (e.g. AddressSanitizer)."}
+      ],
+      "mitigations": [
+        {"phase": "Implementation", "description": "Use a language that provides appropriate memory abstraction."},
+        {"phase": "Implementation", "description": "Check buffer boundaries if operating on the buffer in a loop."}
+      ],
+      "related_weaknesses": [
+        {"cwe_id": 119, "nature": "ChildOf"}
+      ],
+      "related_attack_patterns": [540],
+      "references": [
+        {"title": "CWE-125: Out-of-bounds Read", "url": "https://cwe.mitre.org/data/definitions/125.html"}
+      ]
+    },
+    {
+      "id": 287,
+      "name": "Improper Authentication",
+      "description": "When an actor claims to have a given identity, the product does not prove or insufficiently proves that the claim is correct.",
+      "extended_description": "Authentication weaknesses allow unauthenticated actors to access resources that should be restricted. This can range from completely bypassing authentication to more subtle flaws that allow authentication to be circumvented under specific conditions.",
+      "likelihood_of_exploit": "Medium",
+      "applicable_platforms": ["Language: Any", "Technology: Any"],
+      "common_consequences": [
+        {"scope": "Authentication", "impact": "Gain Privileges or Assume Identity"},
+        {"scope": "Access Control", "impact": "Bypass Protection Mechanism"},
+        {"scope": "Confidentiality", "impact": "Read Application Data"}
+      ],
+      "detection_methods": [
+        {"method": "Manual Analysis", "description": "Review authentication flows for logical flaws."},
+        {"method": "Automated Static Analysis", "description": "Some static tools can identify missing or weak authentication checks."}
+      ],
+      "mitigations": [
+        {"phase": "Architecture and Design", "description": "Divide the system into components and enforce trust boundaries between them."},
+        {"phase": "Architecture and Design", "description": "Use a multi-factor authentication mechanism."}
+      ],
+      "related_weaknesses": [],
+      "related_attack_patterns": [194, 196, 197],
+      "references": [
+        {"title": "CWE-287: Improper Authentication", "url": "https://cwe.mitre.org/data/definitions/287.html"}
+      ]
+    },
+    {
+      "id": 362,
+      "name": "Concurrent Execution using Shared Resource with Improper Synchronization ('Race Condition')",
+      "description": "The product contains a code sequence that can run concurrently with other code, and the code sequence requires temporary, exclusive access to a shared resource, but a timing window exists in which the shared resource can be modified by another code sequence that is operating concurrently.",
+      "extended_description": "Race conditions can occur when two threads or processes share a resource and the outcome of the program depends on the sequence of execution. This can lead to unpredictable behavior, data corruption, or security vulnerabilities.",
+      "likelihood_of_exploit": "Medium",
+      "applicable_platforms": ["Language: C", "Language: C++", "Language: Java"],
+      "common_consequences": [
+        {"scope": "Integrity", "impact": "Modify Application Data"},
+        {"scope": "Availability", "impact": "DoS: Crash, Exit, or Restart"},
+        {"scope": "Authentication", "impact": "Gain Privileges or Assume Identity"}
+      ],
+      "detection_methods": [
+        {"method": "Automated Static Analysis", "description": "Concurrency analysis tools can detect race conditions."},
+        {"method": "Dynamic Analysis with Manual Results Interpretation", "description": "Running the program under stress conditions may expose race conditions."}
+      ],
+      "mitigations": [
+        {"phase": "Architecture and Design", "description": "Use synchronization primitives such as mutexes or semaphores to control access to shared resources."},
+        {"phase": "Implementation", "description": "Use thread-safe data structures and APIs."}
+      ],
+      "related_weaknesses": [],
+      "related_attack_patterns": [26, 29],
+      "references": [
+        {"title": "CWE-362: Race Condition", "url": "https://cwe.mitre.org/data/definitions/362.html"}
+      ]
+    },
+    {
+      "id": 502,
+      "name": "Deserialization of Untrusted Data",
+      "description": "The product deserializes untrusted data without sufficiently verifying that the resulting data will be valid.",
+      "extended_description": "It is often convenient to serialize objects for communication or to save them for later use. However, deserialization of data from an untrusted source can result in security problems such as arbitrary code execution, denial of service attacks, and authentication bypass.",
+      "likelihood_of_exploit": "Medium",
+      "applicable_platforms": ["Language: Any"],
+      "common_consequences": [
+        {"scope": "Integrity", "impact": "Execute Unauthorized Code or Commands", "note": "Arbitrary code execution via gadget chains is common."},
+        {"scope": "Availability", "impact": "DoS: Resource Consumption (Memory)"},
+        {"scope": "Authentication", "impact": "Gain Privileges or Assume Identity"}
+      ],
+      "detection_methods": [
+        {"method": "Automated Static Analysis", "description": "Static analysis can identify use of deserialization libraries on untrusted data."}
+      ],
+      "mitigations": [
+        {"phase": "Architecture and Design", "description": "Avoid deserializing data from untrusted sources."},
+        {"phase": "Implementation", "description": "Use integrity checks such as digital signatures to verify serialized data before deserialization."}
+      ],
+      "related_weaknesses": [
+        {"cwe_id": 20, "nature": "ChildOf"}
+      ],
+      "related_attack_patterns": [586],
+      "references": [
+        {"title": "CWE-502: Deserialization of Untrusted Data", "url": "https://cwe.mitre.org/data/definitions/502.html"},
+        {"title": "OWASP Deserialization Cheat Sheet", "url": "https://cheatsheetseries.owasp.org/cheatsheets/Deserialization_Cheat_Sheet.html"}
+      ]
+    },
+    {
+      "id": 610,
+      "name": "Externally Controlled Reference to a Resource in Another Sphere",
+      "description": "The product uses an externally controlled name or reference that resolves to a resource that is outside of the intended control sphere.",
+      "extended_description": "This weakness covers a variety of techniques for attacker-controlled references to external resources, including URL redirection, remote file inclusion, and external entity injection. The attacker can influence or completely control the resource that the product accesses.",
+      "likelihood_of_exploit": "High",
+      "applicable_platforms": ["Language: Any"],
+      "common_consequences": [
+        {"scope": "Confidentiality", "impact": "Read Application Data"},
+        {"scope": "Integrity", "impact": "Execute Unauthorized Code or Commands"},
+        {"scope": "Access Control", "impact": "Bypass Protection Mechanism"}
+      ],
+      "detection_methods": [
+        {"method": "Automated Static Analysis", "description": "Taint analysis can identify externally controlled references."}
+      ],
+      "mitigations": [
+        {"phase": "Architecture and Design", "description": "Avoid allowing user-controllable data to directly reference external resources."},
+        {"phase": "Implementation", "description": "Validate and canonicalize any externally supplied resource identifiers."}
+      ],
+      "related_weaknesses": [],
+      "related_attack_patterns": [201],
+      "references": [
+        {"title": "CWE-610: Externally Controlled Reference", "url": "https://cwe.mitre.org/data/definitions/610.html"}
+      ]
+    },
+    {
+      "id": 918,
+      "name": "Server-Side Request Forgery (SSRF)",
+      "description": "The web server receives a URL or similar request from an upstream component and retrieves the contents of this URL, but it does not sufficiently ensure that the request is being sent to the expected destination.",
+      "extended_description": "Server-Side Request Forgery (SSRF) occurs when an attacker can cause the server to make requests to an unintended location. The attacker may be able to reach internal services behind firewalls, access cloud metadata services, or pivot to other internal systems.",
+      "likelihood_of_exploit": "Medium",
+      "applicable_platforms": ["Language: Any", "Technology: Web Server"],
+      "common_consequences": [
+        {"scope": "Confidentiality", "impact": "Read Application Data", "note": "Internal service endpoints and cloud metadata can be accessed."},
+        {"scope": "Access Control", "impact": "Bypass Protection Mechanism"},
+        {"scope": "Integrity", "impact": "Modify Application Data"}
+      ],
+      "detection_methods": [
+        {"method": "Automated Static Analysis", "description": "Taint analysis can identify externally controlled URLs used in server-side requests."},
+        {"method": "Dynamic Analysis with Automated Attack", "description": "Scanning for SSRF by probing internal network addresses."}
+      ],
+      "mitigations": [
+        {"phase": "Architecture and Design", "description": "Use allowlists of acceptable URLs or IP ranges for outbound connections."},
+        {"phase": "Implementation", "description": "Validate and sanitize all user-supplied URLs. Deny requests to private, loopback, and link-local address ranges."}
+      ],
+      "related_weaknesses": [
+        {"cwe_id": 610, "nature": "ChildOf"}
+      ],
+      "related_attack_patterns": [664],
+      "references": [
+        {"title": "CWE-918: Server-Side Request Forgery", "url": "https://cwe.mitre.org/data/definitions/918.html"},
+        {"title": "PortSwigger SSRF Guide", "url": "https://portswigger.net/web-security/ssrf"}
+      ]
+    }
+  ]
+}

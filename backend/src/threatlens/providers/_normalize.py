@@ -33,9 +33,7 @@ def str_list(data: Mapping[str, Any], key: str) -> list[str]:
     return [str(item).strip() for item in raw if str(item).strip()]
 
 
-def parse_datetime(
-    value: str | None, formats: Sequence[str] = DATETIME_FORMATS
-) -> datetime | None:
+def parse_datetime(value: str | None, formats: Sequence[str] = DATETIME_FORMATS) -> datetime | None:
     """Parse ``value`` against ``formats`` (UTC), or ``None`` if it doesn't match."""
     if not value:
         return None

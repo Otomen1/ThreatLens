@@ -41,14 +41,17 @@ class DetectResponse(BaseModel):
     entity: Entity
 
 
-class IntelligenceResponse(BaseModel):
-    """A detected entity plus the aggregated intelligence gathered for it.
+class InvestigationResponse(BaseModel):
+    """Unified investigation: entity + TI framework + reference knowledge.
 
-    ``intelligence`` merges every routed provider's result into one canonical
-    :class:`AggregatedResult` (attribution + de-duplicated findings). The client
-    never sees per-provider payloads or needs to know how many providers ran.
+    ``threat_intelligence`` aggregates external provider findings (reputation,
+    evidence, relationships). ``knowledge`` aggregates reference-knowledge
+    findings (MITRE ATT&CK, CVE/NVD, …). Either may be empty when no providers
+    support the entity type — the client hides those sections rather than
+    receiving an error.
     """
 
-    search_id: UUID
+    investigation_id: UUID
     entity: Entity
-    intelligence: AggregatedResult
+    threat_intelligence: AggregatedResult
+    knowledge: AggregatedResult

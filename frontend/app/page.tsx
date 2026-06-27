@@ -2,14 +2,15 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { intelligence, type IntelligenceResponse } from "@/lib/api";
-import { SearchResult } from "@/components/SearchResult";
+import { investigate, type InvestigationResponse } from "@/lib/api";
+import { InvestigationWorkspace } from "@/components/InvestigationWorkspace";
 
 export default function HomePage() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<IntelligenceResponse | null>(null);
+  const [result, setResult] = useState<InvestigationResponse | null>(null);
+  const [timestamp, setTimestamp] = useState("");
   const abortRef = useRef<AbortController | null>(null);
 
   // Cancel any in-flight request on unmount.
@@ -26,9 +27,15 @@ export default function HomePage() {
 
     setLoading(true);
     setError(null);
+    setResult(null);
     try {
-      const res = await intelligence(trimmed, controller.signal);
+      const res = await investigate(trimmed, controller.signal);
       setResult(res);
+      setTimestamp(new Date().toLocaleString("en-US", {
+        month: "short", day: "numeric", year: "numeric",
+        hour: "2-digit", minute: "2-digit", second: "2-digit",
+        hour12: false,
+      }));
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -42,8 +49,9 @@ export default function HomePage() {
   }, [query]);
 
   return (
-    <main className="min-h-screen flex flex-col items-center px-4 py-16 sm:py-24">
-      <div className="w-full max-w-2xl space-y-10">
+    <main className="min-h-screen flex flex-col items-center px-4 py-12 sm:py-20">
+      {/* Search controls — kept narrow */}
+      <div className="w-full max-w-2xl space-y-8">
         {/* Logo + heading */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-zinc-800 border border-zinc-700 mb-2">
@@ -74,9 +82,8 @@ export default function HomePage() {
         </div>
 
         {/* Search box */}
-        <div className="relative group">
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-zinc-700/30 to-zinc-600/20 blur-sm group-hover:blur-md transition-all duration-300 opacity-0 group-hover:opacity-100" />
-          <div className="relative flex items-center bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden transition-colors focus-within:border-zinc-600">
+        <div className="relative">
+          <div className="flex items-center bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden transition-colors focus-within:border-zinc-600">
             <svg
               width="16"
               height="16"
@@ -125,9 +132,6 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Result */}
-        {result && !error && <SearchResult data={result} />}
-
         {/* Entity type hints (shown before the first search) */}
         {!result && !error && (
           <div className="flex flex-wrap justify-center gap-2">
@@ -151,6 +155,13 @@ export default function HomePage() {
           </div>
         )}
       </div>
+
+      {/* Investigation workspace — wider than the search box */}
+      {result && !error && (
+        <div className="w-full max-w-5xl mt-10">
+          <InvestigationWorkspace data={result} timestamp={timestamp} />
+        </div>
+      )}
     </main>
   );
 }

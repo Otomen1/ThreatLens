@@ -14,6 +14,8 @@ export type EntityType =
   | "sha1"
   | "sha256"
   | "cve"
+  | "cwe"
+  | "capec"
   | "mitre_technique"
   | "registry_key"
   | "process_name"
@@ -144,10 +146,11 @@ export interface AggregatedResult {
   metadata: Record<string, unknown>;
 }
 
-export interface IntelligenceResponse {
-  search_id: string;
+export interface InvestigationResponse {
+  investigation_id: string;
   entity: Entity;
-  intelligence: AggregatedResult;
+  threat_intelligence: AggregatedResult;
+  knowledge: AggregatedResult;
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
@@ -201,10 +204,10 @@ export function detect(query: string, signal?: AbortSignal): Promise<DetectRespo
   return postQuery<DetectResponse>("/detect", query, signal);
 }
 
-/** Detect an entity and gather provider intelligence for it. */
-export function intelligence(
+/** Detect an entity and run TI + reference providers concurrently. */
+export function investigate(
   query: string,
   signal?: AbortSignal,
-): Promise<IntelligenceResponse> {
-  return postQuery<IntelligenceResponse>("/intelligence", query, signal);
+): Promise<InvestigationResponse> {
+  return postQuery<InvestigationResponse>("/investigate", query, signal);
 }

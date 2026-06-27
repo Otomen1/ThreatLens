@@ -229,9 +229,7 @@ def test_relationship_chain_targets_are_all_expressible() -> None:
         RelationshipTargetType.ATTACK_PATTERN,
         RelationshipTargetType.REPORT,
     ]
-    rels = [
-        Relationship(target_type=t, target_value=f"target-{t.value}") for t in chain
-    ]
+    rels = [Relationship(target_type=t, target_value=f"target-{t.value}") for t in chain]
     assert [r.target_type for r in rels] == chain
 
 

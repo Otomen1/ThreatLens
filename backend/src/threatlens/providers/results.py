@@ -117,6 +117,7 @@ class RelationshipTargetType(StrEnum):
     THREAT_ACTOR = "threat_actor"
     CAMPAIGN = "campaign"
     VULNERABILITY = "vulnerability"
+    WEAKNESS = "weakness"
     ATTACK_PATTERN = "attack_pattern"
     INFRASTRUCTURE = "infrastructure"
     TOOL = "tool"
@@ -218,9 +219,7 @@ _HARD_ERRORS = frozenset(
         ResultStatus.UNAUTHORIZED,
     }
 )
-_NO_ERROR_STATES = frozenset(
-    {ResultStatus.OK, ResultStatus.NOT_FOUND, ResultStatus.UNSUPPORTED}
-)
+_NO_ERROR_STATES = frozenset({ResultStatus.OK, ResultStatus.NOT_FOUND, ResultStatus.UNSUPPORTED})
 
 
 class IntelligenceResult(BaseModel):

@@ -7,7 +7,10 @@ knowledge provider (NVD, CWE, CAPEC) is a one-line change here and nowhere else.
 
 from __future__ import annotations
 
+from .capec import CapecProvider
+from .cwe import CweProvider
 from .mitre_attack import MitreAttackProvider
+from .nvd import NvdProvider
 from .registry import ReferenceRegistry
 from .router import ReferenceRouter
 
@@ -16,6 +19,9 @@ def build_default_reference_registry() -> ReferenceRegistry:
     """Build a registry populated with all production reference providers."""
     registry = ReferenceRegistry()
     registry.register(MitreAttackProvider())
+    registry.register(NvdProvider())
+    registry.register(CweProvider())
+    registry.register(CapecProvider())
     return registry
 
 

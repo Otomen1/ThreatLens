@@ -1,0 +1,372 @@
+{
+  "_meta": {
+    "version": "2024.12.01",
+    "release_date": "2024-12-01",
+    "source_url": "https://services.nvd.nist.gov/rest/json/cves/2.0",
+    "note": "Curated offline subset of NVD data. Use NVD_DATASET_PATH or the NVD API for live data."
+  },
+  "vulnerabilities": [
+    {
+      "cve": {
+        "id": "CVE-2021-44228",
+        "published": "2021-12-10T10:15:09.000",
+        "lastModified": "2023-04-03T20:15:09.000",
+        "vulnStatus": "Analyzed",
+        "descriptions": [
+          {
+            "lang": "en",
+            "value": "Apache Log4j2 2.0-beta9 through 2.15.0 (excluding security releases 2.12.2, 2.12.3, and 2.3.1) JNDI features used in configuration, log messages, and parameters do not protect against attacker controlled LDAP and other JNDI related endpoints. An attacker who can control log messages or log message parameters can execute arbitrary code loaded from LDAP servers when message lookup substitution is enabled. From log4j 2.15.0, this behavior has been disabled by default. From version 2.16.0 (along with 2.12.2, 2.12.3, and 2.3.1), this functionality has been completely removed. Note that this vulnerability is specific to log4j-core and does not affect log4net, log4cxx, or other Apache Logging Services projects."
+          }
+        ],
+        "metrics": {
+          "cvssMetricV31": [
+            {
+              "source": "nvd@nist.gov",
+              "type": "Primary",
+              "cvssData": {
+                "version": "3.1",
+                "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
+                "attackVector": "NETWORK",
+                "attackComplexity": "LOW",
+                "privilegesRequired": "NONE",
+                "userInteraction": "NONE",
+                "scope": "CHANGED",
+                "confidentialityImpact": "HIGH",
+                "integrityImpact": "HIGH",
+                "availabilityImpact": "HIGH",
+                "baseScore": 10.0,
+                "baseSeverity": "CRITICAL"
+              }
+            }
+          ]
+        },
+        "weaknesses": [
+          {
+            "type": "Primary",
+            "description": [{"lang": "en", "value": "CWE-20"}]
+          }
+        ],
+        "configurations": [
+          {
+            "nodes": [
+              {
+                "operator": "OR",
+                "negate": false,
+                "cpeMatch": [
+                  {
+                    "vulnerable": true,
+                    "criteria": "cpe:2.3:a:apache:log4j:*:*:*:*:*:*:*:*",
+                    "versionStartIncluding": "2.0",
+                    "versionEndExcluding": "2.15.0"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "references": [
+          {
+            "url": "https://logging.apache.org/log4j/2.x/security.html",
+            "source": "security@apache.org",
+            "tags": ["Vendor Advisory"]
+          },
+          {
+            "url": "https://github.com/advisories/GHSA-jfh8-c2jp-hdp8",
+            "source": "github.com",
+            "tags": ["Third Party Advisory"]
+          },
+          {
+            "url": "https://www.cisa.gov/uscert/ncas/alerts/aa21-356a",
+            "source": "cisa.gov",
+            "tags": ["US Government Resource"]
+          }
+        ]
+      }
+    },
+    {
+      "cve": {
+        "id": "CVE-2014-0160",
+        "published": "2014-04-07T22:55:03.893",
+        "lastModified": "2023-11-07T02:18:10.447",
+        "vulnStatus": "Analyzed",
+        "descriptions": [
+          {
+            "lang": "en",
+            "value": "The (1) TLS and (2) DTLS implementations in OpenSSL 1.0.1 before 1.0.1g do not properly handle Heartbeat Extension packets, which allows remote attackers to obtain sensitive information from process memory via crafted packets that trigger a buffer over-read, as demonstrated by reading private keys, related to d1_both.c and t1_lib.c, aka the Heartbleed bug."
+          }
+        ],
+        "metrics": {
+          "cvssMetricV31": [
+            {
+              "source": "nvd@nist.gov",
+              "type": "Primary",
+              "cvssData": {
+                "version": "3.1",
+                "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+                "attackVector": "NETWORK",
+                "attackComplexity": "LOW",
+                "privilegesRequired": "NONE",
+                "userInteraction": "NONE",
+                "scope": "UNCHANGED",
+                "confidentialityImpact": "HIGH",
+                "integrityImpact": "NONE",
+                "availabilityImpact": "NONE",
+                "baseScore": 7.5,
+                "baseSeverity": "HIGH"
+              }
+            }
+          ]
+        },
+        "weaknesses": [
+          {
+            "type": "Primary",
+            "description": [{"lang": "en", "value": "CWE-125"}]
+          }
+        ],
+        "configurations": [
+          {
+            "nodes": [
+              {
+                "operator": "OR",
+                "negate": false,
+                "cpeMatch": [
+                  {"vulnerable": true, "criteria": "cpe:2.3:a:openssl:openssl:1.0.1:*:*:*:*:*:*:*"},
+                  {"vulnerable": true, "criteria": "cpe:2.3:a:openssl:openssl:1.0.1a:*:*:*:*:*:*:*"},
+                  {"vulnerable": true, "criteria": "cpe:2.3:a:openssl:openssl:1.0.1b:*:*:*:*:*:*:*"},
+                  {"vulnerable": true, "criteria": "cpe:2.3:a:openssl:openssl:1.0.1c:*:*:*:*:*:*:*"},
+                  {"vulnerable": true, "criteria": "cpe:2.3:a:openssl:openssl:1.0.1d:*:*:*:*:*:*:*"},
+                  {"vulnerable": true, "criteria": "cpe:2.3:a:openssl:openssl:1.0.1e:*:*:*:*:*:*:*"},
+                  {"vulnerable": true, "criteria": "cpe:2.3:a:openssl:openssl:1.0.1f:*:*:*:*:*:*:*"}
+                ]
+              }
+            ]
+          }
+        ],
+        "references": [
+          {
+            "url": "http://heartbleed.com",
+            "source": "third-party",
+            "tags": ["Third Party Advisory"]
+          },
+          {
+            "url": "https://www.openssl.org/news/secadv/20140407.txt",
+            "source": "openssl.org",
+            "tags": ["Vendor Advisory"]
+          }
+        ]
+      }
+    },
+    {
+      "cve": {
+        "id": "CVE-2017-0144",
+        "published": "2017-03-16T10:59:01.570",
+        "lastModified": "2023-05-22T17:29:03.060",
+        "vulnStatus": "Analyzed",
+        "descriptions": [
+          {
+            "lang": "en",
+            "value": "The SMBv1 server in Microsoft Windows Vista SP2; Windows Server 2008 SP2 and R2 SP1; Windows 7 SP1; Windows 8.1; Windows Server 2012 Gold and R2; Windows RT 8.1; and Windows 10 Gold, 1511, and 1607; and Windows Server 2016 allows remote attackers to execute arbitrary code via crafted packets, aka \"Windows SMB Remote Code Execution Vulnerability.\" This vulnerability is different from those described in CVE-2017-0143, CVE-2017-0145, CVE-2017-0146, and CVE-2017-0148."
+          }
+        ],
+        "metrics": {
+          "cvssMetricV31": [
+            {
+              "source": "nvd@nist.gov",
+              "type": "Primary",
+              "cvssData": {
+                "version": "3.1",
+                "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+                "attackVector": "NETWORK",
+                "attackComplexity": "HIGH",
+                "privilegesRequired": "NONE",
+                "userInteraction": "NONE",
+                "scope": "UNCHANGED",
+                "confidentialityImpact": "HIGH",
+                "integrityImpact": "HIGH",
+                "availabilityImpact": "HIGH",
+                "baseScore": 8.1,
+                "baseSeverity": "HIGH"
+              }
+            }
+          ]
+        },
+        "weaknesses": [
+          {
+            "type": "Primary",
+            "description": [{"lang": "en", "value": "CWE-362"}]
+          }
+        ],
+        "configurations": [
+          {
+            "nodes": [
+              {
+                "operator": "OR",
+                "negate": false,
+                "cpeMatch": [
+                  {"vulnerable": true, "criteria": "cpe:2.3:o:microsoft:windows_7:*:sp1:*:*:*:*:*:*"},
+                  {"vulnerable": true, "criteria": "cpe:2.3:o:microsoft:windows_server_2008:*:sp2:*:*:*:*:*:*"},
+                  {"vulnerable": true, "criteria": "cpe:2.3:o:microsoft:windows_8.1:*:*:*:*:*:*:*:*"},
+                  {"vulnerable": true, "criteria": "cpe:2.3:o:microsoft:windows_10:-:*:*:*:*:*:*:*"},
+                  {"vulnerable": true, "criteria": "cpe:2.3:o:microsoft:windows_server_2016:-:*:*:*:*:*:*:*"}
+                ]
+              }
+            ]
+          }
+        ],
+        "references": [
+          {
+            "url": "https://docs.microsoft.com/en-us/security-updates/securitybulletins/2017/ms17-010",
+            "source": "microsoft.com",
+            "tags": ["Patch", "Vendor Advisory"]
+          },
+          {
+            "url": "https://technet.microsoft.com/en-us/library/security/ms17-010.aspx",
+            "source": "microsoft.com",
+            "tags": ["Patch", "Vendor Advisory"]
+          }
+        ]
+      }
+    },
+    {
+      "cve": {
+        "id": "CVE-2021-26855",
+        "published": "2021-03-03T00:15:11.680",
+        "lastModified": "2023-12-29T17:15:52.107",
+        "vulnStatus": "Analyzed",
+        "descriptions": [
+          {
+            "lang": "en",
+            "value": "Microsoft Exchange Server Remote Code Execution Vulnerability. This CVE ID is unique from CVE-2021-26412, CVE-2021-26854, CVE-2021-26857, CVE-2021-26858, CVE-2021-27065, CVE-2021-27078."
+          }
+        ],
+        "metrics": {
+          "cvssMetricV31": [
+            {
+              "source": "nvd@nist.gov",
+              "type": "Primary",
+              "cvssData": {
+                "version": "3.1",
+                "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+                "attackVector": "NETWORK",
+                "attackComplexity": "LOW",
+                "privilegesRequired": "NONE",
+                "userInteraction": "NONE",
+                "scope": "UNCHANGED",
+                "confidentialityImpact": "HIGH",
+                "integrityImpact": "HIGH",
+                "availabilityImpact": "HIGH",
+                "baseScore": 9.8,
+                "baseSeverity": "CRITICAL"
+              }
+            }
+          ]
+        },
+        "weaknesses": [
+          {
+            "type": "Primary",
+            "description": [{"lang": "en", "value": "CWE-918"}]
+          }
+        ],
+        "configurations": [
+          {
+            "nodes": [
+              {
+                "operator": "OR",
+                "negate": false,
+                "cpeMatch": [
+                  {"vulnerable": true, "criteria": "cpe:2.3:a:microsoft:exchange_server:2013:cumulative_update_21:*:*:*:*:*:*"},
+                  {"vulnerable": true, "criteria": "cpe:2.3:a:microsoft:exchange_server:2016:cumulative_update_18:*:*:*:*:*:*"},
+                  {"vulnerable": true, "criteria": "cpe:2.3:a:microsoft:exchange_server:2016:cumulative_update_19:*:*:*:*:*:*"},
+                  {"vulnerable": true, "criteria": "cpe:2.3:a:microsoft:exchange_server:2019:cumulative_update_7:*:*:*:*:*:*"},
+                  {"vulnerable": true, "criteria": "cpe:2.3:a:microsoft:exchange_server:2019:cumulative_update_8:*:*:*:*:*:*"}
+                ]
+              }
+            ]
+          }
+        ],
+        "references": [
+          {
+            "url": "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-26855",
+            "source": "microsoft.com",
+            "tags": ["Patch", "Vendor Advisory"]
+          },
+          {
+            "url": "https://www.volexity.com/blog/2021/03/02/active-exploitation-of-microsoft-exchange-zero-day-vulnerabilities/",
+            "source": "volexity.com",
+            "tags": ["Third Party Advisory"]
+          }
+        ]
+      }
+    },
+    {
+      "cve": {
+        "id": "CVE-2022-30190",
+        "published": "2022-06-01T20:15:09.910",
+        "lastModified": "2023-11-15T03:15:10.337",
+        "vulnStatus": "Analyzed",
+        "descriptions": [
+          {
+            "lang": "en",
+            "value": "Microsoft Windows Support Diagnostic Tool (MSDT) Remote Code Execution Vulnerability."
+          }
+        ],
+        "metrics": {
+          "cvssMetricV31": [
+            {
+              "source": "nvd@nist.gov",
+              "type": "Primary",
+              "cvssData": {
+                "version": "3.1",
+                "vectorString": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+                "attackVector": "LOCAL",
+                "attackComplexity": "LOW",
+                "privilegesRequired": "NONE",
+                "userInteraction": "REQUIRED",
+                "scope": "UNCHANGED",
+                "confidentialityImpact": "HIGH",
+                "integrityImpact": "HIGH",
+                "availabilityImpact": "HIGH",
+                "baseScore": 7.8,
+                "baseSeverity": "HIGH"
+              }
+            }
+          ]
+        },
+        "weaknesses": [
+          {
+            "type": "Primary",
+            "description": [{"lang": "en", "value": "CWE-610"}]
+          }
+        ],
+        "configurations": [
+          {
+            "nodes": [
+              {
+                "operator": "OR",
+                "negate": false,
+                "cpeMatch": [
+                  {"vulnerable": true, "criteria": "cpe:2.3:o:microsoft:windows_10:-:*:*:*:*:*:*:*"},
+                  {"vulnerable": true, "criteria": "cpe:2.3:o:microsoft:windows_11:-:*:*:*:*:*:*:*"},
+                  {"vulnerable": true, "criteria": "cpe:2.3:o:microsoft:windows_server_2019:-:*:*:*:*:*:*:*"},
+                  {"vulnerable": true, "criteria": "cpe:2.3:o:microsoft:windows_server_2022:-:*:*:*:*:*:*:*"}
+                ]
+              }
+            ]
+          }
+        ],
+        "references": [
+          {
+            "url": "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2022-30190",
+            "source": "microsoft.com",
+            "tags": ["Patch", "Vendor Advisory"]
+          },
+          {
+            "url": "https://www.huntress.com/blog/microsoft-office-remote-code-execution-follina-msdt-bug",
+            "source": "huntress.com",
+            "tags": ["Third Party Advisory"]
+          }
+        ]
+      }
+    }
+  ]
+}

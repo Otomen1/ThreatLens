@@ -1,6 +1,6 @@
-"""Structured-identifier detectors: CVE, MITRE technique, registry key.
+"""Structured-identifier detectors: CVE, CWE, CAPEC, MITRE technique, registry key.
 
-All three are deterministically recognizable by well-defined patterns/prefixes,
+All are deterministically recognizable by well-defined patterns/prefixes,
 so they validate strictly and normalize to a canonical form.
 """
 
@@ -13,6 +13,8 @@ from ...entities.types import EntityType
 from .base import DetectionContext, EntityDetector
 
 _CVE_RE = re.compile(r"CVE-\d{4}-\d{4,}", re.IGNORECASE)
+_CWE_RE = re.compile(r"CWE-\d+", re.IGNORECASE)
+_CAPEC_RE = re.compile(r"CAPEC-\d+", re.IGNORECASE)
 # ATT&CK techniques and sub-techniques (Txxxx / Txxxx.yyy); tactics (TAxxxx)
 # are intentionally out of scope for Phase 1.1.
 _MITRE_RE = re.compile(r"T\d{4}(?:\.\d{3})?", re.IGNORECASE)
@@ -34,6 +36,28 @@ class CveDetector(EntityDetector):
 
     def matches(self, ctx: DetectionContext) -> bool:
         return _CVE_RE.fullmatch(ctx.normalized) is not None
+
+    def normalize(self, ctx: DetectionContext) -> str:
+        return ctx.normalized.upper()
+
+
+class CweDetector(EntityDetector):
+    entity_type: ClassVar[EntityType] = EntityType.CWE
+    priority: ClassVar[int] = 65
+
+    def matches(self, ctx: DetectionContext) -> bool:
+        return _CWE_RE.fullmatch(ctx.normalized) is not None
+
+    def normalize(self, ctx: DetectionContext) -> str:
+        return ctx.normalized.upper()
+
+
+class CapecDetector(EntityDetector):
+    entity_type: ClassVar[EntityType] = EntityType.CAPEC
+    priority: ClassVar[int] = 67
+
+    def matches(self, ctx: DetectionContext) -> bool:
+        return _CAPEC_RE.fullmatch(ctx.normalized) is not None
 
     def normalize(self, ctx: DetectionContext) -> str:
         return ctx.normalized.upper()
