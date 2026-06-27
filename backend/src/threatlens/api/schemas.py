@@ -41,19 +41,6 @@ class DetectResponse(BaseModel):
     entity: Entity
 
 
-class IntelligenceResponse(BaseModel):
-    """A detected entity plus the aggregated intelligence gathered for it.
-
-    ``intelligence`` merges every routed provider's result into one canonical
-    :class:`AggregatedResult` (attribution + de-duplicated findings). The client
-    never sees per-provider payloads or needs to know how many providers ran.
-    """
-
-    search_id: UUID
-    entity: Entity
-    intelligence: AggregatedResult
-
-
 class InvestigationResponse(BaseModel):
     """Unified investigation: entity + TI framework + reference knowledge.
 

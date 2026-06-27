@@ -8,7 +8,6 @@ transport, validation, and a per-request ``search_id``.
 
 from __future__ import annotations
 
-import asyncio
 import os
 from typing import Annotated
 from uuid import uuid4
@@ -17,10 +16,10 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from ..investigation import InvestigationService
-from ..providers import ProviderRouter, aggregate, build_default_router
+from ..providers import build_default_router
 from ..reference import build_default_reference_router
 from ..search import detect
-from .schemas import DetectRequest, DetectResponse, IntelligenceResponse, InvestigationResponse
+from .schemas import DetectRequest, DetectResponse, InvestigationResponse
 
 # Local-development convenience: load backend/.env (if present) before anything
 # reads the environment, so secrets like MALWAREBAZAAR_AUTH_KEY are available.
@@ -59,14 +58,9 @@ app.add_middleware(
 
 # Process-wide routers and investigation service. Built once; providers are
 # stateless aside from their (network-only) HTTP client.
-_provider_router = build_default_router()
-_reference_router = build_default_reference_router()
-_investigation_service = InvestigationService(_provider_router, _reference_router)
-
-
-def get_provider_router() -> ProviderRouter:
-    """Provide the provider router (overridable in tests)."""
-    return _provider_router
+_investigation_service = InvestigationService(
+    build_default_router(), build_default_reference_router()
+)
 
 
 def get_investigation_service() -> InvestigationService:
@@ -90,24 +84,6 @@ def detect_entity(request: DetectRequest) -> DetectResponse:
     """
     entity = detect(request.query)
     return DetectResponse(search_id=uuid4(), entity=entity)
-
-
-@app.post("/api/v1/intelligence", response_model=IntelligenceResponse)
-async def gather_intelligence(
-    request: DetectRequest,
-    router: Annotated[ProviderRouter, Depends(get_provider_router)],
-) -> IntelligenceResponse:
-    """Detect the entity, run every capable provider concurrently, and aggregate.
-
-    Providers that fail return a failure result rather than raising, so a partial
-    outage never fails the request. The aggregator merges all results into one
-    canonical response (attribution + de-duplicated findings); no scoring here.
-    """
-    entity = detect(request.query)
-    providers = router.route(entity)
-    results = await asyncio.gather(*(provider.safe_search(entity) for provider in providers))
-    intelligence = aggregate(results, entity_type=entity.type, entity_value=entity.value)
-    return IntelligenceResponse(search_id=uuid4(), entity=entity, intelligence=intelligence)
 
 
 @app.post("/api/v1/investigate", response_model=InvestigationResponse)
