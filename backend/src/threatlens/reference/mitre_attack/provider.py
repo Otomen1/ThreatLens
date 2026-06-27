@@ -85,6 +85,7 @@ class MitreAttackProvider(ReferenceProvider):
     ) -> None:
         self._enabled = enabled
         self._load_error: str | None = None
+        self._cached_metadata: ReferenceMetadata | None = None
         if dataset is not None:
             self._dataset: MitreAttackDataset | None = dataset
             return
@@ -97,21 +98,23 @@ class MitreAttackProvider(ReferenceProvider):
 
     @property
     def metadata(self) -> ReferenceMetadata:
-        prov = self._dataset.provenance if self._dataset else DatasetProvenance()
-        return ReferenceMetadata(
-            name=_NAME,
-            display_name=_DISPLAY,
-            supported_entity_types=_SUPPORTED,
-            capabilities=_CAPABILITIES,
-            priority=_PRIORITY,
-            enabled=self._enabled,
-            provider_version="0.1.0",
-            dataset_version=prov.version,
-            release_date=prov.release_date,
-            source_url=_SOURCE_URL,
-            offline=True,
-            last_updated=prov.last_updated,
-        )
+        if self._cached_metadata is None:
+            prov = self._dataset.provenance if self._dataset else DatasetProvenance()
+            self._cached_metadata = ReferenceMetadata(
+                name=_NAME,
+                display_name=_DISPLAY,
+                supported_entity_types=_SUPPORTED,
+                capabilities=_CAPABILITIES,
+                priority=_PRIORITY,
+                enabled=self._enabled,
+                provider_version="0.1.0",
+                dataset_version=prov.version,
+                release_date=prov.release_date,
+                source_url=_SOURCE_URL,
+                offline=True,
+                last_updated=prov.last_updated,
+            )
+        return self._cached_metadata
 
     async def lookup(self, entity: Entity) -> IntelligenceResult:
         """Resolve ``entity`` against the dataset and normalize it (never raises)."""

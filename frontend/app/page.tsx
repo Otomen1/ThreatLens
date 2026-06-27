@@ -26,6 +26,7 @@ export default function HomePage() {
 
     setLoading(true);
     setError(null);
+    setResult(null);
     try {
       const res = await investigate(trimmed, controller.signal);
       setResult(res);

@@ -25,8 +25,27 @@ from .base import DetectionContext, EntityDetector
 # ".com" to avoid colliding with the .com TLD (handled by the domain detector).
 _EXEC_EXTENSIONS = frozenset(
     (
-        "exe", "dll", "sys", "scr", "bat", "cmd", "ps1", "psm1", "vbs", "vbe",
-        "js", "jse", "wsf", "wsh", "hta", "msi", "msp", "cpl", "pif", "scf", "lnk",
+        "exe",
+        "dll",
+        "sys",
+        "scr",
+        "bat",
+        "cmd",
+        "ps1",
+        "psm1",
+        "vbs",
+        "vbe",
+        "js",
+        "jse",
+        "wsf",
+        "wsh",
+        "hta",
+        "msi",
+        "msp",
+        "cpl",
+        "pif",
+        "scf",
+        "lnk",
     )
 )
 _PROCESS_RE = re.compile(r"[A-Za-z0-9_.\-]+\.([A-Za-z0-9]+)")

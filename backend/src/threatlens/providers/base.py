@@ -108,9 +108,7 @@ class IntelligenceProvider(ABC):
         ``DISABLED``; otherwise ``UNKNOWN`` (a real probe arrives with each
         provider's implementation).
         """
-        status = (
-            ProviderStatus.UNKNOWN if self.metadata.enabled else ProviderStatus.DISABLED
-        )
+        status = ProviderStatus.UNKNOWN if self.metadata.enabled else ProviderStatus.DISABLED
         return ProviderHealth(name=self.name, status=status)
 
     async def safe_search(self, entity: Entity) -> IntelligenceResult:

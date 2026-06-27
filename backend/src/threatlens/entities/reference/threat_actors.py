@@ -11,8 +11,13 @@ from __future__ import annotations
 # canonical -> aliases
 _ACTORS: dict[str, list[str]] = {
     "APT28": [
-        "Fancy Bear", "Sofacy", "Sednit", "Pawn Storm",
-        "STRONTIUM", "Forest Blizzard", "Fighting Ursa",
+        "Fancy Bear",
+        "Sofacy",
+        "Sednit",
+        "Pawn Storm",
+        "STRONTIUM",
+        "Forest Blizzard",
+        "Fighting Ursa",
     ],
     "APT29": ["Cozy Bear", "The Dukes", "Nobelium", "Midnight Blizzard", "Cozy Duke", "UNC2452"],
     "APT30": [],

@@ -352,45 +352,6 @@ async def test_router_receives_entity() -> None:
 # --------------------------------------------------------------------------- #
 
 
-def _make_mock_service(
-    ti_providers_count: int = 0,
-    knowledge_providers_count: int = 0,
-    entity_type: EntityType = EntityType.IPV4,
-    entity_value: str = "1.2.3.4",
-) -> MagicMock:
-    ti_agg = AggregatedResult(
-        entity_type=entity_type,
-        entity_value=entity_value,
-        providers=[
-            MagicMock(
-                provider=f"ti_{i}",
-                provider_display_name=f"TI {i}",
-                status=ResultStatus.OK,
-                reputation=None,
-                error=None,
-            )
-            for i in range(ti_providers_count)
-        ],
-    )
-    knowledge_agg = AggregatedResult(
-        entity_type=entity_type,
-        entity_value=entity_value,
-        providers=[
-            MagicMock(
-                provider=f"ref_{i}",
-                provider_display_name=f"Ref {i}",
-                status=ResultStatus.OK,
-                reputation=None,
-                error=None,
-            )
-            for i in range(knowledge_providers_count)
-        ],
-    )
-    svc = MagicMock(spec=InvestigationService)
-    svc.investigate = AsyncMock(return_value=(ti_agg, knowledge_agg))
-    return svc
-
-
 @pytest.fixture()
 def client_with_mock_service():
     """TestClient with a clean mock investigation service injected."""
@@ -403,7 +364,7 @@ def client_with_mock_service():
     )
     app.dependency_overrides[get_investigation_service] = lambda: mock_svc
     yield TestClient(app), mock_svc
-    app.dependency_overrides.clear()
+    app.dependency_overrides.pop(get_investigation_service, None)
 
 
 def test_investigate_returns_200(client_with_mock_service) -> None:

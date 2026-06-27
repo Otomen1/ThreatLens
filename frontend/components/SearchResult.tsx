@@ -168,14 +168,6 @@ export function SearchResult({ data }: { data: InvestigationResponse }) {
 }
 
 function IntelligencePanel({ result }: { result: AggregatedResult }) {
-  if (result.providers.length === 0) {
-    return (
-      <p className="text-xs text-zinc-600">
-        No providers apply to this entity type yet.
-      </p>
-    );
-  }
-
   const reputations = result.providers.filter((p) => p.reputation);
   const evidence = result.evidence.filter((e) => e.evidence.type !== "tag");
   const hasFindings =
@@ -221,9 +213,9 @@ function IntelligencePanel({ result }: { result: AggregatedResult }) {
         <div>
           <p className="text-xs text-zinc-500 mb-2">Evidence</p>
           <ul className="space-y-1.5">
-            {evidence.map((e) => (
+            {evidence.map((e, i) => (
               <li
-                key={`${e.evidence.type}:${e.evidence.value ?? e.evidence.summary}`}
+                key={i}
                 className="flex items-start justify-between gap-3 text-sm"
               >
                 <span className="text-zinc-300">{e.evidence.summary}</span>

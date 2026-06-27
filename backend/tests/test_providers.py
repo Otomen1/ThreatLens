@@ -206,22 +206,16 @@ def test_empty_registry_routes_to_nothing() -> None:
 def test_route_filtered_by_capability() -> None:
     router = ProviderRouter(sample_registry())
 
-    reputation = router.route(
-        entity_of(EntityType.IPV4), capability=ProviderCapability.REPUTATION
-    )
+    reputation = router.route(entity_of(EntityType.IPV4), capability=ProviderCapability.REPUTATION)
     assert names(reputation) == ["virustotal", "abuseipdb"]
 
-    samples = router.route_type(
-        EntityType.SHA256, capability=ProviderCapability.SAMPLE_RETRIEVAL
-    )
+    samples = router.route_type(EntityType.SHA256, capability=ProviderCapability.SAMPLE_RETRIEVAL)
     assert names(samples) == ["malwarebazaar"]
 
 
 def test_capability_with_no_matching_provider_is_empty() -> None:
     router = ProviderRouter(sample_registry())
-    routed = router.route_type(
-        EntityType.IPV4, capability=ProviderCapability.SAMPLE_RETRIEVAL
-    )
+    routed = router.route_type(EntityType.IPV4, capability=ProviderCapability.SAMPLE_RETRIEVAL)
     assert routed == ()
 
 
@@ -242,9 +236,7 @@ def test_has_capability_and_supports() -> None:
 
 def test_disabled_provider_is_registered_but_not_routed() -> None:
     registry = sample_registry()
-    registry.register(
-        make_provider("disabled-vt", types={EntityType.IPV4}, enabled=False)
-    )
+    registry.register(make_provider("disabled-vt", types={EntityType.IPV4}, enabled=False))
     router = ProviderRouter(registry)
 
     # Still present in the registry...
@@ -255,9 +247,7 @@ def test_disabled_provider_is_registered_but_not_routed() -> None:
 
 def test_disabling_the_only_provider_yields_no_route() -> None:
     registry = ProviderRegistry()
-    registry.register(
-        make_provider("solo", types={EntityType.DOMAIN}, enabled=False)
-    )
+    registry.register(make_provider("solo", types={EntityType.DOMAIN}, enabled=False))
     router = ProviderRouter(registry)
     assert router.route_type(EntityType.DOMAIN) == ()
 
