@@ -16,9 +16,11 @@ from uuid import uuid4
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from ..investigation import InvestigationService
 from ..providers import ProviderRouter, aggregate, build_default_router
+from ..reference import build_default_reference_router
 from ..search import detect
-from .schemas import DetectRequest, DetectResponse, IntelligenceResponse
+from .schemas import DetectRequest, DetectResponse, IntelligenceResponse, InvestigationResponse
 
 # Local-development convenience: load backend/.env (if present) before anything
 # reads the environment, so secrets like MALWAREBAZAAR_AUTH_KEY are available.
@@ -55,14 +57,21 @@ app.add_middleware(
 )
 
 
-# Process-wide router over the default provider registry. Built once; providers
-# are stateless aside from their (network-only) HTTP client.
+# Process-wide routers and investigation service. Built once; providers are
+# stateless aside from their (network-only) HTTP client.
 _provider_router = build_default_router()
+_reference_router = build_default_reference_router()
+_investigation_service = InvestigationService(_provider_router, _reference_router)
 
 
 def get_provider_router() -> ProviderRouter:
     """Provide the provider router (overridable in tests)."""
     return _provider_router
+
+
+def get_investigation_service() -> InvestigationService:
+    """Provide the investigation service (overridable in tests)."""
+    return _investigation_service
 
 
 @app.get("/api/v1/health")
@@ -97,9 +106,27 @@ async def gather_intelligence(
     entity = detect(request.query)
     providers = router.route(entity)
     results = await asyncio.gather(*(provider.safe_search(entity) for provider in providers))
-    intelligence = aggregate(
-        results, entity_type=entity.type, entity_value=entity.value
-    )
-    return IntelligenceResponse(
-        search_id=uuid4(), entity=entity, intelligence=intelligence
+    intelligence = aggregate(results, entity_type=entity.type, entity_value=entity.value)
+    return IntelligenceResponse(search_id=uuid4(), entity=entity, intelligence=intelligence)
+
+
+@app.post("/api/v1/investigate", response_model=InvestigationResponse)
+async def investigate_entity(
+    request: DetectRequest,
+    service: Annotated[InvestigationService, Depends(get_investigation_service)],
+) -> InvestigationResponse:
+    """Detect the entity and run TI + reference providers concurrently.
+
+    Returns both a ``threat_intelligence`` AggregatedResult (external provider
+    findings) and a ``knowledge`` AggregatedResult (reference knowledge such as
+    MITRE ATT&CK). Either may be empty — the client hides empty sections.
+    Providers that fail contribute their status, not an exception.
+    """
+    entity = detect(request.query)
+    threat_intelligence, knowledge = await service.investigate(entity)
+    return InvestigationResponse(
+        investigation_id=uuid4(),
+        entity=entity,
+        threat_intelligence=threat_intelligence,
+        knowledge=knowledge,
     )

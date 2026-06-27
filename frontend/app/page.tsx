@@ -2,14 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { intelligence, type IntelligenceResponse } from "@/lib/api";
+import { investigate, type InvestigationResponse } from "@/lib/api";
 import { SearchResult } from "@/components/SearchResult";
 
 export default function HomePage() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<IntelligenceResponse | null>(null);
+  const [result, setResult] = useState<InvestigationResponse | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   // Cancel any in-flight request on unmount.
@@ -27,7 +27,7 @@ export default function HomePage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await intelligence(trimmed, controller.signal);
+      const res = await investigate(trimmed, controller.signal);
       setResult(res);
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;

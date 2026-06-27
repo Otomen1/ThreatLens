@@ -52,3 +52,19 @@ class IntelligenceResponse(BaseModel):
     search_id: UUID
     entity: Entity
     intelligence: AggregatedResult
+
+
+class InvestigationResponse(BaseModel):
+    """Unified investigation: entity + TI framework + reference knowledge.
+
+    ``threat_intelligence`` aggregates external provider findings (reputation,
+    evidence, relationships). ``knowledge`` aggregates reference-knowledge
+    findings (MITRE ATT&CK, CVE/NVD, …). Either may be empty when no providers
+    support the entity type — the client hides those sections rather than
+    receiving an error.
+    """
+
+    investigation_id: UUID
+    entity: Entity
+    threat_intelligence: AggregatedResult
+    knowledge: AggregatedResult

@@ -150,6 +150,13 @@ export interface IntelligenceResponse {
   intelligence: AggregatedResult;
 }
 
+export interface InvestigationResponse {
+  investigation_id: string;
+  entity: Entity;
+  threat_intelligence: AggregatedResult;
+  knowledge: AggregatedResult;
+}
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
 
 /** Error raised for any non-success API response or unreachable backend. */
@@ -207,4 +214,12 @@ export function intelligence(
   signal?: AbortSignal,
 ): Promise<IntelligenceResponse> {
   return postQuery<IntelligenceResponse>("/intelligence", query, signal);
+}
+
+/** Detect an entity and run TI + reference providers concurrently. */
+export function investigate(
+  query: string,
+  signal?: AbortSignal,
+): Promise<InvestigationResponse> {
+  return postQuery<InvestigationResponse>("/investigate", query, signal);
 }

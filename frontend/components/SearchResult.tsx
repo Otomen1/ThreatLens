@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import type {
   AggregatedResult,
   EntityType,
-  IntelligenceResponse,
+  InvestigationResponse,
   ReputationLevel,
   ResultStatus,
   ValidationStatus,
@@ -66,15 +66,18 @@ function humanize(value: string): string {
   return value.replace(/_/g, " ");
 }
 
-export function SearchResult({ data }: { data: IntelligenceResponse }) {
-  const { entity, intelligence, search_id } = data;
+export function SearchResult({ data }: { data: InvestigationResponse }) {
+  const { entity, threat_intelligence, knowledge, investigation_id } = data;
+
+  const hasTI = threat_intelligence.providers.length > 0;
+  const hasKnowledge = knowledge.providers.length > 0;
 
   return (
     <div className="w-full space-y-4 text-left">
-      {/* Entity Information (live) */}
+      {/* Entity Overview — always shown */}
       <section className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-5">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold text-white">Entity Information</h2>
+          <h2 className="text-sm font-semibold text-white">Entity Overview</h2>
           <span className="shrink-0 px-2.5 py-1 rounded-full bg-zinc-800 border border-zinc-700 text-xs text-zinc-300">
             {labelFor(entity.type)}
           </span>
@@ -122,30 +125,44 @@ export function SearchResult({ data }: { data: IntelligenceResponse }) {
         )}
 
         <p className="text-[11px] text-zinc-600 font-mono break-all">
-          Search ID: {search_id}
+          Investigation ID: {investigation_id}
         </p>
       </section>
 
-      {/* Threat Intelligence — aggregated across all providers (provider-agnostic). */}
-      <section className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-4">
-        <h2 className="text-sm font-semibold text-white">Threat Intelligence</h2>
-        <IntelligencePanel result={intelligence} />
-      </section>
-
-      {/* Future-phase placeholders (structural only). */}
-      {["AI Analysis", "Related Intelligence"].map((title) => (
-        <section
-          key={title}
-          className="bg-zinc-900/40 border border-dashed border-zinc-800/70 rounded-2xl p-5"
-        >
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-medium text-zinc-500">{title}</h2>
-            <span className="shrink-0 text-[11px] text-zinc-600">
-              Available in a future phase
-            </span>
-          </div>
+      {/* Threat Intelligence — hidden when no TI providers ran */}
+      {hasTI && (
+        <section className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-4">
+          <h2 className="text-sm font-semibold text-white">Threat Intelligence</h2>
+          <IntelligencePanel result={threat_intelligence} />
         </section>
-      ))}
+      )}
+
+      {/* Knowledge — hidden when no reference providers ran */}
+      {hasKnowledge && (
+        <section className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-4">
+          <h2 className="text-sm font-semibold text-white">Knowledge</h2>
+          <IntelligencePanel result={knowledge} />
+        </section>
+      )}
+
+      {/* Neither framework has providers for this entity type */}
+      {!hasTI && !hasKnowledge && (
+        <section className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+          <p className="text-xs text-zinc-500">
+            No providers apply to this entity type yet.
+          </p>
+        </section>
+      )}
+
+      {/* AI Analysis — future phase placeholder */}
+      <section className="bg-zinc-900/40 border border-dashed border-zinc-800/70 rounded-2xl p-5">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-medium text-zinc-500">AI Analysis</h2>
+          <span className="shrink-0 text-[11px] text-zinc-600">
+            Available in a future phase
+          </span>
+        </div>
+      </section>
     </div>
   );
 }
@@ -154,7 +171,7 @@ function IntelligencePanel({ result }: { result: AggregatedResult }) {
   if (result.providers.length === 0) {
     return (
       <p className="text-xs text-zinc-600">
-        No intelligence providers apply to this entity type yet.
+        No providers apply to this entity type yet.
       </p>
     );
   }
