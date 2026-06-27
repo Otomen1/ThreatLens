@@ -1,8 +1,8 @@
 """Tests for the reason() entry point and its /api/v1/investigate integration.
 
-Phase 3.1a: reason() assembles evidence and derives an overall confidence; it
-emits no findings or recommendations yet. The endpoint exposes the summary
-additively without breaking the existing response.
+As of Phase 3.1b, reason() generates findings via the rule engine and populates
+posture/overall confidence; recommendations remain empty until 3.1c. The endpoint
+exposes the summary additively without breaking the existing response.
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ from threatlens.providers.results import (
     ReputationLevel,
     ResultStatus,
 )
-from threatlens.reasoning import ConfidenceBand, Severity, reason
+from threatlens.reasoning import ConfidenceBand, FindingCategory, Severity, reason
 from threatlens.reasoning.engine import ENGINE_VERSION
 
 NOW = datetime(2024, 6, 1, tzinfo=UTC)
@@ -81,8 +81,11 @@ class TestReason:
         summary = reason(_entity(), ti, _empty(), now=NOW)
         assert summary.overall_confidence.band is not ConfidenceBand.INSUFFICIENT
         assert summary.overall_confidence.score > 0
-        # Still no findings/recommendations in 3.1a.
-        assert summary.findings == []
+        # 3.1b: a malicious IP now yields a finding; recommendations stay empty.
+        assert any(
+            FindingCategory.MALICIOUS_INFRASTRUCTURE in f.categories for f in summary.findings
+        )
+        assert summary.recommendations == []
 
     def test_deterministic_for_fixed_now(self) -> None:
         ti = AggregatedResult(
@@ -121,8 +124,8 @@ class TestInvestigateSummaryIntegration:
             "generated_at",
         ):
             assert key in summary
-        # 3.1a: no findings or recommendations yet.
-        assert summary["findings"] == []
+        # 3.1b: T1059 now produces an attack-technique finding; recommendations empty.
+        assert len(summary["findings"]) >= 1
         assert summary["recommendations"] == []
         assert summary["engine_version"] == ENGINE_VERSION
 
