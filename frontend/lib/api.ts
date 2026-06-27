@@ -144,12 +144,6 @@ export interface AggregatedResult {
   metadata: Record<string, unknown>;
 }
 
-export interface IntelligenceResponse {
-  search_id: string;
-  entity: Entity;
-  intelligence: AggregatedResult;
-}
-
 export interface InvestigationResponse {
   investigation_id: string;
   entity: Entity;
@@ -206,14 +200,6 @@ async function postQuery<T>(
 /** Classify a query into a normalized entity (detection only). */
 export function detect(query: string, signal?: AbortSignal): Promise<DetectResponse> {
   return postQuery<DetectResponse>("/detect", query, signal);
-}
-
-/** Detect an entity and gather provider intelligence for it. */
-export function intelligence(
-  query: string,
-  signal?: AbortSignal,
-): Promise<IntelligenceResponse> {
-  return postQuery<IntelligenceResponse>("/intelligence", query, signal);
 }
 
 /** Detect an entity and run TI + reference providers concurrently. */
