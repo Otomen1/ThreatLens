@@ -29,13 +29,15 @@ from .models import (
     RecommendationCategory,
     Severity,
 )
+from .priority import band_rank
 
 # --------------------------------------------------------------------------- #
 # Priority & conflict policy (deterministic, documented)
 # --------------------------------------------------------------------------- #
 
-# Intra-severity action ordering (lower = more urgent). Combined with finding
-# severity to produce a deterministic recommendation priority.
+# Intra-finding action ordering (lower = more urgent). This is an offset added to
+# the finding's derived priority — the single source of urgency — never a second
+# priority algorithm.
 _ACTION_RANK: dict[RecommendationAction, int] = {
     RecommendationAction.BLOCK: 0,
     RecommendationAction.PATCH_IMMEDIATELY: 1,
@@ -51,14 +53,6 @@ _ACTION_RANK: dict[RecommendationAction, int] = {
 }
 _DEFAULT_ACTION_RANK = 60
 
-_BAND_RANK: dict[ConfidenceBand, int] = {
-    ConfidenceBand.INSUFFICIENT: 0,
-    ConfidenceBand.LOW: 1,
-    ConfidenceBand.MODERATE: 2,
-    ConfidenceBand.HIGH: 3,
-    ConfidenceBand.VERY_HIGH: 4,
-}
-
 # Conflict policy: a superior action supersedes the listed inferior actions when
 # both target the same entity. "Block/Isolate" outranks "Monitor/Observe";
 # "Patch immediately" outranks "Monitor".
@@ -68,14 +62,9 @@ _SUPERSEDES: dict[RecommendationAction, frozenset[RecommendationAction]] = {
 }
 
 
-def _priority(severity: Severity, action: RecommendationAction) -> int:
-    """Deterministic priority (0 = most urgent): severity first, then action."""
-    severity_band = (int(Severity.CRITICAL) - int(severity)) * 100
-    return severity_band + _ACTION_RANK.get(action, _DEFAULT_ACTION_RANK)
-
-
-def _band_rank(band: ConfidenceBand) -> int:
-    return _BAND_RANK[band]
+def _recommendation_priority(finding: Finding, action: RecommendationAction) -> int:
+    """Recommendation priority: inherits the finding's priority + an action offset."""
+    return finding.priority + _ACTION_RANK.get(action, _DEFAULT_ACTION_RANK)
 
 
 # --------------------------------------------------------------------------- #
@@ -103,7 +92,7 @@ class RecommendationRule(ABC):
         return (
             bool(self.applicable_categories & finding.categories)
             and finding.severity >= self.min_severity
-            and _band_rank(finding.confidence.band) >= _band_rank(self.min_confidence)
+            and band_rank(finding.confidence.band) >= band_rank(self.min_confidence)
         )
 
     @abstractmethod
@@ -122,7 +111,7 @@ def _rec(
     return Recommendation(
         action=action,
         category=category,
-        priority=_priority(finding.severity, action),
+        priority=_recommendation_priority(finding, action),
         target_type=finding.subject_type,
         target_value=finding.subject_value,
         rationale=rationale,

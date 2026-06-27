@@ -13,13 +13,17 @@ from .engine import ENGINE_VERSION, reason
 from .evidence import EvidenceAssembler, EvidenceLedger
 from .findings import FindingEngine, compute_finding_id, overall_posture
 from .models import (
+    EMPTY_CONTEXT,
+    AssetCriticality,
     Confidence,
     ConfidenceBand,
     ConfidenceFactor,
+    Environment,
     EvidenceDimension,
     EvidencePolarity,
     Finding,
     FindingCategory,
+    InvestigationContext,
     InvestigationSummary,
     Recommendation,
     RecommendationAction,
@@ -27,6 +31,7 @@ from .models import (
     Severity,
     WeightedEvidence,
 )
+from .priority import derive_finding_priority
 from .recommendations import (
     DEFAULT_RECOMMENDATION_RULES,
     DuplicateRecommendationRuleError,
@@ -41,13 +46,16 @@ from .rules import DEFAULT_FINDING_RULES, FindingDraft, FindingRule, RuleContext
 __all__ = [
     "DEFAULT_FINDING_RULES",
     "DEFAULT_RECOMMENDATION_RULES",
+    "EMPTY_CONTEXT",
     "ENGINE_VERSION",
+    "AssetCriticality",
     "Confidence",
     "ConfidenceBand",
     "ConfidenceFactor",
     "ConfidenceScorer",
     "DuplicateRecommendationRuleError",
     "DuplicateRuleError",
+    "Environment",
     "EvidenceAssembler",
     "EvidenceDimension",
     "EvidenceLedger",
@@ -57,6 +65,7 @@ __all__ = [
     "FindingDraft",
     "FindingEngine",
     "FindingRule",
+    "InvestigationContext",
     "InvestigationSummary",
     "Recommendation",
     "RecommendationAction",
@@ -71,6 +80,7 @@ __all__ = [
     "build_default_recommendation_registry",
     "build_default_rule_registry",
     "compute_finding_id",
+    "derive_finding_priority",
     "overall_posture",
     "reason",
 ]

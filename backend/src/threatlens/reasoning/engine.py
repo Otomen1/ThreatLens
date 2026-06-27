@@ -1,19 +1,21 @@
 """The reasoning entry point — assembles evidence, generates findings, summarizes.
 
 ``reason()`` is the pure, deterministic public contract of the Investigation
-Intelligence Engine. As of Phase 3.1c it:
+Intelligence Engine. As of Phase 3.1d it:
 
 1. assembles the weighted evidence ledger (EvidenceAssembler),
 2. generates findings via the FindingEngine (typed rules + merge + per-finding
    confidence from the unchanged ConfidenceScorer),
-3. attaches finding-owned recommendations (RecommendationEngine, findings only),
-4. derives the overall posture, headline confidence, and the recommendation rollup,
+3. derives each finding's priority from its severity/confidence and the optional
+   InvestigationContext (context affects priority only — never severity,
+   confidence, evidence, findings, or recommendation content),
+4. attaches finding-owned recommendations (RecommendationEngine, findings only),
+5. derives the overall posture, headline confidence, and the recommendation rollup,
 
-and returns an InvestigationSummary. InvestigationContext-aware priority arrives
-in 3.1d.
+and returns an InvestigationSummary.
 
-Determinism: for identical inputs *and* an identical ``now``, the output is
-identical. ``now`` is injectable so tests are fully reproducible.
+Determinism: for identical inputs (including ``context`` and ``now``), the output
+is identical. ``context`` defaults to EMPTY, so existing callers are unaffected.
 """
 
 from __future__ import annotations
@@ -25,11 +27,12 @@ from ..providers.aggregation import AggregatedResult
 from .confidence import ConfidenceScorer
 from .evidence import EvidenceAssembler
 from .findings import FindingEngine, overall_posture
-from .models import FindingCategory, InvestigationSummary
+from .models import EMPTY_CONTEXT, FindingCategory, InvestigationContext, InvestigationSummary
+from .priority import derive_finding_priority
 from .recommendations import RecommendationEngine, build_default_recommendation_registry
 from .registry import build_default_rule_registry
 
-ENGINE_VERSION = "3.1c"
+ENGINE_VERSION = "3.1d"
 
 
 def reason(
@@ -37,6 +40,7 @@ def reason(
     ti: AggregatedResult,
     knowledge: AggregatedResult,
     *,
+    context: InvestigationContext = EMPTY_CONTEXT,
     now: datetime | None = None,
 ) -> InvestigationSummary:
     """Reason over aggregated intelligence and return an InvestigationSummary."""
@@ -44,7 +48,17 @@ def reason(
     ledger = EvidenceAssembler().assemble(ti, knowledge, now=moment)
     findings = FindingEngine(build_default_rule_registry()).generate(entity, ledger, now=moment)
 
-    # Attach finding-owned recommendations (downstream consumer of findings only).
+    # Derive priority from severity/confidence + context (context affects priority only).
+    findings = [
+        finding.model_copy(
+            update={
+                "priority": derive_finding_priority(finding.severity, finding.confidence, context)
+            }
+        )
+        for finding in findings
+    ]
+
+    # Attach finding-owned recommendations (they inherit the derived priority).
     rec_engine = RecommendationEngine(build_default_recommendation_registry())
     findings = [
         finding.model_copy(update={"recommendations": rec_engine.for_finding(finding)})

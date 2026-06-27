@@ -113,6 +113,53 @@ class RecommendationAction(StrEnum):
     NO_ACTION_NEEDED = "no_action_needed"
 
 
+class AssetCriticality(StrEnum):
+    """How important the investigated asset is (closed set)."""
+
+    UNKNOWN = "unknown"
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"
+
+
+class Environment(StrEnum):
+    """The deployment environment of the investigated asset (closed set)."""
+
+    UNKNOWN = "unknown"
+    DEVELOPMENT = "development"
+    TEST = "test"
+    STAGING = "staging"
+    PRODUCTION = "production"
+
+
+# --------------------------------------------------------------------------- #
+# Investigation context (optional engine input — affects priority only)
+# --------------------------------------------------------------------------- #
+
+
+class InvestigationContext(BaseModel):
+    """The operational frame an investigation runs in (the asset's context).
+
+    An *optional* input to the engine. It influences only derived Priority — never
+    evidence, confidence, severity, finding generation, or recommendation
+    generation. The default (:data:`EMPTY_CONTEXT`) leaves the engine behaving
+    exactly as a context-free investigation.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    criticality: AssetCriticality = AssetCriticality.UNKNOWN
+    environment: Environment = Environment.UNKNOWN
+    internet_facing: bool = False
+    tags: list[str] = Field(default_factory=list)
+    attributes: dict[str, str] = Field(default_factory=dict)
+
+
+EMPTY_CONTEXT = InvestigationContext()
+"""The singleton empty context: the engine behaves exactly as without context."""
+
+
 # --------------------------------------------------------------------------- #
 # Evidence (derived) — wraps existing AttributedEvidence, never replaces it
 # --------------------------------------------------------------------------- #
