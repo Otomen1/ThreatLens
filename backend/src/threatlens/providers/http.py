@@ -89,6 +89,19 @@ class HttpClient:
             lambda client: client.get(url, params=params, headers=merged_headers)
         )
 
+    async def post_json(
+        self,
+        url: str,
+        *,
+        json_body: dict[str, Any],
+        headers: dict[str, str] | None = None,
+    ) -> HttpResponse:
+        """POST a JSON ``json_body``; retry transient failures, then raise."""
+        merged_headers = {"User-Agent": _USER_AGENT, **(headers or {})}
+        return await self._send(
+            lambda client: client.post(url, json=json_body, headers=merged_headers)
+        )
+
     async def _send(
         self,
         request: Callable[[httpx.AsyncClient], Awaitable[httpx.Response]],

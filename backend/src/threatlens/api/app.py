@@ -15,9 +15,10 @@ from uuid import uuid4
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from ..ai import AIExplanation, AIExplanationService, build_ai_service
 from ..investigation import InvestigationService
 from ..providers import build_default_router
-from ..reasoning import reason
+from ..reasoning import InvestigationSummary, reason
 from ..reference import build_default_reference_router
 from ..search import detect
 from .schemas import DetectRequest, DetectResponse, InvestigationResponse
@@ -69,6 +70,17 @@ def get_investigation_service() -> InvestigationService:
     return _investigation_service
 
 
+# The AI explanation service is downstream and optional; built once from the
+# environment. It is disabled by default, so ThreatLens behaves identically when
+# no AI provider is configured or running.
+_ai_service = build_ai_service()
+
+
+def get_ai_service() -> AIExplanationService:
+    """Provide the AI explanation service (overridable in tests)."""
+    return _ai_service
+
+
 @app.get("/api/v1/health")
 def health() -> dict[str, str]:
     """Liveness probe."""
@@ -109,3 +121,22 @@ async def investigate_entity(
         knowledge=knowledge,
         investigation_summary=investigation_summary,
     )
+
+
+@app.post("/api/v1/explain", response_model=AIExplanation)
+async def explain_investigation(
+    summary: InvestigationSummary,
+    service: Annotated[AIExplanationService, Depends(get_ai_service)],
+) -> AIExplanation:
+    """Explain a completed investigation with the configured AI provider.
+
+    The input is the deterministic ``InvestigationSummary`` produced by
+    ``/investigate``; the output is an :class:`AIExplanation`. This endpoint is
+    strictly downstream — the AI never influences findings, confidence, severity,
+    priority, or recommendations, and it has no access to providers.
+
+    It always returns ``200``: a disabled provider or an unreachable model yields
+    a structured ``disabled`` / ``unavailable`` response (never an error), so the
+    AI layer can never fail an investigation. ``/investigate`` is unchanged.
+    """
+    return await service.explain(summary)

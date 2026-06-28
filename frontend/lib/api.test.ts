@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { ApiError, detect } from "./api";
+import { ApiError, detect, explain, type InvestigationSummary } from "./api";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -61,5 +61,51 @@ describe("detect", () => {
       vi.fn().mockRejectedValue(new DOMException("aborted", "AbortError")),
     );
     await expect(detect("x")).rejects.toMatchObject({ name: "AbortError" });
+  });
+});
+
+const SUMMARY = {
+  entity_type: "ipv4",
+  entity_value: "8.8.8.8",
+  posture: 3,
+  findings: [],
+  recommendations: [],
+} as unknown as InvestigationSummary;
+
+describe("explain", () => {
+  it("POSTs the summary to the explain endpoint and returns the parsed result", async () => {
+    const payload = { status: "ok", provider: "ollama", executive_summary: "bad ip" };
+    const fetchMock = stubFetch(200, payload);
+
+    const result = await explain(SUMMARY);
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(/\/explain$/);
+    expect(init.method).toBe("POST");
+    // The summary itself is the body — never raw provider data, never `{ query }`.
+    expect(JSON.parse(init.body as string)).toEqual(SUMMARY);
+    expect(result).toEqual(payload);
+  });
+
+  it("returns a disabled/unavailable status as a normal result (200)", async () => {
+    stubFetch(200, { status: "unavailable", provider: "ollama", message: "offline" });
+    const result = await explain(SUMMARY);
+    expect(result.status).toBe("unavailable");
+  });
+
+  it("throws ApiError on a non-2xx response", async () => {
+    stubFetch(422, { detail: "bad" });
+    await expect(explain(SUMMARY)).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(200, { status: "disabled" });
+    const controller = new AbortController();
+
+    await explain(SUMMARY, controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
   });
 });
