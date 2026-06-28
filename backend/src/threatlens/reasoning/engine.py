@@ -1,7 +1,7 @@
 """The reasoning entry point — assembles evidence, generates findings, summarizes.
 
 ``reason()`` is the pure, deterministic public contract of the Investigation
-Intelligence Engine. As of Phase 3.1d it:
+Intelligence Engine. As of the v1.0 freeze (Phase 3.15) it:
 
 1. assembles the weighted evidence ledger (EvidenceAssembler),
 2. generates findings via the FindingEngine (typed rules + merge + per-finding
@@ -32,7 +32,9 @@ from .priority import derive_finding_priority
 from .recommendations import RecommendationEngine, build_default_recommendation_registry
 from .registry import build_default_rule_registry
 
-ENGINE_VERSION = "3.1d"
+# Frozen at the Phase 3.15 validation milestone. Bump only on a deliberate,
+# reviewed change to engine output (the regression benchmark pins that output).
+ENGINE_VERSION = "1.0"
 
 
 def reason(
