@@ -6,6 +6,7 @@ import type {
   AttributedEvidence,
   AttributedReference,
   AttributedRelationship,
+  ConfidenceBand,
   Entity,
   EntityType,
   ProviderSummary,
@@ -136,6 +137,79 @@ export function statusClasses(status: ResultStatus): string {
     default:
       return "text-zinc-400 border-zinc-600/40 bg-zinc-700/20";
   }
+}
+
+// --- reasoning: severity / confidence / priority presentation ---
+// Pure label/color mappings. The engine owns the values; the UI only renders.
+
+export const SEVERITY_LABELS: Record<number, string> = {
+  0: "Informational",
+  1: "Low",
+  2: "Medium",
+  3: "High",
+  4: "Critical",
+};
+
+export function severityLabel(severity: number): string {
+  return SEVERITY_LABELS[severity] ?? "Unknown";
+}
+
+export function severityClasses(severity: number): string {
+  switch (severity) {
+    case 4:
+      return "text-red-400 bg-red-500/10 border-red-500/30";
+    case 3:
+      return "text-orange-400 bg-orange-500/10 border-orange-500/30";
+    case 2:
+      return "text-amber-400 bg-amber-500/10 border-amber-500/30";
+    case 1:
+      return "text-blue-400 bg-blue-500/10 border-blue-500/30";
+    default:
+      return "text-zinc-400 bg-zinc-700/20 border-zinc-600/40";
+  }
+}
+
+export function confidenceBandLabel(band: ConfidenceBand): string {
+  const labels: Record<ConfidenceBand, string> = {
+    insufficient: "Insufficient",
+    low: "Low",
+    moderate: "Moderate",
+    high: "High",
+    very_high: "Very High",
+  };
+  return labels[band] ?? band;
+}
+
+export function confidenceBandClasses(band: ConfidenceBand): string {
+  switch (band) {
+    case "very_high":
+    case "high":
+      return "text-emerald-400 bg-emerald-500/10 border-emerald-500/30";
+    case "moderate":
+      return "text-amber-400 bg-amber-500/10 border-amber-500/30";
+    case "low":
+      return "text-orange-400 bg-orange-500/10 border-orange-500/30";
+    default:
+      return "text-zinc-400 bg-zinc-700/20 border-zinc-600/40";
+  }
+}
+
+export function recommendationCategoryClasses(category: string): string {
+  switch (category) {
+    case "containment":
+      return "text-red-400 bg-red-500/10 border-red-500/30";
+    case "remediation":
+      return "text-amber-400 bg-amber-500/10 border-amber-500/30";
+    case "forensics":
+      return "text-blue-400 bg-blue-500/10 border-blue-500/30";
+    default: // investigation
+      return "text-zinc-300 bg-zinc-700/40 border-zinc-600/40";
+  }
+}
+
+/** Humanize a snake_case enum value, e.g. "patch_immediately" → "Patch Immediately". */
+export function titleCase(value: string): string {
+  return value.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 // --- reputation helpers ---

@@ -146,11 +146,88 @@ export interface AggregatedResult {
   metadata: Record<string, unknown>;
 }
 
+// --- reasoning (Investigation Intelligence Engine) ---
+//
+// The deterministic engine's output. The UI is a pure consumer: it never
+// recalculates severity, confidence, or priority — every value shown is taken
+// verbatim from these models. Severity and posture are ordinal integers (0–4).
+
+export type ConfidenceBand = "insufficient" | "low" | "moderate" | "high" | "very_high";
+
+export interface ConfidenceFactor {
+  name: string;
+  contribution: number;
+  detail: string;
+}
+
+export interface Confidence {
+  score: number;
+  band: ConfidenceBand;
+  contested: boolean;
+  factors: ConfidenceFactor[];
+}
+
+export type EvidencePolarity = "supporting" | "contradicting" | "contextual";
+
+export interface WeightedEvidence {
+  evidence: AttributedEvidence;
+  weight: number;
+  polarity: EvidencePolarity;
+  dimension: string;
+}
+
+export type RecommendationCategory =
+  | "containment"
+  | "investigation"
+  | "remediation"
+  | "forensics";
+
+export interface Recommendation {
+  action: string;
+  category: RecommendationCategory;
+  priority: number;
+  target_type: EntityType;
+  target_value: string;
+  rationale: string;
+  rule_id: string;
+  finding_ids: string[];
+}
+
+export interface Finding {
+  id: string;
+  title: string;
+  categories: string[];
+  subject_type: EntityType;
+  subject_value: string;
+  severity: number;
+  confidence: Confidence;
+  priority: number;
+  evidence: WeightedEvidence[];
+  relationships: AttributedRelationship[];
+  sources: string[];
+  rationale: string;
+  rule_ids: string[];
+  recommendations: Recommendation[];
+}
+
+export interface InvestigationSummary {
+  entity_type: EntityType;
+  entity_value: string;
+  posture: number;
+  overall_confidence: Confidence;
+  categories: string[];
+  findings: Finding[];
+  recommendations: Recommendation[];
+  engine_version: string;
+  generated_at: string;
+}
+
 export interface InvestigationResponse {
   investigation_id: string;
   entity: Entity;
   threat_intelligence: AggregatedResult;
   knowledge: AggregatedResult;
+  investigation_summary: InvestigationSummary;
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
