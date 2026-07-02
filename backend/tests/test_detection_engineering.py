@@ -141,8 +141,8 @@ class _FakeGenerator(DetectionGenerator):
 # --------------------------------------------------------------------------- #
 
 
-def test_default_package_is_empty() -> None:
-    pkg = generate(_summary(findings=[_finding()]))
+def test_empty_registry_yields_empty_package() -> None:
+    pkg = generate(_summary(findings=[_finding()]), registry=DetectionRegistry())
     assert pkg.is_empty
     assert pkg.artifacts == ()
     assert pkg.languages == ()
@@ -231,11 +231,12 @@ def test_compute_artifact_id_ignores_finding_order() -> None:
 # --------------------------------------------------------------------------- #
 
 
-def test_default_registry_is_empty() -> None:
+def test_default_registry_has_sigma_generator() -> None:
+    # Phase 4.1 registers the Sigma generator; a fresh registry is still the seam.
     registry = build_default_registry()
-    assert len(registry) == 0
-    assert registry.generators == ()
-    assert registry.languages == ()
+    assert [g.name for g in registry.generators] == ["sigma"]
+    assert registry.languages == (DetectionLanguage.SIGMA,)
+    assert len(DetectionRegistry()) == 0
 
 
 def test_registry_register_get_and_duplicate() -> None:

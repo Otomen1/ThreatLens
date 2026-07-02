@@ -128,8 +128,13 @@ class DetectionRegistry:
 def build_default_registry() -> DetectionRegistry:
     """Build the default generator registry.
 
-    **Empty in Phase 4.0.** This is the single wiring point for future
-    generators — registering Sigma/YARA/Suricata/… here is the only change
-    needed to light them up, exactly as ``providers.defaults`` wires providers.
+    This is the single wiring point for generators — registering
+    YARA/Suricata/… here (as Sigma is in Phase 4.1) is the only change needed to
+    light them up, exactly as ``providers.defaults`` wires providers. Imported
+    lazily so the generator modules can depend on the framework without a cycle.
     """
-    return DetectionRegistry()
+    from .future.sigma import SigmaGenerator
+
+    registry = DetectionRegistry()
+    registry.register(SigmaGenerator())
+    return registry

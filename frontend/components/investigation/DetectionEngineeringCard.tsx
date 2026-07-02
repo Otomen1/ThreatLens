@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import {
   generateDetections,
@@ -8,6 +8,7 @@ import {
   type DetectionPackage,
   type InvestigationSummary,
 } from "@/lib/api";
+import { artifactFilename, detectionSeverityClass, detectionSeverityLabel } from "@/lib/detection";
 
 interface Props {
   summary: InvestigationSummary;
@@ -101,10 +102,9 @@ export function DetectionEngineeringCard({ summary }: Props) {
 }
 
 function PackageView({ data }: { data: DetectionPackage }) {
-  const empty = data.artifacts.length === 0;
-  return (
-    <div className="space-y-4 pt-3">
-      {empty ? (
+  if (data.artifacts.length === 0) {
+    return (
+      <div className="space-y-4 pt-3">
         <div
           className="flex items-start gap-3 rounded-xl border border-zinc-700/60 bg-zinc-800/40 p-4"
           role="status"
@@ -113,41 +113,126 @@ function PackageView({ data }: { data: DetectionPackage }) {
           <div className="min-w-0 space-y-1">
             <p className="text-sm font-medium text-zinc-200">No detection artifacts generated.</p>
             <p className="text-sm text-zinc-400 leading-relaxed">
-              The Detection Engineering framework is active and consuming this investigation, but no
-              detection generators are enabled yet. Sigma, YARA, and SIEM/EDR generators arrive in a
-              future phase — they will appear here automatically, with no change to the findings
-              above.
+              No detections could be derived from these findings. Detection content is generated for
+              log-observable indicators (IPs, domains, URLs, file hashes); knowledge findings such as
+              techniques or actors do not produce standalone rules.
             </p>
           </div>
         </div>
-      ) : (
-        <ul className="space-y-2">
-          {data.artifacts.map((artifact) => (
-            <ArtifactRow key={artifact.id} artifact={artifact} />
-          ))}
-        </ul>
-      )}
+        <PackageFooter data={data} />
+      </div>
+    );
+  }
 
-      <p className="text-[11px] text-zinc-600 border-t border-zinc-800 pt-3">
-        Detection Engine v{data.metadata.engine_version} · derived from Reasoning Engine v
-        {data.metadata.source_engine_version} · {data.metadata.source_finding_count} finding(s).
-        Detection content is downstream and advisory; the deterministic findings above are
-        authoritative.
+  return (
+    <div className="space-y-3 pt-3">
+      <p className="text-[11px] text-zinc-500 uppercase tracking-wider">
+        Detection Artifacts ({data.artifacts.length})
       </p>
+      <ul className="space-y-3">
+        {data.artifacts.map((artifact) => (
+          <li key={artifact.id}>
+            <ArtifactCard artifact={artifact} />
+          </li>
+        ))}
+      </ul>
+      <PackageFooter data={data} />
     </div>
   );
 }
 
-/** A single artifact row — metadata only; rule content is not rendered yet. */
-function ArtifactRow({ artifact }: { artifact: DetectionArtifact }) {
+function PackageFooter({ data }: { data: DetectionPackage }) {
   return (
-    <li className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-950/40 px-4 py-2.5">
-      <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 bg-zinc-800 rounded px-1.5 py-0.5">
-        {artifact.language}
-      </span>
-      <span className="flex-1 min-w-0 text-sm text-zinc-200 truncate">{artifact.title}</span>
-      <span className="text-[10px] font-mono text-zinc-600">{artifact.id}</span>
-    </li>
+    <p className="text-[11px] text-zinc-600 border-t border-zinc-800 pt-3">
+      Detection Engine v{data.metadata.engine_version} · derived from Reasoning Engine v
+      {data.metadata.source_engine_version} · {data.metadata.source_finding_count} finding(s).
+      Detection content is downstream and advisory; the deterministic findings above are
+      authoritative.
+    </p>
+  );
+}
+
+/** A single read-only detection artifact: metadata badges + the rule text. */
+function ArtifactCard({ artifact }: { artifact: DetectionArtifact }) {
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(artifact.content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard unavailable — no-op, the rule text is visible below */
+    }
+  }
+
+  function download() {
+    const blob = new Blob([artifact.content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = artifactFilename(artifact);
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 overflow-hidden">
+      <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-zinc-800">
+        <Badge className="uppercase tracking-wider text-zinc-300 bg-zinc-800 border-zinc-700">
+          {artifact.language}
+        </Badge>
+        <span className="flex-1 min-w-0 text-sm font-medium text-zinc-200 truncate">
+          {artifact.title}
+        </span>
+        <Badge className={detectionSeverityClass(artifact.severity)}>
+          {detectionSeverityLabel(artifact.severity)}
+        </Badge>
+        <Badge className="text-zinc-400 bg-zinc-800/60 border-zinc-700">{artifact.category}</Badge>
+      </div>
+
+      {artifact.source_finding_ids.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5 px-4 pt-3">
+          <span className="text-[10px] uppercase tracking-wider text-zinc-600">Findings</span>
+          {artifact.source_finding_ids.map((id) => (
+            <span key={id} className="text-[10px] font-mono text-zinc-500">
+              {id}
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className="relative px-4 py-3">
+        <div className="absolute right-5 top-5 flex gap-1.5">
+          <IconButton label={copied ? "Copied" : "Copy"} onClick={copy} />
+          <IconButton label="Download" onClick={download} />
+        </div>
+        <pre className="overflow-x-auto rounded-lg bg-black/40 p-3 text-[11px] leading-relaxed text-zinc-300">
+          <code className="font-mono whitespace-pre">{artifact.content}</code>
+        </pre>
+      </div>
+    </div>
+  );
+}
+
+function Badge({ className, children }: { className?: string; children: React.ReactNode }) {
+  return (
+    <span className={`text-[10px] font-mono rounded border px-1.5 py-0.5 ${className ?? ""}`}>
+      {children}
+    </span>
+  );
+}
+
+function IconButton({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="text-[10px] font-medium text-zinc-400 hover:text-zinc-200 bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700 rounded px-2 py-1 transition-colors"
+    >
+      {label}
+    </button>
   );
 }
 

@@ -6,6 +6,30 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Phase 4.1 — Sigma Detection Generator
+
+- **First concrete detection generator** (`detection/future/sigma.py`) — a pure,
+  deterministic `DetectionGenerator` that converts `InvestigationSummary`
+  findings into minimal, readable **Sigma** rules. Registered in
+  `build_default_registry()`; the engine and `POST /api/v1/detections` are
+  unchanged and now return Sigma artifacts.
+- **Consumes only `Finding` objects** — never provider responses, raw TI,
+  reputation, WHOIS, or NVD/MITRE JSON. No AI, no network, no wall clock.
+- **Mapping:** IPv4/IPv6 → firewall `dst_ip`; domain → dns `query`; URL → proxy
+  `c-uri|contains`; file hash → process_creation `Hashes|contains`. Severity is
+  copied into the Sigma `level` (never recomputed). CWE/CAPEC/CVE, informational
+  findings, and knowledge subjects (techniques/actors/malware) do not yield a
+  standalone rule; their ATT&CK context enriches IOC rules' tags/references.
+- **Traceability:** every rule carries `finding_ids` in metadata and cites the
+  finding id(s), subject, MITRE ATT&CK (when present), and evidence sources.
+- **Deterministic identity:** Sigma `id` is a UUIDv5 of the IOC; artifact/package
+  ids hash only stable values (no timestamps, no randomness) — the `date` field
+  is present but excluded from identity. Findings on the same IOC are merged
+  (duplicate suppression).
+- **Frontend:** the Detection Engineering panel now renders artifacts — language,
+  title, severity, category, finding IDs, the Sigma YAML, and copy/download
+  buttons (read-only).
+
 ### Phase 4.0 — Detection Engineering Framework
 
 - **Detection Engineering Framework** (`backend/src/threatlens/detection/`) — a

@@ -26,6 +26,7 @@ from .engine import (
     compute_package_id,
     generate,
 )
+from .future import SigmaGenerator
 from .models import (
     DetectionArtifact,
     DetectionMetadata,
@@ -76,6 +77,7 @@ __all__ = [
     "DetectionValidator",
     "DuplicateDetectionGeneratorError",
     "DuplicateDetectionTemplateError",
+    "SigmaGenerator",
     "TemplateRegistry",
     "apply_template",
     "build_default_registry",
