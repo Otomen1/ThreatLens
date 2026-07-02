@@ -10,11 +10,15 @@ investigation.
 
 from __future__ import annotations
 
+import logging
+
 from ..reasoning import InvestigationSummary
 from .config import AISettings
 from .models import AIExplanation
 from .ollama import OllamaProvider
 from .provider import AIProvider
+
+logger = logging.getLogger(__name__)
 
 
 class AIExplanationService:
@@ -33,11 +37,11 @@ class AIExplanationService:
         if not self._settings.enabled:
             return AIExplanation.disabled()
         if self._provider is None:
-            return AIExplanation.unavailable(
-                provider=self._settings.provider,
-                model=None,
-                reason=f"provider {self._settings.provider!r} is not configured",
+            logger.warning(
+                "AI enabled but provider %r is not configured/supported",
+                self._settings.provider,
             )
+            return AIExplanation.unavailable(provider=self._settings.provider, model=None)
         return await self._provider.explain(summary)
 
 

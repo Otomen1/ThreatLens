@@ -7,6 +7,7 @@ node_modules/
 
 # Generated
 next-env.d.ts
+*.tsbuildinfo
 
 # Vercel
 .vercel

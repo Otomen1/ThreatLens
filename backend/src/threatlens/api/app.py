@@ -21,6 +21,7 @@ from ..providers import build_default_router
 from ..reasoning import InvestigationSummary, reason
 from ..reference import build_default_reference_router
 from ..search import detect
+from .health import router as health_router
 from .schemas import DetectRequest, DetectResponse, InvestigationResponse
 
 # Local-development convenience: load backend/.env (if present) before anything
@@ -85,10 +86,12 @@ def get_ai_service() -> AIExplanationService:
     return _ai_service
 
 
-@app.get("/api/v1/health")
-def health() -> dict[str, str]:
-    """Liveness probe."""
-    return {"status": "ok"}
+# Operational-readiness endpoints. Mounted at the root (``/health``, ``/ready``,
+# ``/version``, …) for infrastructure probes hitting the backend directly, and
+# again under ``/api/v1`` so a same-origin frontend reaches them through the
+# existing API base. Every endpoint is read-only (see ``api/health.py``).
+app.include_router(health_router)
+app.include_router(health_router, prefix="/api/v1")
 
 
 @app.post("/api/v1/detect", response_model=DetectResponse)

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
-import { explain, type AIExplanation, type InvestigationSummary } from "@/lib/api";
+import { explain, type AIExplanation, type AIStatus, type InvestigationSummary } from "@/lib/api";
 import { titleCase } from "@/lib/investigation";
 
 interface Props {
@@ -79,11 +79,13 @@ export function AIExplanationCard({ summary }: Props) {
       {expanded && (
         <div className="px-5 pb-5 pt-1 border-t border-zinc-800">
           {loading && <p className="text-sm text-zinc-400 animate-pulse">Generating explanation…</p>}
-          {!loading && (failed || (data && data.status !== "ok")) && (
-            <Unavailable message={!failed && data ? data.message : undefined} />
-          )}
           {!loading && !failed && data && data.status === "ok" && (
             <Explanation data={data} titleById={titleById} />
+          )}
+          {/* Any non-ok state (or an unreachable backend) → a friendly, non-alarming
+              info card. The deterministic investigation above always renders. */}
+          {!loading && (failed || (data !== null && data.status !== "ok")) && (
+            <StatusCard status={failed || data === null ? "unavailable" : data.status} />
           )}
         </div>
       )}
@@ -163,15 +165,83 @@ function Explanation({
   );
 }
 
-function Unavailable({ message }: { message?: string }) {
+// Shared, reassuring copy — the investigation is authoritative with or without AI.
+const REASSURANCE =
+  "The investigation completed successfully. All findings, confidence scores, " +
+  "priorities, recommendations, relationships, and references shown below remain " +
+  "the authoritative results. AI explanations are optional and can be generated " +
+  "later once an AI provider becomes available.";
+
+function statusCopy(status: AIStatus): { title: string; lead: string } {
+  switch (status) {
+    case "disabled":
+      return {
+        title: "AI Explanation Disabled",
+        lead: "The AI explanation layer is turned off.",
+      };
+    case "timeout":
+      return {
+        title: "AI Explanation Unavailable",
+        lead: "The AI provider took too long to respond and the request timed out.",
+      };
+    case "invalid_response":
+      return {
+        title: "AI Explanation Unavailable",
+        lead: "The AI provider returned a response that could not be used.",
+      };
+    case "error":
+      return {
+        title: "AI Explanation Unavailable",
+        lead: "The AI provider reported an error.",
+      };
+    default: // "unavailable" (and any unforeseen state) — fail safe & friendly.
+      return {
+        title: "AI Explanation Unavailable",
+        lead: "The AI explanation service could not be reached.",
+      };
+  }
+}
+
+/**
+ * A friendly, informative (never alarming) card for every non-ok AI state. It
+ * shows curated copy only — raw exceptions/stack traces are logged server-side
+ * and never rendered — and reassures that the deterministic investigation is
+ * complete and authoritative.
+ */
+function StatusCard({ status }: { status: AIStatus }) {
+  const { title, lead } = statusCopy(status);
   return (
-    <div className="pt-3">
-      <p className="text-sm text-zinc-400">AI explanation unavailable.</p>
-      {message && <p className="text-xs text-zinc-600 mt-1 leading-relaxed">{message}</p>}
-      <p className="text-xs text-zinc-600 mt-2 leading-relaxed">
-        The deterministic investigation above is complete and unaffected.
-      </p>
+    <div
+      className="mt-3 flex items-start gap-3 rounded-xl border border-zinc-700/60 bg-zinc-800/40 p-4"
+      role="status"
+    >
+      <InfoIcon />
+      <div className="min-w-0 space-y-1">
+        <p className="text-sm font-medium text-zinc-200">{title}</p>
+        <p className="text-sm text-zinc-400 leading-relaxed">{lead}</p>
+        <p className="text-xs text-zinc-500 leading-relaxed">{REASSURANCE}</p>
+      </div>
     </div>
+  );
+}
+
+function InfoIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="mt-0.5 shrink-0 text-zinc-500"
+      aria-hidden
+    >
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 16v-4M12 8h.01" />
+    </svg>
   );
 }
 

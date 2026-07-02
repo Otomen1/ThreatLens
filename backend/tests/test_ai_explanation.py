@@ -300,55 +300,80 @@ class TestOllamaProviderSuccess:
 
 
 class TestOllamaProviderFailures:
+    """Every failure maps to a specific, friendly state — and never raises."""
+
     @pytest.mark.asyncio
-    async def test_connection_error_is_unavailable(self) -> None:
+    async def test_ollama_not_running_is_unavailable(self) -> None:
         def handler(_request: httpx.Request) -> httpx.Response:
             raise httpx.ConnectError("connection refused")
 
         out = await _ollama(handler).explain(_malicious_ip_summary())
         assert out.status is AIStatus.UNAVAILABLE
         assert "unavailable" in out.message.lower()
+        assert "refused" not in out.message  # raw reason stays server-side
 
     @pytest.mark.asyncio
-    async def test_timeout_is_unavailable(self) -> None:
+    async def test_connection_refused_is_unavailable(self) -> None:
+        def handler(_request: httpx.Request) -> httpx.Response:
+            raise httpx.ConnectError("[Errno 111] Connection refused")
+
+        out = await _ollama(handler).explain(_malicious_ip_summary())
+        assert out.status is AIStatus.UNAVAILABLE
+
+    @pytest.mark.asyncio
+    async def test_timeout_is_timeout(self) -> None:
         def handler(_request: httpx.Request) -> httpx.Response:
             raise httpx.ReadTimeout("timed out")
 
         out = await _ollama(handler).explain(_malicious_ip_summary())
-        assert out.status is AIStatus.UNAVAILABLE
+        assert out.status is AIStatus.TIMEOUT
 
     @pytest.mark.asyncio
-    async def test_http_500_is_unavailable(self) -> None:
+    async def test_http_500_is_error(self) -> None:
         def handler(_request: httpx.Request) -> httpx.Response:
             return httpx.Response(500, text="boom")
 
         out = await _ollama(handler).explain(_malicious_ip_summary())
-        assert out.status is AIStatus.UNAVAILABLE
+        assert out.status is AIStatus.ERROR
+        assert "boom" not in out.message  # never leak the raw body
 
     @pytest.mark.asyncio
-    async def test_non_json_content_is_error(self) -> None:
+    async def test_invalid_json_is_invalid_response(self) -> None:
         def handler(_request: httpx.Request) -> httpx.Response:
             return _chat_response("this is not json at all {[")
 
         out = await _ollama(handler).explain(_malicious_ip_summary())
-        assert out.status is AIStatus.ERROR
+        assert out.status is AIStatus.INVALID_RESPONSE
 
     @pytest.mark.asyncio
-    async def test_unexpected_response_shape_is_error(self) -> None:
+    async def test_unexpected_response_shape_is_invalid_response(self) -> None:
         def handler(_request: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json={"unexpected": "shape"})  # no message.content
 
         out = await _ollama(handler).explain(_malicious_ip_summary())
-        assert out.status is AIStatus.ERROR
+        assert out.status is AIStatus.INVALID_RESPONSE
 
     @pytest.mark.asyncio
-    async def test_schema_invalid_json_is_error(self) -> None:
+    async def test_malformed_schema_is_invalid_response(self) -> None:
         def handler(_request: httpx.Request) -> httpx.Response:
             # Valid JSON, but executive_summary is the wrong type → schema validation fails.
             return _chat_response(json.dumps({"executive_summary": {"nested": "object"}}))
 
         out = await _ollama(handler).explain(_malicious_ip_summary())
-        assert out.status is AIStatus.ERROR
+        assert out.status is AIStatus.INVALID_RESPONSE
+
+    @pytest.mark.asyncio
+    async def test_failure_is_logged_server_side(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        def handler(_request: httpx.Request) -> httpx.Response:
+            raise httpx.ConnectError("connection refused")
+
+        with caplog.at_level("WARNING", logger="threatlens.ai.ollama"):
+            out = await _ollama(handler).explain(_malicious_ip_summary())
+
+        assert out.status is AIStatus.UNAVAILABLE
+        assert any("AI explanation failed" in rec.message for rec in caplog.records)
 
     @pytest.mark.asyncio
     async def test_handles_think_tags_and_prose(self) -> None:
@@ -411,12 +436,32 @@ class TestExplanationModels:
         assert out.status is AIStatus.DISABLED and out.message
 
     def test_unavailable_factory(self) -> None:
-        out = AIExplanation.unavailable(provider="ollama", model="qwen3:8b", reason="down")
-        assert out.status is AIStatus.UNAVAILABLE and "down" in out.message
+        out = AIExplanation.unavailable(provider="ollama", model="qwen3:8b")
+        assert out.status is AIStatus.UNAVAILABLE and out.message
+
+    def test_timeout_factory(self) -> None:
+        out = AIExplanation.timeout(provider="ollama", model="qwen3:8b")
+        assert out.status is AIStatus.TIMEOUT and out.message
+
+    def test_invalid_response_factory(self) -> None:
+        out = AIExplanation.invalid_response(provider="ollama", model="qwen3:8b")
+        assert out.status is AIStatus.INVALID_RESPONSE and out.message
 
     def test_error_factory(self) -> None:
-        out = AIExplanation.error(provider="ollama", model="qwen3:8b", reason="bad json")
-        assert out.status is AIStatus.ERROR and "bad json" in out.message
+        out = AIExplanation.error(provider="ollama", model="qwen3:8b")
+        assert out.status is AIStatus.ERROR and out.message
+
+    def test_every_nonok_state_has_a_friendly_message(self) -> None:
+        # No factory leaves the analyst-facing message empty (informative, not blank).
+        for out in (
+            AIExplanation.disabled(),
+            AIExplanation.unavailable(provider="ollama", model="m"),
+            AIExplanation.timeout(provider="ollama", model="m"),
+            AIExplanation.invalid_response(provider="ollama", model="m"),
+            AIExplanation.error(provider="ollama", model="m"),
+        ):
+            assert out.message
+            assert out.status is not AIStatus.OK
 
 
 # --------------------------------------------------------------------------- #
@@ -471,9 +516,7 @@ class TestExplainEndpoint:
             app.dependency_overrides.pop(get_ai_service, None)
 
     def test_unavailable_is_200_not_error(self) -> None:
-        unavailable = AIExplanation.unavailable(
-            provider="ollama", model="qwen3:8b", reason="offline"
-        )
+        unavailable = AIExplanation.unavailable(provider="ollama", model="qwen3:8b")
         service = AIExplanationService(
             AISettings(enabled=True, provider="ollama"), _StubProvider(unavailable)
         )

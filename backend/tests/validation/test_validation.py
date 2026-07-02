@@ -260,6 +260,22 @@ class TestAIValidation:
             return httpx.Response(200, json={"message": {"content": "not json {["}})
 
         out = await _mock_ollama(handler).explain(_malicious_summary())
+        assert out.status is AIStatus.INVALID_RESPONSE
+
+    @pytest.mark.asyncio
+    async def test_timeout_degrades(self) -> None:
+        def handler(_request: httpx.Request) -> httpx.Response:
+            raise httpx.ReadTimeout("slow")
+
+        out = await _mock_ollama(handler).explain(_malicious_summary())
+        assert out.status is AIStatus.TIMEOUT
+
+    @pytest.mark.asyncio
+    async def test_http_500_degrades(self) -> None:
+        def handler(_request: httpx.Request) -> httpx.Response:
+            return httpx.Response(500, text="boom")
+
+        out = await _mock_ollama(handler).explain(_malicious_summary())
         assert out.status is AIStatus.ERROR
 
     def test_prompt_injection_is_delimited(self) -> None:

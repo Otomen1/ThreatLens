@@ -4,6 +4,23 @@ All notable changes to ThreatLens are documented here. The project follows
 [Semantic Versioning](https://semver.org/) and (from v1.0.0 on) the
 [Keep a Changelog](https://keepachangelog.com/) format.
 
+## [Unreleased]
+
+### Phase 3.17 — Operational Readiness & Health Monitoring
+
+- **Read-only health & version endpoints** — `GET /health` (liveness),
+  `GET /ready` (readiness, `503` when the deterministic core is down),
+  `GET /health/providers` (TI configuration, no network / no quota),
+  `GET /health/knowledge` (offline reference-dataset status & versions),
+  `GET /health/ai` (the only endpoint that may touch the network — a lightweight
+  Ollama reachability probe, never a generation), and `GET /version`. Mounted at
+  the root (infra probes) and under `/api/v1` (frontend). Every check is
+  side-effect-free and never runs an investigation. (`backend/src/threatlens/api/health.py`)
+- **Frontend system-status indicator** — a passive status pill driven by
+  `GET /health` and `GET /health/ai`; it can never block or alter the app.
+- The frozen Reasoning Engine, detection engine, providers, and investigation
+  pipeline are untouched — these endpoints only *report* on them.
+
 ## [1.0.0] — 2026-07-02
 
 First stable release: **ThreatLens Core Platform v1.0**. Everything below was
