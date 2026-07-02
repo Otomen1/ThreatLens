@@ -1,15 +1,28 @@
 # ThreatLens Backend
 
-Python backend for ThreatLens. See `../docs/architecture/PHASE-0-ARCHITECTURE.md`
-for the overall design.
+Python backend for ThreatLens Core Platform v1.0 — detection, providers,
+knowledge, reasoning, and the AI explanation layer behind the FastAPI service.
+See the [root README](../README.md) for the platform overview and
+`../docs/architecture/` for design references.
 
-## Phase 1.1 — Universal Entity Detection Engine
+## Package layout
 
-Deterministic, AI-free, network-free classification of arbitrary input into a
-normalized `Entity`. Given any string, the engine identifies what it represents
-(IPv4/IPv6, domain, URL, email, hash, CVE, MITRE technique, registry key,
-process, PowerShell command, Windows API, threat actor, malware family) or
-falls back to `FREETEXT` / `UNKNOWN`.
+| Package | Responsibility |
+|---------|----------------|
+| `entities/` | `EntityType` vocabulary, the `Entity` contract, soft-type reference data |
+| `search/` | Universal Entity Detection Engine (normalize → detectors → classifier) |
+| `providers/` | Threat-intelligence framework + providers (AbuseIPDB, OTX, URLhaus, MalwareBazaar), aggregation |
+| `reference/` | Knowledge framework + bundled providers (MITRE ATT&CK, NVD, CWE, CAPEC) |
+| `investigation/` | Concurrent TI + knowledge investigation service |
+| `reasoning/` | **Reasoning Engine v1.0 (frozen)** — evidence, findings, confidence, priority, recommendations |
+| `ai/` | Downstream AI explanation layer (Ollama first; disabled by default) |
+| `api/` | FastAPI app: `/api/v1/detect` · `/api/v1/investigate` · `/api/v1/explain` |
+
+Adding an entity type = add a detector class + one registry line. Adding a
+provider = declare metadata, return the canonical `IntelligenceResult`,
+register it in `defaults.py`. The reasoning engine only changes deliberately —
+its output is pinned by golden snapshots (`tests/benchmark/`,
+`tests/validation/`).
 
 ```python
 from threatlens.search import detect
@@ -19,29 +32,18 @@ detect("hxxp://evil[.]com/x")  # -> Entity(type=url, normalized_value="http://ev
 detect("Cozy Bear")            # -> Entity(type=threat_actor, normalized_value="APT29")
 ```
 
-### Layout
-
-| Path | Responsibility |
-|------|----------------|
-| `entities/types.py` | `EntityType` / `ValidationStatus` vocabularies |
-| `entities/models.py` | The `Entity` output contract (Pydantic) |
-| `entities/reference/` | Curated soft-type reference data (actors, malware, APIs, processes, PowerShell) |
-| `search/normalize.py` | Defang/refang + cleanup |
-| `search/detectors/` | One detector per entity type (the extension seam) |
-| `search/registry.py` | Priority-ordered detector registry |
-| `search/classifier.py` | The detection engine |
-
-Adding an entity type = add a detector class + one line in
-`search/detectors/__init__.py`. No existing detector or the engine changes.
-
 ## Development
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-pytest          # 97 tests
+pytest                     # full suite — offline, no keys, no model
 ruff check src tests
+mypy src/threatlens        # strict
+uvicorn threatlens.api.app:app --reload
 ```
 
-Runtime dependencies: `pydantic`, `tldextract` (configured for offline use of
-its bundled Public Suffix List snapshot — no network at runtime).
+Configuration is environment-driven and entirely optional — copy
+`.env.example` to `.env` for provider keys. Everything except live external TI
+and AI inference runs offline (bundled datasets; `tldextract` uses its bundled
+Public Suffix List snapshot).

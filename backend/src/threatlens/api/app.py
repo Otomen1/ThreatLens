@@ -36,8 +36,12 @@ else:
 
 app = FastAPI(
     title="ThreatLens API",
-    version="0.1.0",
-    description="Universal Entity Detection Engine (Phase 1.1.5).",
+    version="1.0.0",
+    description=(
+        "ThreatLens Core Platform v1.0 — deterministic entity detection, "
+        "threat-intelligence and knowledge investigation, reasoning, and "
+        "optional downstream AI explanation."
+    ),
 )
 
 # Same-origin deployments need no CORS; a separately-hosted or local-dev
