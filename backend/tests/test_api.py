@@ -104,4 +104,6 @@ def test_search_ids_are_unique_per_request() -> None:
 def test_health() -> None:
     res = client.get("/api/v1/health")
     assert res.status_code == 200
-    assert res.json() == {"status": "ok"}
+    # The liveness probe stays backward-compatible (status == "ok") while the
+    # richer operational fields are covered in tests/test_health.py.
+    assert res.json()["status"] == "ok"

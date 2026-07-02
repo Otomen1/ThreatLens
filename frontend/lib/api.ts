@@ -315,6 +315,19 @@ function postQuery<T>(path: string, query: string, signal?: AbortSignal): Promis
   return post<T>(path, { query }, signal);
 }
 
+/** GET an API path and return the parsed JSON (used by read-only health checks). */
+async function get<T>(path: string, signal?: AbortSignal): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, { method: "GET", signal });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") throw err;
+    throw new ApiError("Could not reach the service.");
+  }
+  if (!res.ok) throw new ApiError(`Request failed (${res.status}).`, res.status);
+  return (await res.json()) as T;
+}
+
 /** Classify a query into a normalized entity (detection only). */
 export function detect(query: string, signal?: AbortSignal): Promise<DetectResponse> {
   return postQuery<DetectResponse>("/detect", query, signal);
@@ -341,4 +354,42 @@ export function explain(
   signal?: AbortSignal,
 ): Promise<AIExplanation> {
   return post<AIExplanation>("/explain", summary, signal);
+}
+
+// --- operational health (read-only) ---
+//
+// Lightweight, side-effect-free status endpoints. They never run an
+// investigation or consume provider quota; the frontend uses them only to show
+// a passive system-status indicator.
+
+export interface HealthStatus {
+  status: string;
+  service: string;
+  version: string;
+  uptime_seconds: number;
+  started_at: string;
+  timestamp: string;
+}
+
+export type AIHealthStatus = "disabled" | "ok" | "unavailable" | "error";
+
+export interface AIHealth {
+  status: AIHealthStatus;
+  enabled: boolean;
+  provider: string;
+  model: string | null;
+  reachable: boolean;
+  model_available: boolean | null;
+  detail: string | null;
+  timestamp: string;
+}
+
+/** Liveness probe — resolves when the backend is up. */
+export function health(signal?: AbortSignal): Promise<HealthStatus> {
+  return get<HealthStatus>("/health", signal);
+}
+
+/** AI subsystem status (disabled / reachable / unavailable). */
+export function aiHealth(signal?: AbortSignal): Promise<AIHealth> {
+  return get<AIHealth>("/health/ai", signal);
 }

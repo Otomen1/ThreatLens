@@ -207,6 +207,48 @@ Secrets live in `backend/.env` (git-ignored). Never commit keys.
 
 ---
 
+## Health & Monitoring
+
+ThreatLens ships production-grade, **read-only** operational endpoints for liveness/readiness probes, uptime monitoring, and support. Every check is side-effect-free: it never runs an investigation, mutates state, or consumes third-party API quota. The one exception is `GET /health/ai`, which — only when AI is enabled — performs a single lightweight Ollama reachability probe (`/api/tags`), never a model generation.
+
+Each endpoint is mounted at the **root** (for infrastructure probes hitting the backend directly) and under **`/api/v1`** (so a same-origin frontend can reach it through the existing API base):
+
+| Endpoint | Purpose | Status |
+|---|---|---|
+| `GET /health` | Liveness — the process is up (service, version, uptime). | `200` |
+| `GET /ready` | Readiness — the deterministic core (detection · reasoning · bundled knowledge) can serve. | `200` ready · `503` not ready |
+| `GET /health/providers` | Threat-intelligence provider configuration (enabled · requires-auth · configured). No network. | `200` |
+| `GET /health/knowledge` | Reference-knowledge dataset status and versions. Offline; no network. | `200` |
+| `GET /health/ai` | AI subsystem status (disabled · reachable · unavailable). The only endpoint that may touch the network. | `200` |
+| `GET /version` | Component versions: platform, API, the frozen reasoning engine, and build commit/timestamp. | `200` |
+
+Readiness deliberately ignores TI credentials and the AI layer — both are **optional enrichment** whose absence must never take the service out of rotation. A missing TI key surfaces as `degraded` on `/health/providers` (informational), not as a failed readiness check.
+
+```bash
+curl -s localhost:8000/health     | jq   # liveness
+curl -s localhost:8000/ready      | jq   # readiness (503 if the core is down)
+curl -s localhost:8000/version    | jq
+curl -s localhost:8000/health/ai  | jq   # "disabled" by default
+```
+
+Sample `GET /health`:
+
+```json
+{ "status": "ok", "service": "threatlens", "version": "1.0.0",
+  "uptime_seconds": 12.4, "started_at": "…", "timestamp": "…" }
+```
+
+Kubernetes / Docker probes map directly onto the two probes:
+
+```yaml
+livenessProbe:  { httpGet: { path: /health, port: 8000 } }
+readinessProbe: { httpGet: { path: /ready,  port: 8000 } }
+```
+
+Build provenance on `/version` (`build.commit` / `build.timestamp`) is read from environment variables when set (`THREATLENS_BUILD_COMMIT` / `VERCEL_GIT_COMMIT_SHA` / `GIT_COMMIT`, and `THREATLENS_BUILD_TIME` / `BUILD_TIMESTAMP`); otherwise `null`. The frontend shows a passive status pill (top-right) driven by `GET /health` and `GET /health/ai`.
+
+---
+
 ## AI Setup
 
 ThreatLens supports **local AI through Ollama**. AI is **optional** — the platform works perfectly without it. The AI layer only generates *explanations* of a completed investigation; the deterministic reasoning engine remains the single source of truth.
@@ -288,8 +330,8 @@ curl http://localhost:11434/api/tags     # is the Ollama server reachable?
 
 | Suite | Size | What it locks down |
 |---|---|---|
-| Backend tests | **1,177 passing** | Detection, providers, aggregation, reasoning, AI layer, API contracts. |
-| Frontend tests | 9 passing (Vitest) | API client behaviour incl. `explain()` and abort handling. |
+| Backend tests | **1,203 passing** | Detection, providers, aggregation, reasoning, AI layer, API contracts, health/readiness. |
+| Frontend tests | 17 passing (Vitest) | API client behaviour incl. `explain()`, health checks, and abort handling. |
 | 100-IOC validation suite | 316 tests | The complete pipeline over ~100 curated real-world IOC investigations (`backend/tests/validation/`). |
 | Reasoning benchmark | 179 tests / 58 scenarios | The frozen Reasoning Engine v1.0 contract (`backend/tests/benchmark/`). |
 | Golden regression | 155 pinned summaries | Byte-level snapshots of engine output (58 benchmark + 97 validation); any drift fails CI and requires an explicit `THREATLENS_UPDATE_GOLDEN=1` regeneration plus review. |

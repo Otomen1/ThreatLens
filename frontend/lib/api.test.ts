@@ -1,6 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { ApiError, detect, explain, type InvestigationSummary } from "./api";
+import {
+  ApiError,
+  aiHealth,
+  detect,
+  explain,
+  health,
+  type InvestigationSummary,
+} from "./api";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -113,5 +120,43 @@ describe("explain", () => {
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("health", () => {
+  it("GETs the health endpoint and returns the parsed status", async () => {
+    const payload = { status: "ok", service: "threatlens", version: "1.0.0" };
+    const fetchMock = stubFetch(200, payload);
+
+    const result = await health();
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(/\/health$/);
+    expect(init.method).toBe("GET");
+    expect(result).toEqual(payload);
+  });
+
+  it("throws ApiError when the backend is unreachable", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("down")));
+    await expect(health()).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("throws ApiError on a non-2xx response", async () => {
+    stubFetch(503, { ready: false });
+    await expect(health()).rejects.toBeInstanceOf(ApiError);
+  });
+});
+
+describe("aiHealth", () => {
+  it("GETs the AI health endpoint and returns the parsed status", async () => {
+    const payload = { status: "disabled", enabled: false, reachable: false };
+    const fetchMock = stubFetch(200, payload);
+
+    const result = await aiHealth();
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(/\/health\/ai$/);
+    expect(init.method).toBe("GET");
+    expect(result.status).toBe("disabled");
   });
 });
