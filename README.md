@@ -147,12 +147,12 @@ Production: `npm run build && npm start`. The frontend also deploys to Vercel (s
 
 ```bash
 # install Ollama (https://ollama.com), then:
-ollama pull qwen3:8b
+ollama pull qwen3:4b
 export AI_ENABLED=true          # AI is OFF by default
 uvicorn threatlens.api.app:app
 ```
 
-ThreatLens functions identically without Ollama — the AI card simply reports "AI explanation unavailable."
+ThreatLens functions identically without Ollama — the AI card simply reports "AI explanation unavailable." See **[AI Setup](#ai-setup)** below for the full five-minute guide, model recommendations, and troubleshooting.
 
 ### Docker
 
@@ -188,7 +188,7 @@ All variables are optional — with none set, ThreatLens runs fully offline (kno
 | `AI_ENABLED` | `false` | Master switch for the AI explanation layer. |
 | `AI_PROVIDER` | `ollama` | Which AI provider to use (`ollama` is the only one implemented in v1.0). |
 | `OLLAMA_URL` | `http://localhost:11434` | Ollama server URL. |
-| `OLLAMA_MODEL` | `qwen3:8b` | Chat model used for explanations (never hardcoded). |
+| `OLLAMA_MODEL` | `qwen3:8b` | Chat model for explanations (never hardcoded). `.env.example` ships the lighter `qwen3:4b` — see [AI Setup](#ai-setup). |
 | `AI_TIMEOUT` | `60` | AI request timeout in seconds. |
 
 ### Frontend
@@ -207,16 +207,80 @@ Secrets live in `backend/.env` (git-ignored). Never commit keys.
 
 ---
 
-## AI
+## AI Setup
 
-ThreatLens treats AI as a **downstream consumer, never a decision-maker**:
+ThreatLens supports **local AI through Ollama**. AI is **optional** — the platform works perfectly without it. The AI layer only generates *explanations* of a completed investigation; the deterministic reasoning engine remains the single source of truth.
 
-- **Ollama (v1.0):** local, private LLM inference. The `PromptBuilder` serializes only the deterministic `InvestigationSummary` — no raw provider responses, no WHOIS, no vendor JSON — wraps it in explicit *untrusted data* delimiters, and instructs the model to ignore embedded instructions, invent nothing, and modify nothing.
-- **Grounding is enforced in code, not just prompted:** any AI statement referencing a finding ID or recommendation that does not exist in the summary is dropped before it reaches the API.
-- **Failure is graceful:** AI disabled → structured `disabled` response; Ollama offline → structured `unavailable`; malformed output → structured `error`. The investigation always succeeds; the endpoint never throws.
-- **Future providers:** OpenAI, Anthropic, Gemini, and Azure OpenAI slot in behind the same `AIProvider` interface with zero caller changes (`AI_PROVIDER=openai` etc. — not implemented in v1.0).
+> **AI never changes findings.** It cannot alter findings, evidence, confidence, severity, priority, or recommendations — structurally (the output model has no such fields) and operationally (grounding drops fabricated references). It only explains the `InvestigationSummary`.
 
-> **AI never changes findings.** It cannot alter findings, evidence, confidence, severity, priority, or recommendations — structurally (the output model has no such fields) and operationally (grounding drops fabricated references).
+### Enable AI in under five minutes
+
+1. **Install Ollama** — https://ollama.com (macOS / Linux / Windows).
+2. **Pull the recommended model:**
+   ```bash
+   ollama pull qwen3:4b
+   ```
+3. **Verify Ollama is running:**
+   ```bash
+   curl http://localhost:11434/api/tags
+   ```
+   You should get JSON listing your local models (including `qwen3:4b`).
+4. **Configure `.env`** (copy the example first if needed):
+   ```bash
+   cp backend/.env.example backend/.env
+   # then set, in backend/.env:
+   AI_ENABLED=true
+   AI_PROVIDER=ollama
+   OLLAMA_URL=http://localhost:11434
+   OLLAMA_MODEL=qwen3:4b
+   AI_TIMEOUT=60
+   ```
+5. **Restart the backend** (settings are read at startup):
+   ```bash
+   uvicorn threatlens.api.app:app --reload
+   ```
+6. **Open the Investigation Workspace**, run any investigation, and expand the **AI Explanation** card.
+
+With AI disabled (the default) or Ollama not running, the card simply shows "AI explanation unavailable." and the deterministic investigation renders normally.
+
+### Recommended models (hardware)
+
+Larger models improve the *writing quality* of explanations but **do not affect deterministic findings, confidence, priority, or recommendations** — those come only from the reasoning engine.
+
+| Hardware | Recommended model | Notes |
+|---|---|---|
+| Laptop (8 GB RAM) | `qwen3:4b` *(recommended default)* | Ships in `.env.example`; fast, low memory. |
+| Laptop / Desktop (16 GB RAM) | `qwen3:8b` | The engine's built-in default when `OLLAMA_MODEL` is unset. |
+| Mini PC / Desktop (32 GB+ RAM) | `qwen3:14b` (and larger future models) | Best writing quality. |
+
+Set your choice via `OLLAMA_MODEL` — it is never hardcoded. Any Ollama chat model works; the `qwen3:*` family is recommended.
+
+### Grounding & safety
+
+- The `PromptBuilder` serializes **only** the deterministic `InvestigationSummary` — never raw provider responses, WHOIS, or vendor JSON — wraps it in explicit *untrusted data* delimiters, and tells the model to ignore embedded instructions, invent nothing, and modify nothing.
+- **Grounding is enforced in code:** any AI statement referencing a finding ID or recommendation absent from the summary is dropped before it reaches the API.
+- **Failure is graceful:** AI disabled → `disabled`; Ollama offline → `unavailable`; malformed output → `error`. The investigation always succeeds; the endpoint never throws.
+- **Future providers:** OpenAI, Anthropic, Gemini, and Azure OpenAI slot in behind the same `AIProvider` interface with zero caller changes (`AI_PROVIDER=openai`, …) — not implemented in v1.0.
+
+### Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| "AI explanation unavailable." in the UI | AI disabled, or Ollama unreachable | Confirm `AI_ENABLED=true` in `backend/.env` and that Ollama is running (`curl http://localhost:11434/api/tags`). |
+| `connection refused` / `unavailable` | Ollama not running | Start it — `ollama serve` (or launch the Ollama app) — then retry the curl check. |
+| `model "qwen3:4b" not found` | Model not pulled | `ollama pull qwen3:4b` (or whatever `OLLAMA_MODEL` is set to); confirm with `ollama list`. |
+| Explanation never appears, then `unavailable` | Request timed out (large model / slow host) | Raise `AI_TIMEOUT` (e.g. `120`) or switch to a smaller model (`qwen3:4b`). |
+| Incorrect `OLLAMA_URL` | URL points at the wrong host/port | Match your Ollama server; default `http://localhost:11434`. From inside Docker, use the host address, not `localhost`. |
+| `out of memory`, host swapping, or model killed | Model too large for available RAM | Pick a smaller model per the table above; check loaded models with `ollama ps`. |
+| Backend ignores new settings | `.env` not reloaded | Restart the backend after editing `.env`. |
+
+Diagnostic commands:
+
+```bash
+ollama list                              # models available locally
+ollama ps                                # models currently loaded (memory use)
+curl http://localhost:11434/api/tags     # is the Ollama server reachable?
+```
 
 ---
 
