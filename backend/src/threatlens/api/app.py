@@ -16,6 +16,9 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from ..ai import AIExplanation, AIExplanationService, build_ai_service
+from ..detection import DetectionPackage
+from ..detection import build_default_registry as build_detection_registry
+from ..detection import generate as generate_detections
 from ..investigation import InvestigationService
 from ..providers import build_default_router
 from ..reasoning import InvestigationSummary, reason
@@ -86,6 +89,11 @@ def get_ai_service() -> AIExplanationService:
     return _ai_service
 
 
+# The Detection Engineering registry is a downstream, deterministic consumer of
+# the InvestigationSummary. Built once; empty in Phase 4.0 (no generators yet).
+_detection_registry = build_detection_registry()
+
+
 # Operational-readiness endpoints. Mounted at the root (``/health``, ``/ready``,
 # ``/version``, …) for infrastructure probes hitting the backend directly, and
 # again under ``/api/v1`` so a same-origin frontend reaches them through the
@@ -147,3 +155,20 @@ async def explain_investigation(
     AI layer can never fail an investigation. ``/investigate`` is unchanged.
     """
     return await service.explain(summary)
+
+
+@app.post("/api/v1/detections", response_model=DetectionPackage)
+def create_detections(summary: InvestigationSummary) -> DetectionPackage:
+    """Convert a completed investigation into a ``DetectionPackage``.
+
+    The input is the deterministic ``InvestigationSummary`` produced by
+    ``/investigate``; the output is a content-addressed ``DetectionPackage``. The
+    Detection Engine is strictly downstream and pure — it never influences
+    findings, confidence, severity, priority, recommendations, or relationships,
+    and it has no access to providers or AI.
+
+    In Phase 4.0 no generators are registered, so the package is well-formed but
+    carries no artifacts (``is_empty``). The endpoint and contract already exist
+    so future generators light up without an API change.
+    """
+    return generate_detections(summary, registry=_detection_registry)

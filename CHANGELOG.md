@@ -6,6 +6,33 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Phase 4.0 — Detection Engineering Framework
+
+- **Detection Engineering Framework** (`backend/src/threatlens/detection/`) — a
+  new downstream, deterministic consumer of the frozen `InvestigationSummary`. A
+  pure `generate(summary) → DetectionPackage` engine converts findings into
+  reusable detection content. **Framework only:** no generators, no Sigma, no
+  YARA, no AI, no rule generation (those arrive in later phases).
+- **Canonical models** (all frozen): `DetectionPackage`, `DetectionArtifact`,
+  `DetectionMetadata`, `DetectionReference`, `DetectionTarget`,
+  `DetectionTemplate`, `DetectionValidation`, plus enums (language, category,
+  severity, capability, validation status).
+- **Content-addressed identity** — deterministic `det_`/`pkg_` ids hashing only
+  stable values; the package id is timestamp-independent, and `generated_at` is
+  inherited from the summary (the engine never reads the wall clock).
+- **Registry & extension points** — `DetectionRegistry` (empty default) with
+  `DetectionGenerator` and `DetectionValidator` ABCs as the seams future
+  Sigma/YARA/Suricata/Snort/Splunk/Sentinel/Elastic/CrowdStrike generators plug
+  into; template infrastructure + `apply_template`.
+- **API** — `POST /api/v1/detections` (InvestigationSummary → DetectionPackage;
+  empty package in this phase).
+- **Frontend** — `DetectionPackage` types + a placeholder Detection Engineering
+  panel ("No detection artifacts generated.").
+- The Reasoning Engine, detection (entity) engine, providers, AI reasoning, and
+  investigation pipeline are untouched; detection is strictly downstream and
+  never alters findings, confidence, severity, priority, recommendations, or
+  relationships.
+
 ### Phase 3.17 — Operational Readiness & Health Monitoring
 
 - **Read-only health & version endpoints** — `GET /health` (liveness),

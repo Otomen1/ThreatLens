@@ -7,6 +7,7 @@ import { evidenceByProvider } from "@/lib/investigation";
 
 import { AdvancedPanel } from "./investigation/AdvancedPanel";
 import { AIExplanationCard } from "./investigation/AIExplanationCard";
+import { DetectionEngineeringCard } from "./investigation/DetectionEngineeringCard";
 import { FindingsSection } from "./investigation/FindingsSection";
 import { InvestigationHeader } from "./investigation/InvestigationHeader";
 import { InvestigationSummaryCard } from "./investigation/InvestigationSummaryCard";
@@ -74,6 +75,9 @@ export function InvestigationWorkspace({ data, timestamp }: Props) {
 
       {/* ── 4b. AI explanation (downstream, optional, collapsed) ──── */}
       {summary && <AIExplanationCard summary={summary} />}
+
+      {/* ── 4c. Detection engineering (downstream, optional, collapsed) */}
+      {summary && <DetectionEngineeringCard summary={summary} />}
 
       {/* ── 5. Entity context + key attributes ────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

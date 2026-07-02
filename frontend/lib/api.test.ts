@@ -5,6 +5,7 @@ import {
   aiHealth,
   detect,
   explain,
+  generateDetections,
   health,
   type InvestigationSummary,
 } from "./api";
@@ -158,5 +159,43 @@ describe("aiHealth", () => {
     expect(String(url)).toMatch(/\/health\/ai$/);
     expect(init.method).toBe("GET");
     expect(result.status).toBe("disabled");
+  });
+});
+
+describe("generateDetections", () => {
+  it("POSTs the summary to the detections endpoint and returns the package", async () => {
+    const payload = { id: "pkg_abc", artifacts: [], languages: [], source_finding_ids: [] };
+    const fetchMock = stubFetch(200, payload);
+
+    const result = await generateDetections(SUMMARY);
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(/\/detections$/);
+    expect(init.method).toBe("POST");
+    // The summary itself is the body — never raw provider data, never `{ query }`.
+    expect(JSON.parse(init.body as string)).toEqual(SUMMARY);
+    expect(result).toEqual(payload);
+  });
+
+  it("returns an empty (artifact-free) package in this phase", async () => {
+    stubFetch(200, { id: "pkg_abc", artifacts: [], languages: [], source_finding_ids: ["fnd_1"] });
+    const result = await generateDetections(SUMMARY);
+    expect(result.artifacts).toEqual([]);
+  });
+
+  it("throws ApiError on a non-2xx response", async () => {
+    stubFetch(422, { detail: "bad" });
+    await expect(generateDetections(SUMMARY)).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(200, { id: "pkg_x", artifacts: [] });
+    const controller = new AbortController();
+
+    await generateDetections(SUMMARY, controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
   });
 });
