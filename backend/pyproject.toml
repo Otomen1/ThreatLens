@@ -4,11 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "threatlens"
-version = "0.1.0"
-description = "ThreatLens — Universal Entity Detection Engine (Phase 1.1)"
+version = "1.0.0"
+description = "ThreatLens — deterministic threat-intelligence & investigation platform (Core Platform v1.0)"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "Proprietary" }
+license = { text = "MIT" }
 dependencies = [
     "pydantic>=2.6",
     "tldextract>=5.1",

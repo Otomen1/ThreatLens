@@ -146,11 +146,120 @@ export interface AggregatedResult {
   metadata: Record<string, unknown>;
 }
 
+// --- reasoning (Investigation Intelligence Engine) ---
+//
+// The deterministic engine's output. The UI is a pure consumer: it never
+// recalculates severity, confidence, or priority — every value shown is taken
+// verbatim from these models. Severity and posture are ordinal integers (0–4).
+
+export type ConfidenceBand = "insufficient" | "low" | "moderate" | "high" | "very_high";
+
+export interface ConfidenceFactor {
+  name: string;
+  contribution: number;
+  detail: string;
+}
+
+export interface Confidence {
+  score: number;
+  band: ConfidenceBand;
+  contested: boolean;
+  factors: ConfidenceFactor[];
+}
+
+export type EvidencePolarity = "supporting" | "contradicting" | "contextual";
+
+export interface WeightedEvidence {
+  evidence: AttributedEvidence;
+  weight: number;
+  polarity: EvidencePolarity;
+  dimension: string;
+}
+
+export type RecommendationCategory =
+  | "containment"
+  | "investigation"
+  | "remediation"
+  | "forensics";
+
+export interface Recommendation {
+  action: string;
+  category: RecommendationCategory;
+  priority: number;
+  target_type: EntityType;
+  target_value: string;
+  rationale: string;
+  rule_id: string;
+  finding_ids: string[];
+}
+
+export interface Finding {
+  id: string;
+  title: string;
+  categories: string[];
+  subject_type: EntityType;
+  subject_value: string;
+  severity: number;
+  confidence: Confidence;
+  priority: number;
+  evidence: WeightedEvidence[];
+  relationships: AttributedRelationship[];
+  sources: string[];
+  rationale: string;
+  rule_ids: string[];
+  recommendations: Recommendation[];
+}
+
+export interface InvestigationSummary {
+  entity_type: EntityType;
+  entity_value: string;
+  posture: number;
+  overall_confidence: Confidence;
+  categories: string[];
+  findings: Finding[];
+  recommendations: Recommendation[];
+  engine_version: string;
+  generated_at: string;
+}
+
 export interface InvestigationResponse {
   investigation_id: string;
   entity: Entity;
   threat_intelligence: AggregatedResult;
   knowledge: AggregatedResult;
+  investigation_summary: InvestigationSummary;
+}
+
+// --- AI explanation (downstream, optional) ---
+//
+// The AI layer explains a completed InvestigationSummary. It never influences
+// findings, confidence, severity, priority, or recommendations. A non-"ok"
+// status (disabled / unavailable / error) is a normal, expected response — not a
+// failure — and the deterministic investigation always renders regardless.
+
+export type AIStatus = "ok" | "disabled" | "unavailable" | "error";
+
+export interface FindingExplanation {
+  finding_id: string;
+  explanation: string;
+}
+
+export interface RecommendationExplanation {
+  action: string;
+  target_value: string;
+  explanation: string;
+}
+
+export interface AIExplanation {
+  status: AIStatus;
+  provider: string;
+  model: string | null;
+  message: string;
+  executive_summary: string;
+  technical_summary: string;
+  finding_explanations: FindingExplanation[];
+  recommendation_explanations: RecommendationExplanation[];
+  limitations: string[];
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
@@ -172,31 +281,32 @@ export class ApiError extends Error {
  * Pass an {@link AbortSignal} to cancel an in-flight request; an abort
  * propagates as a `DOMException` named `AbortError` (re-thrown, not wrapped).
  */
-async function postQuery<T>(
-  path: string,
-  query: string,
-  signal?: AbortSignal,
-): Promise<T> {
+async function post<T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> {
   let res: Response;
   try {
     res = await fetch(`${API_BASE}${path}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query }),
+      body: JSON.stringify(body),
       signal,
     });
   } catch (err) {
     if (err instanceof DOMException && err.name === "AbortError") throw err;
-    throw new ApiError("Could not reach the detection service.");
+    throw new ApiError("Could not reach the service.");
   }
 
   if (!res.ok) {
     let message = `Request failed (${res.status}).`;
-    if (res.status === 422) message = "That query could not be processed.";
+    if (res.status === 422) message = "That request could not be processed.";
     throw new ApiError(message, res.status);
   }
 
   return (await res.json()) as T;
+}
+
+/** POST `{ query }` to an API path and return the parsed JSON. */
+function postQuery<T>(path: string, query: string, signal?: AbortSignal): Promise<T> {
+  return post<T>(path, { query }, signal);
 }
 
 /** Classify a query into a normalized entity (detection only). */
@@ -210,4 +320,19 @@ export function investigate(
   signal?: AbortSignal,
 ): Promise<InvestigationResponse> {
   return postQuery<InvestigationResponse>("/investigate", query, signal);
+}
+
+/**
+ * Ask the AI layer to explain a completed investigation.
+ *
+ * Sends the deterministic {@link InvestigationSummary} (never raw provider data)
+ * and returns an {@link AIExplanation}. The endpoint always responds 200; a
+ * `disabled` / `unavailable` / `error` status is a normal result the caller
+ * renders as a friendly note, not an exception.
+ */
+export function explain(
+  summary: InvestigationSummary,
+  signal?: AbortSignal,
+): Promise<AIExplanation> {
+  return post<AIExplanation>("/explain", summary, signal);
 }

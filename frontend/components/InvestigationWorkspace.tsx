@@ -6,10 +6,14 @@ import type { AttributedReference, AttributedRelationship, InvestigationResponse
 import { evidenceByProvider } from "@/lib/investigation";
 
 import { AdvancedPanel } from "./investigation/AdvancedPanel";
+import { AIExplanationCard } from "./investigation/AIExplanationCard";
+import { FindingsSection } from "./investigation/FindingsSection";
 import { InvestigationHeader } from "./investigation/InvestigationHeader";
+import { InvestigationSummaryCard } from "./investigation/InvestigationSummaryCard";
 import { KnowledgeCard } from "./investigation/KnowledgeCard";
 import { OverviewCard } from "./investigation/OverviewCard";
 import { ProviderCard } from "./investigation/ProviderCard";
+import { RecommendationRollup } from "./investigation/RecommendationRollup";
 import { ReferenceSection } from "./investigation/ReferenceSection";
 import { RelationshipSection } from "./investigation/RelationshipSection";
 import { ThreatSummaryCard } from "./investigation/ThreatSummaryCard";
@@ -21,6 +25,7 @@ interface Props {
 
 export function InvestigationWorkspace({ data, timestamp }: Props) {
   const { entity, threat_intelligence, knowledge, investigation_id } = data;
+  const summary = data.investigation_summary;
 
   const hasTI = threat_intelligence.providers.length > 0;
   const hasKB = knowledge.providers.length > 0;
@@ -58,7 +63,19 @@ export function InvestigationWorkspace({ data, timestamp }: Props) {
         knowledge={knowledge}
       />
 
-      {/* ── 2. Overview + Key Attributes ──────────────────────────── */}
+      {/* ── 2. Investigation assessment (reasoning headline) ──────── */}
+      {summary && <InvestigationSummaryCard summary={summary} />}
+
+      {/* ── 3. Recommendations (rollup, priority-ordered) ─────────── */}
+      {summary && <RecommendationRollup recommendations={summary.recommendations} />}
+
+      {/* ── 4. Findings (primary analyst surface) ─────────────────── */}
+      {summary && <FindingsSection findings={summary.findings} />}
+
+      {/* ── 4b. AI explanation (downstream, optional, collapsed) ──── */}
+      {summary && <AIExplanationCard summary={summary} />}
+
+      {/* ── 5. Entity context + key attributes ────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <OverviewCard
           entity={entity}
@@ -74,7 +91,7 @@ export function InvestigationWorkspace({ data, timestamp }: Props) {
         </div>
       </div>
 
-      {/* ── 3. Threat Intelligence ────────────────────────────────── */}
+      {/* ── 6. Provider details (supporting) — Threat Intelligence ── */}
       {hasTI && (
         <section
           className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-3"
@@ -91,7 +108,7 @@ export function InvestigationWorkspace({ data, timestamp }: Props) {
         </section>
       )}
 
-      {/* ── 4. Knowledge ──────────────────────────────────────────── */}
+      {/* ── 7. Provider details (supporting) — Knowledge ──────────── */}
       {hasKB && (
         <section
           className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-3"
@@ -109,22 +126,13 @@ export function InvestigationWorkspace({ data, timestamp }: Props) {
         </section>
       )}
 
-      {/* ── Fallback when no frameworks have providers ─────────────── */}
-      {!hasTI && !hasKB && (
-        <section className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-          <p className="text-sm text-zinc-500">
-            No providers apply to this entity type yet.
-          </p>
-        </section>
-      )}
-
-      {/* ── 5. Relationships ──────────────────────────────────────── */}
+      {/* ── 8. Relationships ──────────────────────────────────────── */}
       <RelationshipSection relationships={allRelationships} />
 
-      {/* ── 6. References ─────────────────────────────────────────── */}
+      {/* ── 9. References ─────────────────────────────────────────── */}
       <ReferenceSection references={allReferences} />
 
-      {/* ── 7. Advanced Details ───────────────────────────────────── */}
+      {/* ── 10. Advanced Details ──────────────────────────────────── */}
       <AdvancedPanel threatIntelligence={threat_intelligence} knowledge={knowledge} />
     </div>
   );

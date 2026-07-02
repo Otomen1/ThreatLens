@@ -21,9 +21,11 @@ jobs:
         run: pip install -e ".[dev]"
       - name: Ruff (lint)
         run: ruff check src tests
-      - name: Mypy
+      - name: Mypy (strict)
         run: mypy src/threatlens
-      - name: Pytest
+      - name: Golden regression (reasoning benchmark + 100-IOC validation)
+        run: pytest tests/benchmark tests/validation
+      - name: Pytest (full suite)
         run: pytest
 
   frontend:

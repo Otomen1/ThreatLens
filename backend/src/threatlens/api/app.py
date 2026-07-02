@@ -15,8 +15,10 @@ from uuid import uuid4
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from ..ai import AIExplanation, AIExplanationService, build_ai_service
 from ..investigation import InvestigationService
 from ..providers import build_default_router
+from ..reasoning import InvestigationSummary, reason
 from ..reference import build_default_reference_router
 from ..search import detect
 from .schemas import DetectRequest, DetectResponse, InvestigationResponse
@@ -34,8 +36,12 @@ else:
 
 app = FastAPI(
     title="ThreatLens API",
-    version="0.1.0",
-    description="Universal Entity Detection Engine (Phase 1.1.5).",
+    version="1.0.0",
+    description=(
+        "ThreatLens Core Platform v1.0 — deterministic entity detection, "
+        "threat-intelligence and knowledge investigation, reasoning, and "
+        "optional downstream AI explanation."
+    ),
 )
 
 # Same-origin deployments need no CORS; a separately-hosted or local-dev
@@ -66,6 +72,17 @@ _investigation_service = InvestigationService(
 def get_investigation_service() -> InvestigationService:
     """Provide the investigation service (overridable in tests)."""
     return _investigation_service
+
+
+# The AI explanation service is downstream and optional; built once from the
+# environment. It is disabled by default, so ThreatLens behaves identically when
+# no AI provider is configured or running.
+_ai_service = build_ai_service()
+
+
+def get_ai_service() -> AIExplanationService:
+    """Provide the AI explanation service (overridable in tests)."""
+    return _ai_service
 
 
 @app.get("/api/v1/health")
@@ -100,9 +117,30 @@ async def investigate_entity(
     """
     entity = detect(request.query)
     threat_intelligence, knowledge = await service.investigate(entity)
+    investigation_summary = reason(entity, threat_intelligence, knowledge)
     return InvestigationResponse(
         investigation_id=uuid4(),
         entity=entity,
         threat_intelligence=threat_intelligence,
         knowledge=knowledge,
+        investigation_summary=investigation_summary,
     )
+
+
+@app.post("/api/v1/explain", response_model=AIExplanation)
+async def explain_investigation(
+    summary: InvestigationSummary,
+    service: Annotated[AIExplanationService, Depends(get_ai_service)],
+) -> AIExplanation:
+    """Explain a completed investigation with the configured AI provider.
+
+    The input is the deterministic ``InvestigationSummary`` produced by
+    ``/investigate``; the output is an :class:`AIExplanation`. This endpoint is
+    strictly downstream — the AI never influences findings, confidence, severity,
+    priority, or recommendations, and it has no access to providers.
+
+    It always returns ``200``: a disabled provider or an unreachable model yields
+    a structured ``disabled`` / ``unavailable`` response (never an error), so the
+    AI layer can never fail an investigation. ``/investigate`` is unchanged.
+    """
+    return await service.explain(summary)

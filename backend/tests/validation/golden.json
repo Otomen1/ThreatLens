@@ -1,0 +1,5284 @@
+{
+  "actor_apt28": {
+    "categories": [
+      "attack_pattern",
+      "threat_actor"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 72
+    },
+    "entity": [
+      "threat_actor",
+      "APT28"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "attack_pattern"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_05cadc0374969e15",
+        "priority": 210,
+        "recommendations": [
+          [
+            "threat_hunt",
+            "investigation",
+            231
+          ],
+          [
+            "generate_detection",
+            "remediation",
+            250
+          ]
+        ],
+        "rule_ids": [
+          "attack.technique"
+        ],
+        "severity": 2
+      },
+      {
+        "categories": [
+          "threat_actor"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_8f56e5083e7a27f0",
+        "priority": 210,
+        "recommendations": [
+          [
+            "investigate",
+            "investigation",
+            230
+          ],
+          [
+            "enrich",
+            "investigation",
+            240
+          ]
+        ],
+        "rule_ids": [
+          "actor.attributed"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 2,
+    "rollup": [
+      [
+        "investigate",
+        "investigation",
+        230,
+        [
+          "fnd_8f56e5083e7a27f0"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        231,
+        [
+          "fnd_05cadc0374969e15"
+        ]
+      ],
+      [
+        "enrich",
+        "investigation",
+        240,
+        [
+          "fnd_8f56e5083e7a27f0"
+        ]
+      ],
+      [
+        "generate_detection",
+        "remediation",
+        250,
+        [
+          "fnd_05cadc0374969e15"
+        ]
+      ]
+    ]
+  },
+  "actor_apt29": {
+    "categories": [
+      "attack_pattern",
+      "threat_actor"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 72
+    },
+    "entity": [
+      "threat_actor",
+      "APT29"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "attack_pattern"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_b484572b69d34563",
+        "priority": 210,
+        "recommendations": [
+          [
+            "threat_hunt",
+            "investigation",
+            231
+          ],
+          [
+            "generate_detection",
+            "remediation",
+            250
+          ]
+        ],
+        "rule_ids": [
+          "attack.technique"
+        ],
+        "severity": 2
+      },
+      {
+        "categories": [
+          "threat_actor"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_c5e8bf34bc5fa20b",
+        "priority": 210,
+        "recommendations": [
+          [
+            "investigate",
+            "investigation",
+            230
+          ],
+          [
+            "enrich",
+            "investigation",
+            240
+          ]
+        ],
+        "rule_ids": [
+          "actor.attributed"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 2,
+    "rollup": [
+      [
+        "investigate",
+        "investigation",
+        230,
+        [
+          "fnd_c5e8bf34bc5fa20b"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        231,
+        [
+          "fnd_b484572b69d34563"
+        ]
+      ],
+      [
+        "enrich",
+        "investigation",
+        240,
+        [
+          "fnd_c5e8bf34bc5fa20b"
+        ]
+      ],
+      [
+        "generate_detection",
+        "remediation",
+        250,
+        [
+          "fnd_b484572b69d34563"
+        ]
+      ]
+    ]
+  },
+  "actor_lazarus": {
+    "categories": [
+      "attack_pattern",
+      "threat_actor"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 72
+    },
+    "entity": [
+      "threat_actor",
+      "Lazarus Group"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "threat_actor"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_1d17a48702574d1b",
+        "priority": 210,
+        "recommendations": [
+          [
+            "investigate",
+            "investigation",
+            230
+          ],
+          [
+            "enrich",
+            "investigation",
+            240
+          ]
+        ],
+        "rule_ids": [
+          "actor.attributed"
+        ],
+        "severity": 2
+      },
+      {
+        "categories": [
+          "attack_pattern"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_7a803ee8d350da35",
+        "priority": 210,
+        "recommendations": [
+          [
+            "threat_hunt",
+            "investigation",
+            231
+          ],
+          [
+            "generate_detection",
+            "remediation",
+            250
+          ]
+        ],
+        "rule_ids": [
+          "attack.technique"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 2,
+    "rollup": [
+      [
+        "investigate",
+        "investigation",
+        230,
+        [
+          "fnd_1d17a48702574d1b"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        231,
+        [
+          "fnd_7a803ee8d350da35"
+        ]
+      ],
+      [
+        "enrich",
+        "investigation",
+        240,
+        [
+          "fnd_1d17a48702574d1b"
+        ]
+      ],
+      [
+        "generate_detection",
+        "remediation",
+        250,
+        [
+          "fnd_7a803ee8d350da35"
+        ]
+      ]
+    ]
+  },
+  "actor_ta505": {
+    "categories": [
+      "attack_pattern",
+      "threat_actor"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 72
+    },
+    "entity": [
+      "threat_actor",
+      "TA505"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "threat_actor"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_d5dee928b01311da",
+        "priority": 210,
+        "recommendations": [
+          [
+            "investigate",
+            "investigation",
+            230
+          ],
+          [
+            "enrich",
+            "investigation",
+            240
+          ]
+        ],
+        "rule_ids": [
+          "actor.attributed"
+        ],
+        "severity": 2
+      },
+      {
+        "categories": [
+          "attack_pattern"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_f3e9f3b73dec5eb3",
+        "priority": 210,
+        "recommendations": [
+          [
+            "threat_hunt",
+            "investigation",
+            231
+          ],
+          [
+            "generate_detection",
+            "remediation",
+            250
+          ]
+        ],
+        "rule_ids": [
+          "attack.technique"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 2,
+    "rollup": [
+      [
+        "investigate",
+        "investigation",
+        230,
+        [
+          "fnd_d5dee928b01311da"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        231,
+        [
+          "fnd_f3e9f3b73dec5eb3"
+        ]
+      ],
+      [
+        "enrich",
+        "investigation",
+        240,
+        [
+          "fnd_d5dee928b01311da"
+        ]
+      ],
+      [
+        "generate_detection",
+        "remediation",
+        250,
+        [
+          "fnd_f3e9f3b73dec5eb3"
+        ]
+      ]
+    ]
+  },
+  "capec_242": {
+    "categories": [
+      "attack_pattern"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 70
+    },
+    "entity": [
+      "capec",
+      "CAPEC-242"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "attack_pattern"
+        ],
+        "confidence": [
+          70,
+          "high",
+          false
+        ],
+        "id": "fnd_1e4a05f95849e277",
+        "priority": 210,
+        "recommendations": [
+          [
+            "threat_hunt",
+            "investigation",
+            231
+          ],
+          [
+            "generate_detection",
+            "remediation",
+            250
+          ]
+        ],
+        "rule_ids": [
+          "attack.technique"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 2,
+    "rollup": [
+      [
+        "threat_hunt",
+        "investigation",
+        231,
+        [
+          "fnd_1e4a05f95849e277"
+        ]
+      ],
+      [
+        "generate_detection",
+        "remediation",
+        250,
+        [
+          "fnd_1e4a05f95849e277"
+        ]
+      ]
+    ]
+  },
+  "capec_63": {
+    "categories": [
+      "attack_pattern"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 70
+    },
+    "entity": [
+      "capec",
+      "CAPEC-63"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "attack_pattern"
+        ],
+        "confidence": [
+          70,
+          "high",
+          false
+        ],
+        "id": "fnd_34f4dfa292ad4166",
+        "priority": 210,
+        "recommendations": [
+          [
+            "threat_hunt",
+            "investigation",
+            231
+          ],
+          [
+            "generate_detection",
+            "remediation",
+            250
+          ]
+        ],
+        "rule_ids": [
+          "attack.technique"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 2,
+    "rollup": [
+      [
+        "threat_hunt",
+        "investigation",
+        231,
+        [
+          "fnd_34f4dfa292ad4166"
+        ]
+      ],
+      [
+        "generate_detection",
+        "remediation",
+        250,
+        [
+          "fnd_34f4dfa292ad4166"
+        ]
+      ]
+    ]
+  },
+  "capec_66": {
+    "categories": [
+      "attack_pattern"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 70
+    },
+    "entity": [
+      "capec",
+      "CAPEC-66"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "attack_pattern"
+        ],
+        "confidence": [
+          70,
+          "high",
+          false
+        ],
+        "id": "fnd_e009a5416bfefdff",
+        "priority": 210,
+        "recommendations": [
+          [
+            "threat_hunt",
+            "investigation",
+            231
+          ],
+          [
+            "generate_detection",
+            "remediation",
+            250
+          ]
+        ],
+        "rule_ids": [
+          "attack.technique"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 2,
+    "rollup": [
+      [
+        "threat_hunt",
+        "investigation",
+        231,
+        [
+          "fnd_e009a5416bfefdff"
+        ]
+      ],
+      [
+        "generate_detection",
+        "remediation",
+        250,
+        [
+          "fnd_e009a5416bfefdff"
+        ]
+      ]
+    ]
+  },
+  "cve_critical": {
+    "categories": [
+      "high_priority",
+      "vulnerability"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 73
+    },
+    "entity": [
+      "cve",
+      "CVE-2021-44228"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "high_priority",
+          "vulnerability"
+        ],
+        "confidence": [
+          73,
+          "high",
+          false
+        ],
+        "id": "fnd_987033b9447130e6",
+        "priority": 10,
+        "recommendations": [
+          [
+            "patch_immediately",
+            "remediation",
+            11
+          ],
+          [
+            "investigate",
+            "investigation",
+            30
+          ]
+        ],
+        "rule_ids": [
+          "vuln.critical"
+        ],
+        "severity": 4
+      }
+    ],
+    "posture": 4,
+    "rollup": [
+      [
+        "patch_immediately",
+        "remediation",
+        11,
+        [
+          "fnd_987033b9447130e6"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        30,
+        [
+          "fnd_987033b9447130e6"
+        ]
+      ]
+    ]
+  },
+  "cve_critical_corroborated": {
+    "categories": [
+      "high_priority",
+      "vulnerability"
+    ],
+    "confidence": {
+      "band": "very_high",
+      "contested": false,
+      "score": 86
+    },
+    "entity": [
+      "cve",
+      "CVE-2017-0144"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "high_priority",
+          "vulnerability"
+        ],
+        "confidence": [
+          86,
+          "very_high",
+          false
+        ],
+        "id": "fnd_c256b4c3a5059caf",
+        "priority": 0,
+        "recommendations": [
+          [
+            "patch_immediately",
+            "remediation",
+            1
+          ],
+          [
+            "investigate",
+            "investigation",
+            20
+          ]
+        ],
+        "rule_ids": [
+          "vuln.critical"
+        ],
+        "severity": 4
+      }
+    ],
+    "posture": 4,
+    "rollup": [
+      [
+        "patch_immediately",
+        "remediation",
+        1,
+        [
+          "fnd_c256b4c3a5059caf"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        20,
+        [
+          "fnd_c256b4c3a5059caf"
+        ]
+      ]
+    ]
+  },
+  "cve_critical_kev": {
+    "categories": [
+      "high_priority",
+      "vulnerability"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 73
+    },
+    "entity": [
+      "cve",
+      "CVE-2023-34362"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "high_priority",
+          "vulnerability"
+        ],
+        "confidence": [
+          73,
+          "high",
+          false
+        ],
+        "id": "fnd_e595eede66afc88b",
+        "priority": 10,
+        "recommendations": [
+          [
+            "patch_immediately",
+            "remediation",
+            11
+          ],
+          [
+            "investigate",
+            "investigation",
+            30
+          ]
+        ],
+        "rule_ids": [
+          "vuln.critical"
+        ],
+        "severity": 4
+      }
+    ],
+    "posture": 4,
+    "rollup": [
+      [
+        "patch_immediately",
+        "remediation",
+        11,
+        [
+          "fnd_e595eede66afc88b"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        30,
+        [
+          "fnd_e595eede66afc88b"
+        ]
+      ]
+    ]
+  },
+  "cve_high": {
+    "categories": [
+      "vulnerability"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 73
+    },
+    "entity": [
+      "cve",
+      "CVE-2023-23397"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "vulnerability"
+        ],
+        "confidence": [
+          73,
+          "high",
+          false
+        ],
+        "id": "fnd_cad7fff24c5af7cc",
+        "priority": 110,
+        "recommendations": [
+          [
+            "patch_immediately",
+            "remediation",
+            111
+          ],
+          [
+            "investigate",
+            "investigation",
+            130
+          ]
+        ],
+        "rule_ids": [
+          "vuln.critical"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "patch_immediately",
+        "remediation",
+        111,
+        [
+          "fnd_cad7fff24c5af7cc"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        130,
+        [
+          "fnd_cad7fff24c5af7cc"
+        ]
+      ]
+    ]
+  },
+  "cve_high_recent": {
+    "categories": [
+      "vulnerability"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 73
+    },
+    "entity": [
+      "cve",
+      "CVE-2024-21413"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "vulnerability"
+        ],
+        "confidence": [
+          73,
+          "high",
+          false
+        ],
+        "id": "fnd_1324e56555bba423",
+        "priority": 110,
+        "recommendations": [
+          [
+            "patch_immediately",
+            "remediation",
+            111
+          ],
+          [
+            "investigate",
+            "investigation",
+            130
+          ]
+        ],
+        "rule_ids": [
+          "vuln.critical"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "patch_immediately",
+        "remediation",
+        111,
+        [
+          "fnd_1324e56555bba423"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        130,
+        [
+          "fnd_1324e56555bba423"
+        ]
+      ]
+    ]
+  },
+  "cve_historical": {
+    "categories": [
+      "vulnerability"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 73
+    },
+    "entity": [
+      "cve",
+      "CVE-2014-0160"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "vulnerability"
+        ],
+        "confidence": [
+          73,
+          "high",
+          false
+        ],
+        "id": "fnd_50b8ab7fd4960b65",
+        "priority": 110,
+        "recommendations": [
+          [
+            "patch_immediately",
+            "remediation",
+            111
+          ],
+          [
+            "investigate",
+            "investigation",
+            130
+          ]
+        ],
+        "rule_ids": [
+          "vuln.critical"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "patch_immediately",
+        "remediation",
+        111,
+        [
+          "fnd_50b8ab7fd4960b65"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        130,
+        [
+          "fnd_50b8ab7fd4960b65"
+        ]
+      ]
+    ]
+  },
+  "cve_low": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "cve",
+      "CVE-2020-1111"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "cve_medium": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "cve",
+      "CVE-2023-38831"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "cve_no_data": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "cve",
+      "CVE-2099-99999"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "cve_recent_critical": {
+    "categories": [
+      "high_priority",
+      "vulnerability"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 73
+    },
+    "entity": [
+      "cve",
+      "CVE-2024-3094"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "high_priority",
+          "vulnerability"
+        ],
+        "confidence": [
+          73,
+          "high",
+          false
+        ],
+        "id": "fnd_0ca6eaff7381897f",
+        "priority": 10,
+        "recommendations": [
+          [
+            "patch_immediately",
+            "remediation",
+            11
+          ],
+          [
+            "investigate",
+            "investigation",
+            30
+          ]
+        ],
+        "rule_ids": [
+          "vuln.critical"
+        ],
+        "severity": 4
+      }
+    ],
+    "posture": 4,
+    "rollup": [
+      [
+        "patch_immediately",
+        "remediation",
+        11,
+        [
+          "fnd_0ca6eaff7381897f"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        30,
+        [
+          "fnd_0ca6eaff7381897f"
+        ]
+      ]
+    ]
+  },
+  "cwe_787": {
+    "categories": [
+      "attack_pattern"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 72
+    },
+    "entity": [
+      "cwe",
+      "CWE-787"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "attack_pattern"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_18d9c78bfcfde110",
+        "priority": 210,
+        "recommendations": [
+          [
+            "threat_hunt",
+            "investigation",
+            231
+          ],
+          [
+            "generate_detection",
+            "remediation",
+            250
+          ]
+        ],
+        "rule_ids": [
+          "attack.technique"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 2,
+    "rollup": [
+      [
+        "threat_hunt",
+        "investigation",
+        231,
+        [
+          "fnd_18d9c78bfcfde110"
+        ]
+      ],
+      [
+        "generate_detection",
+        "remediation",
+        250,
+        [
+          "fnd_18d9c78bfcfde110"
+        ]
+      ]
+    ]
+  },
+  "cwe_79": {
+    "categories": [
+      "attack_pattern"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 72
+    },
+    "entity": [
+      "cwe",
+      "CWE-79"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "attack_pattern"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_4f7c113d7ccf1bac",
+        "priority": 210,
+        "recommendations": [
+          [
+            "threat_hunt",
+            "investigation",
+            231
+          ],
+          [
+            "generate_detection",
+            "remediation",
+            250
+          ]
+        ],
+        "rule_ids": [
+          "attack.technique"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 2,
+    "rollup": [
+      [
+        "threat_hunt",
+        "investigation",
+        231,
+        [
+          "fnd_4f7c113d7ccf1bac"
+        ]
+      ],
+      [
+        "generate_detection",
+        "remediation",
+        250,
+        [
+          "fnd_4f7c113d7ccf1bac"
+        ]
+      ]
+    ]
+  },
+  "cwe_89": {
+    "categories": [
+      "attack_pattern"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 72
+    },
+    "entity": [
+      "cwe",
+      "CWE-89"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "attack_pattern"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_2ee2cbc72c0a641f",
+        "priority": 210,
+        "recommendations": [
+          [
+            "threat_hunt",
+            "investigation",
+            231
+          ],
+          [
+            "generate_detection",
+            "remediation",
+            250
+          ]
+        ],
+        "rule_ids": [
+          "attack.technique"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 2,
+    "rollup": [
+      [
+        "threat_hunt",
+        "investigation",
+        231,
+        [
+          "fnd_2ee2cbc72c0a641f"
+        ]
+      ],
+      [
+        "generate_detection",
+        "remediation",
+        250,
+        [
+          "fnd_2ee2cbc72c0a641f"
+        ]
+      ]
+    ]
+  },
+  "domain_attributed_benign_rep": {
+    "categories": [
+      "threat_actor"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 61
+    },
+    "entity": [
+      "domain",
+      "cdn.example.net"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "threat_actor"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_3a1d055bf2e03e66",
+        "priority": 210,
+        "recommendations": [
+          [
+            "investigate",
+            "investigation",
+            230
+          ],
+          [
+            "enrich",
+            "investigation",
+            240
+          ]
+        ],
+        "rule_ids": [
+          "actor.attributed"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 2,
+    "rollup": [
+      [
+        "investigate",
+        "investigation",
+        230,
+        [
+          "fnd_3a1d055bf2e03e66"
+        ]
+      ],
+      [
+        "enrich",
+        "investigation",
+        240,
+        [
+          "fnd_3a1d055bf2e03e66"
+        ]
+      ]
+    ]
+  },
+  "domain_c2": {
+    "categories": [
+      "attack_pattern",
+      "malicious_infrastructure",
+      "malware"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 61
+    },
+    "entity": [
+      "domain",
+      "update.bad-cdn.net"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_e40f8671cc212a70",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      },
+      {
+        "categories": [
+          "malware"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_efc424d724c4f11a",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "investigate",
+            "investigation",
+            130
+          ]
+        ],
+        "rule_ids": [
+          "malware.known"
+        ],
+        "severity": 3
+      },
+      {
+        "categories": [
+          "attack_pattern"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_d3c9a29580d13d41",
+        "priority": 210,
+        "recommendations": [
+          [
+            "threat_hunt",
+            "investigation",
+            231
+          ],
+          [
+            "generate_detection",
+            "remediation",
+            250
+          ]
+        ],
+        "rule_ids": [
+          "attack.technique"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_e40f8671cc212a70",
+          "fnd_efc424d724c4f11a"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        130,
+        [
+          "fnd_efc424d724c4f11a"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_d3c9a29580d13d41",
+          "fnd_e40f8671cc212a70"
+        ]
+      ],
+      [
+        "generate_detection",
+        "remediation",
+        250,
+        [
+          "fnd_d3c9a29580d13d41"
+        ]
+      ]
+    ]
+  },
+  "domain_dga": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 61
+    },
+    "entity": [
+      "domain",
+      "a8f3kd9slxqz.net"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_3830d3b44c516780",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_3830d3b44c516780"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_3830d3b44c516780"
+        ]
+      ]
+    ]
+  },
+  "domain_legit_bank": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": true,
+      "score": 0
+    },
+    "entity": [
+      "domain",
+      "chase.com"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "domain_legitimate": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": true,
+      "score": 0
+    },
+    "entity": [
+      "domain",
+      "example.com"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "domain_malvertising": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 61
+    },
+    "entity": [
+      "domain",
+      "ads-tracker-cdn.com"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_343923acf736d9b6",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_343923acf736d9b6"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_343923acf736d9b6"
+        ]
+      ]
+    ]
+  },
+  "domain_malware": {
+    "categories": [
+      "malicious_infrastructure",
+      "malware"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 64
+    },
+    "entity": [
+      "domain",
+      "malware-c2.net"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malware"
+        ],
+        "confidence": [
+          64,
+          "high",
+          false
+        ],
+        "id": "fnd_5d70fad4a63f8d80",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "investigate",
+            "investigation",
+            130
+          ]
+        ],
+        "rule_ids": [
+          "malware.known"
+        ],
+        "severity": 3
+      },
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          64,
+          "high",
+          false
+        ],
+        "id": "fnd_b5c1696fd7a6a9ae",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_5d70fad4a63f8d80",
+          "fnd_b5c1696fd7a6a9ae"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        130,
+        [
+          "fnd_5d70fad4a63f8d80"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_b5c1696fd7a6a9ae"
+        ]
+      ]
+    ]
+  },
+  "domain_newly_registered": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 61
+    },
+    "entity": [
+      "domain",
+      "kj3h4kjh23.net"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_6664790f4e13443f",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_6664790f4e13443f"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_6664790f4e13443f"
+        ]
+      ]
+    ]
+  },
+  "domain_parked": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "domain",
+      "parked-domain.net"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "domain_phishing": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 64
+    },
+    "entity": [
+      "domain",
+      "secure-login-update.net"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          64,
+          "high",
+          false
+        ],
+        "id": "fnd_962e9c64409cfb48",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_962e9c64409cfb48"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_962e9c64409cfb48"
+        ]
+      ]
+    ]
+  },
+  "domain_phishing_kit": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 64
+    },
+    "entity": [
+      "domain",
+      "login-verify-account.com"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          64,
+          "high",
+          false
+        ],
+        "id": "fnd_d9f5bdae0c4fc234",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_d9f5bdae0c4fc234"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_d9f5bdae0c4fc234"
+        ]
+      ]
+    ]
+  },
+  "domain_punycode": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "domain",
+      "xn--80ak6aa92e.com"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "domain_subdomain": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": true,
+      "score": 0
+    },
+    "entity": [
+      "domain",
+      "mail.example.org"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "domain_typosquat": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 61
+    },
+    "entity": [
+      "domain",
+      "g00gle.com"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_6c2aaeaef6b63de3",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_6c2aaeaef6b63de3"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_6c2aaeaef6b63de3"
+        ]
+      ]
+    ]
+  },
+  "domain_typosquat_paypal": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 61
+    },
+    "entity": [
+      "domain",
+      "paypa1-login.com"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_f66bf0d87e08ff1d",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_f66bf0d87e08ff1d"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_f66bf0d87e08ff1d"
+        ]
+      ]
+    ]
+  },
+  "domain_unknown": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "domain",
+      "no-data-here.net"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "email_address": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "email",
+      "user@example.com"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "freetext_random": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "freetext",
+      "not a real indicator 123"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "freetext_sentence": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "freetext",
+      "please investigate this host for me"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "ip_attributed_actor": {
+    "categories": [
+      "malicious_infrastructure",
+      "threat_actor"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 61
+    },
+    "entity": [
+      "ipv4",
+      "185.220.101.6"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_9cf33ce6fa6df005",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      },
+      {
+        "categories": [
+          "threat_actor"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_afad7fdcc404f6d9",
+        "priority": 210,
+        "recommendations": [
+          [
+            "investigate",
+            "investigation",
+            230
+          ],
+          [
+            "enrich",
+            "investigation",
+            240
+          ]
+        ],
+        "rule_ids": [
+          "actor.attributed"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_9cf33ce6fa6df005"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_9cf33ce6fa6df005"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        230,
+        [
+          "fnd_afad7fdcc404f6d9"
+        ]
+      ],
+      [
+        "enrich",
+        "investigation",
+        240,
+        [
+          "fnd_afad7fdcc404f6d9"
+        ]
+      ]
+    ]
+  },
+  "ip_benign": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": true,
+      "score": 0
+    },
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "ip_benign_cloudflare": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": true,
+      "score": 0
+    },
+    "entity": [
+      "ipv4",
+      "1.1.1.1"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "ip_botnet_c2": {
+    "categories": [
+      "malicious_infrastructure",
+      "malware"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 61
+    },
+    "entity": [
+      "ipv4",
+      "185.100.87.20"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malware"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_52856afbac91d2d1",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "investigate",
+            "investigation",
+            130
+          ]
+        ],
+        "rule_ids": [
+          "malware.known"
+        ],
+        "severity": 3
+      },
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_68a44a8568137bf9",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_52856afbac91d2d1",
+          "fnd_68a44a8568137bf9"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        130,
+        [
+          "fnd_52856afbac91d2d1"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_68a44a8568137bf9"
+        ]
+      ]
+    ]
+  },
+  "ip_bruteforce": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 61
+    },
+    "entity": [
+      "ipv4",
+      "141.98.10.20"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_1fb1342c41925c37",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_1fb1342c41925c37"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_1fb1342c41925c37"
+        ]
+      ]
+    ]
+  },
+  "ip_c2_malware": {
+    "categories": [
+      "malicious_infrastructure",
+      "malware"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 61
+    },
+    "entity": [
+      "ipv4",
+      "185.220.101.5"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malware"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_256d95ca71d20dd3",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "investigate",
+            "investigation",
+            130
+          ]
+        ],
+        "rule_ids": [
+          "malware.known"
+        ],
+        "severity": 3
+      },
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_a0aad72650d6c110",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_256d95ca71d20dd3",
+          "fnd_a0aad72650d6c110"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        130,
+        [
+          "fnd_256d95ca71d20dd3"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_a0aad72650d6c110"
+        ]
+      ]
+    ]
+  },
+  "ip_contested": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "moderate",
+      "contested": true,
+      "score": 50
+    },
+    "entity": [
+      "ipv4",
+      "5.45.207.10"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          50,
+          "moderate",
+          true
+        ],
+        "id": "fnd_8e8cf45b32f80594",
+        "priority": 120,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            120
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            141
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        120,
+        [
+          "fnd_8e8cf45b32f80594"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        141,
+        [
+          "fnd_8e8cf45b32f80594"
+        ]
+      ]
+    ]
+  },
+  "ip_full_intel": {
+    "categories": [
+      "attack_pattern",
+      "malicious_infrastructure",
+      "malware",
+      "threat_actor"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 61
+    },
+    "entity": [
+      "ipv4",
+      "185.220.101.7"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_25c2f362cc59fe42",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      },
+      {
+        "categories": [
+          "malware"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_409ac45495b0dddb",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "investigate",
+            "investigation",
+            130
+          ]
+        ],
+        "rule_ids": [
+          "malware.known"
+        ],
+        "severity": 3
+      },
+      {
+        "categories": [
+          "threat_actor"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_32731d9eaecb4030",
+        "priority": 210,
+        "recommendations": [
+          [
+            "investigate",
+            "investigation",
+            230
+          ],
+          [
+            "enrich",
+            "investigation",
+            240
+          ]
+        ],
+        "rule_ids": [
+          "actor.attributed"
+        ],
+        "severity": 2
+      },
+      {
+        "categories": [
+          "attack_pattern"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_44168194b61e7a56",
+        "priority": 210,
+        "recommendations": [
+          [
+            "threat_hunt",
+            "investigation",
+            231
+          ],
+          [
+            "generate_detection",
+            "remediation",
+            250
+          ]
+        ],
+        "rule_ids": [
+          "attack.technique"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_25c2f362cc59fe42",
+          "fnd_409ac45495b0dddb"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        130,
+        [
+          "fnd_32731d9eaecb4030",
+          "fnd_409ac45495b0dddb"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_25c2f362cc59fe42",
+          "fnd_44168194b61e7a56"
+        ]
+      ],
+      [
+        "enrich",
+        "investigation",
+        240,
+        [
+          "fnd_32731d9eaecb4030"
+        ]
+      ],
+      [
+        "generate_detection",
+        "remediation",
+        250,
+        [
+          "fnd_44168194b61e7a56"
+        ]
+      ]
+    ]
+  },
+  "ip_likely_malicious": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 61
+    },
+    "entity": [
+      "ipv4",
+      "91.219.236.10"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_85d67703ecf7ed2c",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_85d67703ecf7ed2c"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_85d67703ecf7ed2c"
+        ]
+      ]
+    ]
+  },
+  "ip_malicious": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 61
+    },
+    "entity": [
+      "ipv4",
+      "45.155.205.233"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_ed66fd28a0fbbdf4",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_ed66fd28a0fbbdf4"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_ed66fd28a0fbbdf4"
+        ]
+      ]
+    ]
+  },
+  "ip_malicious_corroborated": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 74
+    },
+    "entity": [
+      "ipv4",
+      "194.5.249.10"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          74,
+          "high",
+          false
+        ],
+        "id": "fnd_dd985da5d456acee",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_dd985da5d456acee"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_dd985da5d456acee"
+        ]
+      ]
+    ]
+  },
+  "ip_multi_source": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 78
+    },
+    "entity": [
+      "ipv4",
+      "89.248.165.30"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          78,
+          "high",
+          false
+        ],
+        "id": "fnd_80e37021a0625a4f",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_80e37021a0625a4f"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_80e37021a0625a4f"
+        ]
+      ]
+    ]
+  },
+  "ip_private": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "ipv4",
+      "10.0.0.1"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "ip_scanner_tag_only": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "ipv4",
+      "198.51.100.7"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "ip_stale": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "moderate",
+      "contested": false,
+      "score": 50
+    },
+    "entity": [
+      "ipv4",
+      "212.83.40.10"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          50,
+          "moderate",
+          false
+        ],
+        "id": "fnd_1e427b77c60d943a",
+        "priority": 120,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            120
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            141
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        120,
+        [
+          "fnd_1e427b77c60d943a"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        141,
+        [
+          "fnd_1e427b77c60d943a"
+        ]
+      ]
+    ]
+  },
+  "ip_suspicious": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 61
+    },
+    "entity": [
+      "ipv4",
+      "193.0.0.10"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_88ce3981ba2322cf",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_88ce3981ba2322cf"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_88ce3981ba2322cf"
+        ]
+      ]
+    ]
+  },
+  "ip_tor_exit": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 61
+    },
+    "entity": [
+      "ipv4",
+      "204.13.164.10"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_54ddef4077d14a53",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_54ddef4077d14a53"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_54ddef4077d14a53"
+        ]
+      ]
+    ]
+  },
+  "ip_unknown": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "ipv4",
+      "203.0.113.55"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "ipv6_benign": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": true,
+      "score": 0
+    },
+    "entity": [
+      "ipv6",
+      "2606:4700:4700::1111"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "ipv6_loopback": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "ipv6",
+      "::1"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "ipv6_malicious": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 61
+    },
+    "entity": [
+      "ipv6",
+      "2001:db8:dead::beef"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          61,
+          "high",
+          false
+        ],
+        "id": "fnd_1e293f66a633a911",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_1e293f66a633a911"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_1e293f66a633a911"
+        ]
+      ]
+    ]
+  },
+  "malware_cobaltstrike": {
+    "categories": [
+      "attack_pattern",
+      "malware"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 72
+    },
+    "entity": [
+      "malware_family",
+      "Cobalt Strike"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malware"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_d00c48de7d416c23",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "investigate",
+            "investigation",
+            130
+          ]
+        ],
+        "rule_ids": [
+          "malware.known"
+        ],
+        "severity": 3
+      },
+      {
+        "categories": [
+          "attack_pattern"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_b905483f61362687",
+        "priority": 210,
+        "recommendations": [
+          [
+            "threat_hunt",
+            "investigation",
+            231
+          ],
+          [
+            "generate_detection",
+            "remediation",
+            250
+          ]
+        ],
+        "rule_ids": [
+          "attack.technique"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_d00c48de7d416c23"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        130,
+        [
+          "fnd_d00c48de7d416c23"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        231,
+        [
+          "fnd_b905483f61362687"
+        ]
+      ],
+      [
+        "generate_detection",
+        "remediation",
+        250,
+        [
+          "fnd_b905483f61362687"
+        ]
+      ]
+    ]
+  },
+  "malware_emotet": {
+    "categories": [
+      "attack_pattern",
+      "malware"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 72
+    },
+    "entity": [
+      "malware_family",
+      "emotet"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malware"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_36a3f32ba557d921",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "investigate",
+            "investigation",
+            130
+          ]
+        ],
+        "rule_ids": [
+          "malware.known"
+        ],
+        "severity": 3
+      },
+      {
+        "categories": [
+          "attack_pattern"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_5160c379bf1a316d",
+        "priority": 210,
+        "recommendations": [
+          [
+            "threat_hunt",
+            "investigation",
+            231
+          ],
+          [
+            "generate_detection",
+            "remediation",
+            250
+          ]
+        ],
+        "rule_ids": [
+          "attack.technique"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_36a3f32ba557d921"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        130,
+        [
+          "fnd_36a3f32ba557d921"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        231,
+        [
+          "fnd_5160c379bf1a316d"
+        ]
+      ],
+      [
+        "generate_detection",
+        "remediation",
+        250,
+        [
+          "fnd_5160c379bf1a316d"
+        ]
+      ]
+    ]
+  },
+  "malware_mimikatz": {
+    "categories": [
+      "attack_pattern",
+      "malware"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 72
+    },
+    "entity": [
+      "malware_family",
+      "mimikatz"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malware"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_13ccf43f19579190",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "investigate",
+            "investigation",
+            130
+          ]
+        ],
+        "rule_ids": [
+          "malware.known"
+        ],
+        "severity": 3
+      },
+      {
+        "categories": [
+          "attack_pattern"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_0b3dfc183e98ecd9",
+        "priority": 210,
+        "recommendations": [
+          [
+            "threat_hunt",
+            "investigation",
+            231
+          ],
+          [
+            "generate_detection",
+            "remediation",
+            250
+          ]
+        ],
+        "rule_ids": [
+          "attack.technique"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_13ccf43f19579190"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        130,
+        [
+          "fnd_13ccf43f19579190"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        231,
+        [
+          "fnd_0b3dfc183e98ecd9"
+        ]
+      ],
+      [
+        "generate_detection",
+        "remediation",
+        250,
+        [
+          "fnd_0b3dfc183e98ecd9"
+        ]
+      ]
+    ]
+  },
+  "malware_trickbot": {
+    "categories": [
+      "attack_pattern",
+      "malware"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 72
+    },
+    "entity": [
+      "malware_family",
+      "trickbot"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malware"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_e3ab766139f0a4ae",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "investigate",
+            "investigation",
+            130
+          ]
+        ],
+        "rule_ids": [
+          "malware.known"
+        ],
+        "severity": 3
+      },
+      {
+        "categories": [
+          "attack_pattern"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_f771c81b103e9900",
+        "priority": 210,
+        "recommendations": [
+          [
+            "threat_hunt",
+            "investigation",
+            231
+          ],
+          [
+            "generate_detection",
+            "remediation",
+            250
+          ]
+        ],
+        "rule_ids": [
+          "attack.technique"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_e3ab766139f0a4ae"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        130,
+        [
+          "fnd_e3ab766139f0a4ae"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        231,
+        [
+          "fnd_f771c81b103e9900"
+        ]
+      ],
+      [
+        "generate_detection",
+        "remediation",
+        250,
+        [
+          "fnd_f771c81b103e9900"
+        ]
+      ]
+    ]
+  },
+  "md5_clean": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "md5",
+      "d41d8cd98f00b204e9800998ecf8427e"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "md5_malware": {
+    "categories": [
+      "malware"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 64
+    },
+    "entity": [
+      "md5",
+      "44d88612fea8a8f36de82e1278abb02f"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malware"
+        ],
+        "confidence": [
+          64,
+          "high",
+          false
+        ],
+        "id": "fnd_bd589d3d398442d9",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "investigate",
+            "investigation",
+            130
+          ]
+        ],
+        "rule_ids": [
+          "malware.known"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_bd589d3d398442d9"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        130,
+        [
+          "fnd_bd589d3d398442d9"
+        ]
+      ]
+    ]
+  },
+  "md5_ransomware": {
+    "categories": [
+      "malware"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 64
+    },
+    "entity": [
+      "md5",
+      "ffffffffffffffffffffffffffffffff"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malware"
+        ],
+        "confidence": [
+          64,
+          "high",
+          false
+        ],
+        "id": "fnd_edc5e55a05d99f50",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "investigate",
+            "investigation",
+            130
+          ]
+        ],
+        "rule_ids": [
+          "malware.known"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_edc5e55a05d99f50"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        130,
+        [
+          "fnd_edc5e55a05d99f50"
+        ]
+      ]
+    ]
+  },
+  "md5_unknown": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "md5",
+      "5d41402abc4b2a76b9719d911017c592"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "powershell_command": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "powershell_command",
+      "Invoke-Mimikatz"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "process_name": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "process_name",
+      "rundll32.exe"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "registry_key": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "registry_key",
+      "HKLM\\Software\\Microsoft\\Run"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "sha1_clean": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "sha1",
+      "0a0a9f2a6772942557ab5355d76af442f8f65e01"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "sha1_malware": {
+    "categories": [
+      "malware"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 64
+    },
+    "entity": [
+      "sha1",
+      "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malware"
+        ],
+        "confidence": [
+          64,
+          "high",
+          false
+        ],
+        "id": "fnd_b13d02636d975563",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "investigate",
+            "investigation",
+            130
+          ]
+        ],
+        "rule_ids": [
+          "malware.known"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_b13d02636d975563"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        130,
+        [
+          "fnd_b13d02636d975563"
+        ]
+      ]
+    ]
+  },
+  "sha256_apt_tool": {
+    "categories": [
+      "malware"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 64
+    },
+    "entity": [
+      "sha256",
+      "1111111111111111111111111111111111111111111111111111111111111111"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malware"
+        ],
+        "confidence": [
+          64,
+          "high",
+          false
+        ],
+        "id": "fnd_c7cd60aaa431b19a",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "investigate",
+            "investigation",
+            130
+          ]
+        ],
+        "rule_ids": [
+          "malware.known"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_c7cd60aaa431b19a"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        130,
+        [
+          "fnd_c7cd60aaa431b19a"
+        ]
+      ]
+    ]
+  },
+  "sha256_clean": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "sha256",
+      "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "sha256_echo_chamber": {
+    "categories": [
+      "malware"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 64
+    },
+    "entity": [
+      "sha256",
+      "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malware"
+        ],
+        "confidence": [
+          64,
+          "high",
+          false
+        ],
+        "id": "fnd_5e574c75ecd75f28",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "investigate",
+            "investigation",
+            130
+          ]
+        ],
+        "rule_ids": [
+          "malware.known"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_5e574c75ecd75f28"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        130,
+        [
+          "fnd_5e574c75ecd75f28"
+        ]
+      ]
+    ]
+  },
+  "sha256_malware": {
+    "categories": [
+      "malware"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 64
+    },
+    "entity": [
+      "sha256",
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malware"
+        ],
+        "confidence": [
+          64,
+          "high",
+          false
+        ],
+        "id": "fnd_06992d42e0a13778",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "investigate",
+            "investigation",
+            130
+          ]
+        ],
+        "rule_ids": [
+          "malware.known"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_06992d42e0a13778"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        130,
+        [
+          "fnd_06992d42e0a13778"
+        ]
+      ]
+    ]
+  },
+  "sha256_malware_corroborated": {
+    "categories": [
+      "malware"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 77
+    },
+    "entity": [
+      "sha256",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malware"
+        ],
+        "confidence": [
+          77,
+          "high",
+          false
+        ],
+        "id": "fnd_9a1266505f5b9cdb",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "investigate",
+            "investigation",
+            130
+          ]
+        ],
+        "rule_ids": [
+          "malware.known"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_9a1266505f5b9cdb"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        130,
+        [
+          "fnd_9a1266505f5b9cdb"
+        ]
+      ]
+    ]
+  },
+  "sha256_sandbox_no_family": {
+    "categories": [],
+    "confidence": {
+      "band": "moderate",
+      "contested": false,
+      "score": 54
+    },
+    "entity": [
+      "sha256",
+      "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "sha256_unknown": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "sha256",
+      "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "technique_c2": {
+    "categories": [
+      "attack_pattern"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 72
+    },
+    "entity": [
+      "mitre_technique",
+      "T1071"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "attack_pattern"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_687d43ba49653f91",
+        "priority": 210,
+        "recommendations": [
+          [
+            "threat_hunt",
+            "investigation",
+            231
+          ],
+          [
+            "generate_detection",
+            "remediation",
+            250
+          ]
+        ],
+        "rule_ids": [
+          "attack.technique"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 2,
+    "rollup": [
+      [
+        "threat_hunt",
+        "investigation",
+        231,
+        [
+          "fnd_687d43ba49653f91"
+        ]
+      ],
+      [
+        "generate_detection",
+        "remediation",
+        250,
+        [
+          "fnd_687d43ba49653f91"
+        ]
+      ]
+    ]
+  },
+  "technique_persistence": {
+    "categories": [
+      "attack_pattern"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 72
+    },
+    "entity": [
+      "mitre_technique",
+      "T1547"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "attack_pattern"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_c2780314eceaa636",
+        "priority": 210,
+        "recommendations": [
+          [
+            "threat_hunt",
+            "investigation",
+            231
+          ],
+          [
+            "generate_detection",
+            "remediation",
+            250
+          ]
+        ],
+        "rule_ids": [
+          "attack.technique"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 2,
+    "rollup": [
+      [
+        "threat_hunt",
+        "investigation",
+        231,
+        [
+          "fnd_c2780314eceaa636"
+        ]
+      ],
+      [
+        "generate_detection",
+        "remediation",
+        250,
+        [
+          "fnd_c2780314eceaa636"
+        ]
+      ]
+    ]
+  },
+  "technique_phishing": {
+    "categories": [
+      "attack_pattern"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 72
+    },
+    "entity": [
+      "mitre_technique",
+      "T1566"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "attack_pattern"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_2763103b894c9866",
+        "priority": 210,
+        "recommendations": [
+          [
+            "threat_hunt",
+            "investigation",
+            231
+          ],
+          [
+            "generate_detection",
+            "remediation",
+            250
+          ]
+        ],
+        "rule_ids": [
+          "attack.technique"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 2,
+    "rollup": [
+      [
+        "threat_hunt",
+        "investigation",
+        231,
+        [
+          "fnd_2763103b894c9866"
+        ]
+      ],
+      [
+        "generate_detection",
+        "remediation",
+        250,
+        [
+          "fnd_2763103b894c9866"
+        ]
+      ]
+    ]
+  },
+  "technique_subtechnique": {
+    "categories": [
+      "attack_pattern"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 72
+    },
+    "entity": [
+      "mitre_technique",
+      "T1059.001"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "attack_pattern"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_4cb06a9140f78644",
+        "priority": 210,
+        "recommendations": [
+          [
+            "threat_hunt",
+            "investigation",
+            231
+          ],
+          [
+            "generate_detection",
+            "remediation",
+            250
+          ]
+        ],
+        "rule_ids": [
+          "attack.technique"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 2,
+    "rollup": [
+      [
+        "threat_hunt",
+        "investigation",
+        231,
+        [
+          "fnd_4cb06a9140f78644"
+        ]
+      ],
+      [
+        "generate_detection",
+        "remediation",
+        250,
+        [
+          "fnd_4cb06a9140f78644"
+        ]
+      ]
+    ]
+  },
+  "technique_t1059": {
+    "categories": [
+      "attack_pattern"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 72
+    },
+    "entity": [
+      "mitre_technique",
+      "T1059"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "attack_pattern"
+        ],
+        "confidence": [
+          72,
+          "high",
+          false
+        ],
+        "id": "fnd_54442be63bf7e0ee",
+        "priority": 210,
+        "recommendations": [
+          [
+            "threat_hunt",
+            "investigation",
+            231
+          ],
+          [
+            "generate_detection",
+            "remediation",
+            250
+          ]
+        ],
+        "rule_ids": [
+          "attack.technique"
+        ],
+        "severity": 2
+      }
+    ],
+    "posture": 2,
+    "rollup": [
+      [
+        "threat_hunt",
+        "investigation",
+        231,
+        [
+          "fnd_54442be63bf7e0ee"
+        ]
+      ],
+      [
+        "generate_detection",
+        "remediation",
+        250,
+        [
+          "fnd_54442be63bf7e0ee"
+        ]
+      ]
+    ]
+  },
+  "unknown_symbols": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "unknown",
+      "%%%%%%"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "unknown_unicode": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "unknown",
+      "\u2620\u2620\u2620"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "url_benign": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": true,
+      "score": 0
+    },
+    "entity": [
+      "url",
+      "https://good.example/home"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "url_blocklist": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "moderate",
+      "contested": false,
+      "score": 54
+    },
+    "entity": [
+      "url",
+      "http://phish.example/login"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          54,
+          "moderate",
+          false
+        ],
+        "id": "fnd_4da04662d63e48b6",
+        "priority": 120,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            120
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            141
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        120,
+        [
+          "fnd_4da04662d63e48b6"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        141,
+        [
+          "fnd_4da04662d63e48b6"
+        ]
+      ]
+    ]
+  },
+  "url_credential_harvest": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 64
+    },
+    "entity": [
+      "url",
+      "http://verify-account.com/login"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          64,
+          "high",
+          false
+        ],
+        "id": "fnd_3a1f69414f5b1b57",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_3a1f69414f5b1b57"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_3a1f69414f5b1b57"
+        ]
+      ]
+    ]
+  },
+  "url_defanged": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 64
+    },
+    "entity": [
+      "url",
+      "hxxp://bad[.]com/x"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          64,
+          "high",
+          false
+        ],
+        "id": "fnd_a7e9229162f15059",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_a7e9229162f15059"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_a7e9229162f15059"
+        ]
+      ]
+    ]
+  },
+  "url_drive_by": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 64
+    },
+    "entity": [
+      "url",
+      "http://cdn-delivery.net/js/loader.js"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          64,
+          "high",
+          false
+        ],
+        "id": "fnd_3c94003c6833b70b",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_3c94003c6833b70b"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_3c94003c6833b70b"
+        ]
+      ]
+    ]
+  },
+  "url_exploit_delivery": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 64
+    },
+    "entity": [
+      "url",
+      "http://exploit.example/kit/"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          64,
+          "high",
+          false
+        ],
+        "id": "fnd_f2e45b56e4f222f7",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_f2e45b56e4f222f7"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_f2e45b56e4f222f7"
+        ]
+      ]
+    ]
+  },
+  "url_malware_download": {
+    "categories": [
+      "malicious_infrastructure",
+      "malware"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 64
+    },
+    "entity": [
+      "url",
+      "http://evil.example/payload.exe"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malware"
+        ],
+        "confidence": [
+          64,
+          "high",
+          false
+        ],
+        "id": "fnd_4b38f01b8e4a857e",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "investigate",
+            "investigation",
+            130
+          ]
+        ],
+        "rule_ids": [
+          "malware.known"
+        ],
+        "severity": 3
+      },
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          64,
+          "high",
+          false
+        ],
+        "id": "fnd_d358f5c49b3c5f57",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_4b38f01b8e4a857e",
+          "fnd_d358f5c49b3c5f57"
+        ]
+      ],
+      [
+        "investigate",
+        "investigation",
+        130,
+        [
+          "fnd_4b38f01b8e4a857e"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_d358f5c49b3c5f57"
+        ]
+      ]
+    ]
+  },
+  "url_phishing": {
+    "categories": [
+      "malicious_infrastructure"
+    ],
+    "confidence": {
+      "band": "high",
+      "contested": false,
+      "score": 64
+    },
+    "entity": [
+      "url",
+      "http://secure-login.example/verify"
+    ],
+    "findings": [
+      {
+        "categories": [
+          "malicious_infrastructure"
+        ],
+        "confidence": [
+          64,
+          "high",
+          false
+        ],
+        "id": "fnd_5c7be3fff8ef8a15",
+        "priority": 110,
+        "recommendations": [
+          [
+            "block",
+            "containment",
+            110
+          ],
+          [
+            "threat_hunt",
+            "investigation",
+            131
+          ]
+        ],
+        "rule_ids": [
+          "infra.malicious"
+        ],
+        "severity": 3
+      }
+    ],
+    "posture": 3,
+    "rollup": [
+      [
+        "block",
+        "containment",
+        110,
+        [
+          "fnd_5c7be3fff8ef8a15"
+        ]
+      ],
+      [
+        "threat_hunt",
+        "investigation",
+        131,
+        [
+          "fnd_5c7be3fff8ef8a15"
+        ]
+      ]
+    ]
+  },
+  "url_unknown": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "url",
+      "http://nothing.example/path"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  },
+  "url_with_params": {
+    "categories": [],
+    "confidence": {
+      "band": "insufficient",
+      "contested": false,
+      "score": 0
+    },
+    "entity": [
+      "url",
+      "https://shop.example/item?id=42"
+    ],
+    "findings": [],
+    "posture": 0,
+    "rollup": []
+  }
+}
