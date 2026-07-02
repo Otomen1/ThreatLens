@@ -21,7 +21,13 @@ from .aggregation import (
 )
 from .base import IntelligenceProvider
 from .defaults import build_default_registry, build_default_router
-from .http import HttpClient, ProviderHttpError, ProviderNetworkError, ProviderTimeout
+from .http import (
+    HttpClient,
+    ProviderHttpError,
+    ProviderNetworkError,
+    ProviderServerError,
+    ProviderTimeout,
+)
 from .malwarebazaar import MalwareBazaarProvider
 from .models import ProviderHealth, ProviderMetadata
 from .otx import OTXProvider
@@ -63,6 +69,7 @@ __all__ = [
     "ProviderMetadata",
     "ProviderNetworkError",
     "ProviderRegistry",
+    "ProviderServerError",
     "ProviderRouter",
     "ProviderStatus",
     "ProviderSummary",

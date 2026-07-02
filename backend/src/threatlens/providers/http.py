@@ -34,7 +34,17 @@ class ProviderTimeout(ProviderHttpError):
 
 
 class ProviderNetworkError(ProviderHttpError):
-    """A transport/connection error (or 5xx) persisted after retries."""
+    """A transport/connection error persisted after retries."""
+
+
+class ProviderServerError(ProviderNetworkError):
+    """The upstream returned a 5xx status.
+
+    A subclass of :class:`ProviderNetworkError` so existing handlers that catch
+    network errors keep working unchanged, while callers that care about the
+    distinction (e.g. the AI layer, which maps 5xx to an "error" state) can catch
+    it specifically.
+    """
 
 
 @dataclass(frozen=True, slots=True)
@@ -125,7 +135,7 @@ class HttpClient:
                 else:
                     if response.status_code < 500:
                         return HttpResponse(status_code=response.status_code, text=response.text)
-                    last_error = ProviderNetworkError(f"server error {response.status_code}")
+                    last_error = ProviderServerError(f"server error {response.status_code}")
 
                 if attempt < self._max_retries:
                     await asyncio.sleep(self._backoff * (2**attempt))

@@ -237,7 +237,13 @@ export interface InvestigationResponse {
 // status (disabled / unavailable / error) is a normal, expected response — not a
 // failure — and the deterministic investigation always renders regardless.
 
-export type AIStatus = "ok" | "disabled" | "unavailable" | "error";
+export type AIStatus =
+  | "ok"
+  | "disabled"
+  | "unavailable"
+  | "timeout"
+  | "invalid_response"
+  | "error";
 
 export interface FindingExplanation {
   finding_id: string;

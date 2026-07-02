@@ -7,8 +7,10 @@ structurally, alter it. Every explanation references an existing id/key from the
 summary it was given (grounding is enforced in code, not just requested in the
 prompt — see :mod:`.ollama`).
 
-``disabled`` / ``unavailable`` / ``error`` are first-class, structured results —
-the layer never raises and never fails an investigation.
+``disabled`` / ``unavailable`` / ``timeout`` / ``invalid_response`` / ``error``
+are all first-class, structured results — the layer never raises and never fails
+an investigation. Each maps to a friendly, non-alarming message; raw exception
+text is logged server-side, never surfaced to the analyst.
 """
 
 from __future__ import annotations
@@ -24,7 +26,9 @@ class AIStatus(StrEnum):
     OK = "ok"
     DISABLED = "disabled"  # AI_ENABLED is false
     UNAVAILABLE = "unavailable"  # provider unreachable / not configured
-    ERROR = "error"  # provider answered but the response was unusable
+    TIMEOUT = "timeout"  # provider did not respond in time
+    INVALID_RESPONSE = "invalid_response"  # unparseable / schema-invalid output
+    ERROR = "error"  # provider returned an error (e.g. HTTP 5xx / internal)
 
 
 class FindingExplanation(BaseModel):
@@ -72,27 +76,43 @@ class AIExplanation(BaseModel):
         )
 
     @classmethod
-    def unavailable(cls, *, provider: str, model: str | None, reason: str) -> AIExplanation:
+    def unavailable(cls, *, provider: str, model: str | None) -> AIExplanation:
         """The structured response when the provider cannot be reached."""
         return cls(
             status=AIStatus.UNAVAILABLE,
             provider=provider,
             model=model,
+            message="AI explanation is currently unavailable; the investigation is unaffected.",
+        )
+
+    @classmethod
+    def timeout(cls, *, provider: str, model: str | None) -> AIExplanation:
+        """The structured response when the provider did not respond in time."""
+        return cls(
+            status=AIStatus.TIMEOUT,
+            provider=provider,
+            model=model,
+            message="The AI provider timed out; the investigation is unaffected.",
+        )
+
+    @classmethod
+    def invalid_response(cls, *, provider: str, model: str | None) -> AIExplanation:
+        """The structured response when the provider's output was unusable."""
+        return cls(
+            status=AIStatus.INVALID_RESPONSE,
+            provider=provider,
+            model=model,
             message=(
-                "AI explanation is currently unavailable; the investigation is unaffected. "
-                f"({reason})"
+                "The AI provider returned an unusable response; the investigation is unaffected."
             ),
         )
 
     @classmethod
-    def error(cls, *, provider: str, model: str | None, reason: str) -> AIExplanation:
-        """The structured response when the provider answered unusably."""
+    def error(cls, *, provider: str, model: str | None) -> AIExplanation:
+        """The structured response when the provider returned an error."""
         return cls(
             status=AIStatus.ERROR,
             provider=provider,
             model=model,
-            message=(
-                "The AI provider returned a response that could not be used; "
-                f"the investigation is unaffected. ({reason})"
-            ),
+            message="The AI provider reported an error; the investigation is unaffected.",
         )

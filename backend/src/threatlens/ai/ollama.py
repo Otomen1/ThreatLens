@@ -7,23 +7,34 @@ references a finding id or recommendation not present in the summary is dropped.
 The model cannot, therefore, introduce findings, evidence, or recommendations —
 grounding is enforced in code, not merely requested in the prompt.
 
-Every failure path returns a structured ``unavailable`` / ``error`` explanation;
-``explain`` never raises.
+Every failure path returns a structured ``timeout`` / ``unavailable`` /
+``invalid_response`` / ``error`` explanation; ``explain`` never raises. The
+underlying reason is logged server-side for troubleshooting and never surfaced
+to the analyst.
 """
 
 from __future__ import annotations
 
 import json
+import logging
 import re
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from ..providers.http import HttpClient, ProviderHttpError
+from ..providers.http import (
+    HttpClient,
+    ProviderHttpError,
+    ProviderNetworkError,
+    ProviderServerError,
+    ProviderTimeout,
+)
 from ..reasoning import InvestigationSummary
 from .models import AIExplanation, AIStatus, FindingExplanation, RecommendationExplanation
 from .prompt import PromptBuilder
 from .provider import AIProvider
+
+logger = logging.getLogger(__name__)
 
 _THINK_TAG = re.compile(r"<think>.*?</think>", re.DOTALL)
 
@@ -89,13 +100,19 @@ class OllamaProvider(AIProvider):
         }
         try:
             response = await self._http.post_json(f"{self._url}/api/chat", json_body=body)
+        except ProviderTimeout as exc:
+            return self._fail(AIStatus.TIMEOUT, str(exc) or "request timed out")
+        except ProviderServerError as exc:
+            return self._fail(AIStatus.ERROR, str(exc) or "server error")
+        except ProviderNetworkError as exc:
+            return self._fail(AIStatus.UNAVAILABLE, str(exc) or "connection error")
         except ProviderHttpError as exc:
-            return self._unavailable(str(exc) or "connection error")
+            return self._fail(AIStatus.UNAVAILABLE, str(exc) or "http error")
         except Exception as exc:  # defensive: never let the AI layer raise
-            return self._unavailable(f"unexpected error: {type(exc).__name__}")
+            return self._fail(AIStatus.ERROR, f"internal error: {type(exc).__name__}")
 
         if response.status_code != 200:
-            return self._unavailable(f"HTTP {response.status_code}")
+            return self._fail(AIStatus.ERROR, f"HTTP {response.status_code}")
         return self._parse(response.text, summary)
 
     # --- parsing & grounding --------------------------------------------- #
@@ -103,14 +120,14 @@ class OllamaProvider(AIProvider):
     def _parse(self, text: str, summary: InvestigationSummary) -> AIExplanation:
         content = _chat_content(text)
         if content is None:
-            return self._error("malformed provider response")
+            return self._fail(AIStatus.INVALID_RESPONSE, "malformed provider response")
         raw_json = _extract_json(content)
         if raw_json is None:
-            return self._error("no JSON object in model output")
+            return self._fail(AIStatus.INVALID_RESPONSE, "no JSON object in model output")
         try:
             raw = _RawExplanation.model_validate(raw_json)
         except ValidationError:
-            return self._error("model output failed schema validation")
+            return self._fail(AIStatus.INVALID_RESPONSE, "model output failed schema validation")
         return self._ground(raw, summary)
 
     def _ground(self, raw: _RawExplanation, summary: InvestigationSummary) -> AIExplanation:
@@ -154,11 +171,26 @@ class OllamaProvider(AIProvider):
             limitations=limitations,
         )
 
-    def _unavailable(self, reason: str) -> AIExplanation:
-        return AIExplanation.unavailable(provider=self.name, model=self._model, reason=reason)
+    def _fail(self, status: AIStatus, reason: str) -> AIExplanation:
+        """Log the raw reason server-side and return a friendly structured result.
 
-    def _error(self, reason: str) -> AIExplanation:
-        return AIExplanation.error(provider=self.name, model=self._model, reason=reason)
+        The reason is for operators (logs) only — it is never surfaced to the
+        analyst; the frontend renders its own curated, non-alarming copy.
+        """
+        logger.warning(
+            "AI explanation failed [%s] via %s/%s: %s",
+            status.value,
+            self.name,
+            self._model,
+            reason,
+        )
+        if status is AIStatus.TIMEOUT:
+            return AIExplanation.timeout(provider=self.name, model=self._model)
+        if status is AIStatus.INVALID_RESPONSE:
+            return AIExplanation.invalid_response(provider=self.name, model=self._model)
+        if status is AIStatus.ERROR:
+            return AIExplanation.error(provider=self.name, model=self._model)
+        return AIExplanation.unavailable(provider=self.name, model=self._model)
 
 
 def _chat_content(text: str) -> str | None:

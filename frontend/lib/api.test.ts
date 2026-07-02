@@ -88,10 +88,16 @@ describe("explain", () => {
     expect(result).toEqual(payload);
   });
 
-  it("returns a disabled/unavailable status as a normal result (200)", async () => {
-    stubFetch(200, { status: "unavailable", provider: "ollama", message: "offline" });
+  it.each([
+    "disabled",
+    "unavailable",
+    "timeout",
+    "invalid_response",
+    "error",
+  ] as const)("surfaces the %s state as a normal 200 result (never throws)", async (status) => {
+    stubFetch(200, { status, provider: "ollama" });
     const result = await explain(SUMMARY);
-    expect(result.status).toBe("unavailable");
+    expect(result.status).toBe(status);
   });
 
   it("throws ApiError on a non-2xx response", async () => {
