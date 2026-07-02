@@ -6,6 +6,28 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Phase 4.3 — Network Detection Generators (Suricata & Snort)
+
+- **Two network generators** (`detection/future/suricata.py`, `snort.py`, sharing
+  a new pure `_netrules.py`) — deterministic `DetectionGenerator`s emitting
+  **Suricata** and **Snort** IDS/IPS rules. Registered in
+  `build_default_registry()`; the engine and `POST /api/v1/detections` are
+  unchanged and may now return Sigma + YARA + Suricata + Snort artifacts.
+- **Network-observable only.** IP → `alert ip … -> <ip>`; domain → Suricata
+  `dns.query` / Snort HTTP `http_header` content; URL → HTTP host + URI content
+  (non-safe bytes encoded as `|HH|`). Never for hashes, CVE/CWE/CAPEC,
+  actor/technique-only, file-only, or informational findings — no rule beats a
+  weak/speculative one; rules never contain a file hash.
+- **Complete rules:** `msg`, `sid`, `rev`, `classtype`, `metadata`,
+  `reference`, `priority`, `flow` (HTTP), `content` (deterministic). Severity
+  copied to priority; same-IOC findings merged.
+- **Deterministic SID allocation:** `sid = 1_000_000 + (sha256(engine|kind|value)
+  mod 9_000_000)` — stable per IOC, distinct per engine, in the custom SID range;
+  no randomness, no UUID4. `rule_id`/`detection_id` stable and
+  timestamp-independent. Full traceability in every rule's metadata.
+- **Frontend:** the panel already renders any artifact; added a `.rules` download
+  extension. A network IOC now shows complementary Sigma + Suricata + Snort rules.
+
 ### Phase 4.2 — YARA Detection Generator
 
 - **Second detection generator** (`detection/future/yara.py`) — a pure,

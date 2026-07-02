@@ -26,7 +26,12 @@ export function detectionSeverityClass(severity: number): string {
   }
 }
 
-const FILE_EXTENSIONS: Record<string, string> = { sigma: "yml", yara: "yar" };
+const FILE_EXTENSIONS: Record<string, string> = {
+  sigma: "yml",
+  yara: "yar",
+  suricata: "rules",
+  snort: "rules",
+};
 
 /** A safe download filename for an artifact (stable id, language extension). */
 export function artifactFilename(artifact: DetectionArtifact): string {

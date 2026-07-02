@@ -26,7 +26,7 @@ from .engine import (
     compute_package_id,
     generate,
 )
-from .future import SigmaGenerator, YaraGenerator
+from .future import SigmaGenerator, SnortGenerator, SuricataGenerator, YaraGenerator
 from .models import (
     DetectionArtifact,
     DetectionMetadata,
@@ -78,6 +78,8 @@ __all__ = [
     "DuplicateDetectionGeneratorError",
     "DuplicateDetectionTemplateError",
     "SigmaGenerator",
+    "SnortGenerator",
+    "SuricataGenerator",
     "TemplateRegistry",
     "YaraGenerator",
     "apply_template",

@@ -134,9 +134,13 @@ def build_default_registry() -> DetectionRegistry:
     lazily so the generator modules can depend on the framework without a cycle.
     """
     from .future.sigma import SigmaGenerator
+    from .future.snort import SnortGenerator
+    from .future.suricata import SuricataGenerator
     from .future.yara import YaraGenerator
 
     registry = DetectionRegistry()
     registry.register(SigmaGenerator())
     registry.register(YaraGenerator())
+    registry.register(SuricataGenerator())
+    registry.register(SnortGenerator())
     return registry

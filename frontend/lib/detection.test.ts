@@ -35,8 +35,15 @@ describe("artifactFilename", () => {
     expect(artifactFilename(artifact)).toBe("det_x.yar");
   });
 
+  it("uses .rules for suricata and snort", () => {
+    const suricata = { id: "det_s", language: "suricata", rule_id: "sur_1" } as unknown as DetectionArtifact;
+    const snort = { id: "det_n", language: "snort", rule_id: "snr_1" } as unknown as DetectionArtifact;
+    expect(artifactFilename(suricata)).toBe("sur_1.rules");
+    expect(artifactFilename(snort)).toBe("snr_1.rules");
+  });
+
   it("falls back to .txt for unknown languages", () => {
-    const artifact = { id: "det_z", language: "snort", rule_id: null } as unknown as DetectionArtifact;
+    const artifact = { id: "det_z", language: "splunk", rule_id: null } as unknown as DetectionArtifact;
     expect(artifactFilename(artifact)).toBe("det_z.txt");
   });
 });
