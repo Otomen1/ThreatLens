@@ -30,8 +30,13 @@ describe("artifactFilename", () => {
     expect(artifactFilename(base)).toBe("646fb072-055e-57f5-884e-dc3d85885caf.yml");
   });
 
-  it("sanitizes unsafe characters and falls back to the artifact id", () => {
+  it("uses a .yar extension for yara and falls back to the artifact id", () => {
     const artifact = { id: "det_x", language: "yara", rule_id: null } as unknown as DetectionArtifact;
-    expect(artifactFilename(artifact)).toBe("det_x.txt");
+    expect(artifactFilename(artifact)).toBe("det_x.yar");
+  });
+
+  it("falls back to .txt for unknown languages", () => {
+    const artifact = { id: "det_z", language: "snort", rule_id: null } as unknown as DetectionArtifact;
+    expect(artifactFilename(artifact)).toBe("det_z.txt");
   });
 });

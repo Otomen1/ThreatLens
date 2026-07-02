@@ -7,7 +7,7 @@ generators land here, each implementing
 ``detection.registry.build_default_registry``:
 
 * ``sigma`` — Sigma rules (generic SIEM). **Implemented (Phase 4.1).**
-* ``yara`` — YARA signatures (file/memory). *(later phase)*
+* ``yara`` — YARA file/hash signatures. **Implemented (Phase 4.2).**
 * ``suricata`` / ``snort`` — network IDS/IPS signatures. *(later phase)*
 * ``splunk`` (SPL) · ``sentinel`` (KQL) · ``elastic`` (EQL). *(later phase)*
 * ``crowdstrike`` · ``trend_vision_one`` · ``stellar_cyber`` — EDR/XDR. *(later phase)*
@@ -20,5 +20,6 @@ findings, confidence, severity, priority, recommendations, or relationships.
 from __future__ import annotations
 
 from .sigma import SigmaGenerator
+from .yara import YaraGenerator
 
-__all__ = ["SigmaGenerator"]
+__all__ = ["SigmaGenerator", "YaraGenerator"]

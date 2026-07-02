@@ -134,7 +134,9 @@ def build_default_registry() -> DetectionRegistry:
     lazily so the generator modules can depend on the framework without a cycle.
     """
     from .future.sigma import SigmaGenerator
+    from .future.yara import YaraGenerator
 
     registry = DetectionRegistry()
     registry.register(SigmaGenerator())
+    registry.register(YaraGenerator())
     return registry

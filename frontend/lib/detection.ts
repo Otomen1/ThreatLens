@@ -26,9 +26,11 @@ export function detectionSeverityClass(severity: number): string {
   }
 }
 
+const FILE_EXTENSIONS: Record<string, string> = { sigma: "yml", yara: "yar" };
+
 /** A safe download filename for an artifact (stable id, language extension). */
 export function artifactFilename(artifact: DetectionArtifact): string {
   const base = (artifact.rule_id ?? artifact.id).replace(/[^a-zA-Z0-9._-]/g, "-");
-  const ext = artifact.language === "sigma" ? "yml" : "txt";
+  const ext = FILE_EXTENSIONS[artifact.language] ?? "txt";
   return `${base}.${ext}`;
 }

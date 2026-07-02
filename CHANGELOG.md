@@ -6,6 +6,28 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Phase 4.2 — YARA Detection Generator
+
+- **Second detection generator** (`detection/future/yara.py`) — a pure,
+  deterministic `DetectionGenerator` that emits **YARA** rules from findings.
+  Registered in `build_default_registry()` next to Sigma; the engine and
+  `POST /api/v1/detections` are unchanged and now return Sigma **and** YARA
+  artifacts when applicable.
+- **File-hash only.** YARA detects files, so rules are emitted only for
+  MD5/SHA1/SHA256 findings via the `hash` module (`hash.sha256(0, filesize) ==
+  …`, `filesize < 100MB`). Never for IPs, domains, URLs, CVE/CWE/CAPEC,
+  actors/techniques, malware-family *names*, informational findings, or malformed
+  hashes — no rule beats a weak/IOC-style rule. Rules never contain a network IOC.
+- **Complete, traceable rules:** `import "hash"`, rule name, full `meta:`
+  (description, author, date, reference, `finding_ids`, `rule_id`,
+  `detection_id`, source, `threatlens_version`, severity, hash, `mitre_attack`),
+  and condition. Severity copied from the finding; same-hash findings merged.
+- **Deterministic identity:** rule name/`rule_id` hash only the file hash;
+  artifact/package ids exclude the `date` (no timestamps, no randomness, no
+  UUID4) — stable across executions.
+- **Frontend:** the panel already renders any artifact; added a `.yar` download
+  extension. A file-hash investigation now shows complementary Sigma + YARA rules.
+
 ### Phase 4.1 — Sigma Detection Generator
 
 - **First concrete detection generator** (`detection/future/sigma.py`) — a pure,

@@ -26,7 +26,7 @@ from .engine import (
     compute_package_id,
     generate,
 )
-from .future import SigmaGenerator
+from .future import SigmaGenerator, YaraGenerator
 from .models import (
     DetectionArtifact,
     DetectionMetadata,
@@ -79,6 +79,7 @@ __all__ = [
     "DuplicateDetectionTemplateError",
     "SigmaGenerator",
     "TemplateRegistry",
+    "YaraGenerator",
     "apply_template",
     "build_default_registry",
     "build_default_template_registry",
