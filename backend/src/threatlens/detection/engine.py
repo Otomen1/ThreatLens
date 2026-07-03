@@ -35,8 +35,9 @@ from .models import (
 from .registry import DetectionRegistry, build_default_registry
 from .types import DetectionCategory, DetectionLanguage, DetectionSeverity
 
-DETECTION_ENGINE_VERSION = "0.1.0"
-"""Framework version. Bumps as generators are added; pre-generator baseline here."""
+DETECTION_ENGINE_VERSION = "1.0"
+"""Frozen Detection Engine version (Phase 4.5). Like the Reasoning Engine, changes
+to generator output must regenerate the golden snapshots and bump this version."""
 
 
 # --------------------------------------------------------------------------- #

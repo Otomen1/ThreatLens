@@ -307,6 +307,8 @@ def _build_artifact(
 
     metadata = {
         "finding_ids": ",".join(finding_ids),
+        "detection_id": artifact_id,
+        "rule_id": rule_id,
         "subject": subject_value,
         "subject_type": subject_type.value,
         "sigma_id": rule_id,

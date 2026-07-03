@@ -6,6 +6,46 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Phase 4.5 — Detection Engine v1.0 (Validation & Freeze)
+
+- **Detection Engineering frozen at v1.0** (`DETECTION_ENGINE_VERSION = "1.0"`).
+  No new formats, generators, or AI — this phase validates the whole subsystem
+  and locks it. Future generator-output changes must regenerate the golden
+  snapshot, bump the version, and document the change (same contract as the
+  Reasoning Engine freeze).
+- **140-scenario validation corpus** (`backend/tests/detection/corpus.py`)
+  covering every supported IOC subject (ip/ipv6/domain/url/md5/sha1/sha256/
+  process/registry/powershell) × severities × confidence bands × ATT&CK state,
+  plus multi-finding, duplicate, conflicting, multi-IOC, unsupported, malformed,
+  informational, and empty cases. Every one of the nine generators is exercised.
+- **Freeze invariants** asserted per scenario (`harness.py`): determinism,
+  timestamp-independent content-addressed identity, unique ids, provenance
+  (`metadata.detection_id == artifact.id`, finding-id subset), ATT&CK-in-rule,
+  structural validity, JSON round-trip, and the frontend/API key contract —
+  **0 violations**.
+- **Parser-level validators for all nine languages** (`validate.py`), unit-tested
+  (`test_validators.py`), plus an **optional** native layer (`yara-python` /
+  `pysigma`) used only when installed — **no external validator is required in
+  CI**.
+- **Golden regression** (`golden.json`) snapshots every scenario × generator and
+  is now CI-gated (`pytest tests/detection` added to the golden-regression job);
+  drift fails CI until `THREATLENS_UPDATE_GOLDEN=1` regeneration.
+- **Performance benchmark** (`perf.py`, smoke-tested): generation scales
+  **linearly** (per-rule cost varies 1.28× from 1→1000 findings; memory linear).
+  Largest contributor is the Chronicle YARA-L generator. No optimization needed.
+- **Consistency fix:** the Sigma generator now also emits `detection_id` and
+  `rule_id` metadata keys (previously only `sigma_id`) so all nine generators
+  share the provenance contract. **Metadata only — Sigma rule content and its
+  golden are unchanged.**
+- **No regressions:** six stale exact-equality test assertions from Phases
+  4.2–4.4 (e.g. `registry.languages == (SIGMA,)`, `pkg["languages"] ==
+  ["sigma"]`, `artifacts[0]`) were updated to membership / by-language selection
+  now that nine generators are registered. Backend suite: **1,506 passing** (0
+  failed, 1 optional-native skip).
+- **Docs:** `docs/architecture/PHASE-4.5-DETECTION-ENGINE-V1.md` (validation
+  report, architecture review, performance results, corpus summary, readiness
+  score, GO recommendation).
+
 ### Phase 4.4 — SIEM Detection Generators
 
 - **Five platform-native SIEM generators** (`detection/future/splunk.py`,

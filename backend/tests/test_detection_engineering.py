@@ -232,10 +232,11 @@ def test_compute_artifact_id_ignores_finding_order() -> None:
 
 
 def test_default_registry_has_sigma_generator() -> None:
-    # Phase 4.1 registers the Sigma generator; a fresh registry is still the seam.
+    # Phase 4.1 registered the Sigma generator; later phases add more. A fresh
+    # registry is still the seam, and Sigma remains present.
     registry = build_default_registry()
-    assert [g.name for g in registry.generators] == ["sigma"]
-    assert registry.languages == (DetectionLanguage.SIGMA,)
+    assert "sigma" in [g.name for g in registry.generators]
+    assert DetectionLanguage.SIGMA in registry.languages
     assert len(DetectionRegistry()) == 0
 
 

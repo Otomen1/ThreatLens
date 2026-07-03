@@ -331,15 +331,17 @@ curl http://localhost:11434/api/tags     # is the Ollama server reachable?
 
 | Suite | Size | What it locks down |
 |---|---|---|
-| Backend tests | **1,317 passing** | Detection, providers, aggregation, reasoning, AI layer, detection engineering, Sigma + YARA + Suricata + Snort + SIEM (Splunk/Sentinel/Elastic/Chronicle/QRadar) generation, API contracts, health/readiness. |
+| Backend tests | **1,506 passing** | Detection, providers, aggregation, reasoning, AI layer, detection engineering, Sigma + YARA + Suricata + Snort + SIEM (Splunk/Sentinel/Elastic/Chronicle/QRadar) generation, API contracts, health/readiness. |
 | Frontend tests | 28 passing (Vitest) | API client behaviour incl. `explain()`, `generateDetections()`, detection helpers, health checks, and abort handling. |
-| 100-IOC validation suite | 316 tests | The complete pipeline over ~100 curated real-world IOC investigations (`backend/tests/validation/`). |
+| 100-IOC validation suite | 318 tests | The complete pipeline over ~100 curated real-world IOC investigations (`backend/tests/validation/`). |
 | Reasoning benchmark | 179 tests / 58 scenarios | The frozen Reasoning Engine v1.0 contract (`backend/tests/benchmark/`). |
-| Golden regression | 155 pinned summaries | Byte-level snapshots of engine output (58 benchmark + 97 validation); any drift fails CI and requires an explicit `THREATLENS_UPDATE_GOLDEN=1` regeneration plus review. |
+| Detection freeze suite | 184 tests / 140-scenario corpus | The frozen **Detection Engine v1.0** contract — every scenario × nine generators, invariants, validators, and golden regression (`backend/tests/detection/`). |
+| Golden regression | pinned snapshots | Byte-level snapshots of reasoning summaries **and** all nine generators' output; any drift fails CI and requires an explicit `THREATLENS_UPDATE_GOLDEN=1` regeneration plus review. |
 
 ```bash
 cd backend && pytest                            # full backend suite (offline)
-cd backend && python tests/benchmark/perf.py    # performance report
+cd backend && python tests/benchmark/perf.py    # reasoning performance report
+cd backend && python tests/detection/perf.py    # detection generation scaling report
 cd frontend && npm test && npm run build
 ```
 

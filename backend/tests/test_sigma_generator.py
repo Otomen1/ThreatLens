@@ -119,14 +119,14 @@ def _sigma(findings: Sequence[Finding], *, generated_at: datetime = _NOW) -> lis
 def test_sigma_is_registered_by_default() -> None:
     registry = build_default_registry()
     assert registry.get("sigma") is not None
-    assert registry.languages == (DetectionLanguage.SIGMA,)
+    assert DetectionLanguage.SIGMA in registry.languages
 
 
 def test_engine_runs_sigma_via_default_registry() -> None:
     pkg = generate(_summary([_finding()]))
     assert not pkg.is_empty
-    assert pkg.languages == (DetectionLanguage.SIGMA,)
-    assert pkg.artifacts[0].language == DetectionLanguage.SIGMA
+    assert DetectionLanguage.SIGMA in pkg.languages
+    assert any(a.language == DetectionLanguage.SIGMA for a in pkg.artifacts)
 
 
 # --------------------------------------------------------------------------- #
@@ -334,9 +334,8 @@ def test_golden_snapshot() -> None:
         severity=Severity.CRITICAL,
         relationships=[_attack("T1071.001")],
     )
-    artifact = generate(
-        _summary([finding], generated_at=datetime(2024, 6, 1, tzinfo=UTC))
-    ).artifacts[0]
+    pkg = generate(_summary([finding], generated_at=datetime(2024, 6, 1, tzinfo=UTC)))
+    artifact = next(a for a in pkg.artifacts if a.language is DetectionLanguage.SIGMA)
     assert artifact.content == _GOLDEN_YAML
     assert artifact.id == "det_07b06b9432c4a655"
     assert yaml.safe_load(artifact.content)  # still valid YAML
@@ -355,10 +354,8 @@ class TestSigmaAPI:
         res = self.client.post("/api/v1/detections", json=summary.model_dump(mode="json"))
         assert res.status_code == 200
         pkg = res.json()
-        assert pkg["languages"] == ["sigma"]
-        assert len(pkg["artifacts"]) == 1
-        artifact = pkg["artifacts"][0]
-        assert artifact["language"] == "sigma"
+        assert "sigma" in pkg["languages"]
+        artifact = next(a for a in pkg["artifacts"] if a["language"] == "sigma")
         assert artifact["content"].startswith("title:")
         assert artifact["metadata"]["finding_ids"] == "fnd_1"
 

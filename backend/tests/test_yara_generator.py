@@ -316,7 +316,7 @@ class TestYaraAPI:
         res = self.client.post("/api/v1/detections", json=summary.model_dump(mode="json"))
         assert res.status_code == 200
         pkg = res.json()
-        assert set(pkg["languages"]) == {"sigma", "yara"}
+        assert {"sigma", "yara"} <= set(pkg["languages"])
         yara = [a for a in pkg["artifacts"] if a["language"] == "yara"]
         assert len(yara) == 1
         assert yara[0]["content"].startswith('import "hash"')
