@@ -1,0 +1,34 @@
+{
+  "rules": [
+    {
+      "rule_id": "elastic-0001-user-execution",
+      "name": "Suspicious User Execution of Malicious Payload",
+      "path": "rules/windows/execution_user_malicious_payload.toml",
+      "author": "Elastic",
+      "updated": "2023-10-01",
+      "language": "elastic_esql",
+      "references": [
+        "https://attack.mitre.org/techniques/T1204/002/"
+      ],
+      "mitre": [
+        "T1204.002"
+      ],
+      "content": "FROM logs-endpoint.events.process-*\n| WHERE event.type == \"start\" and process.parent.name in (\"outlook.exe\", \"winword.exe\")\n| WHERE process.name in (\"powershell.exe\", \"cmd.exe\", \"wscript.exe\")\n| STATS count = COUNT(*) BY host.name, process.name\n"
+    },
+    {
+      "rule_id": "elastic-0002-c2-beacon",
+      "name": "Potential Command and Control Beaconing",
+      "path": "rules/network/command_and_control_beaconing.toml",
+      "author": "Elastic",
+      "updated": "2023-11-14",
+      "language": "elastic_esql",
+      "references": [
+        "https://attack.mitre.org/techniques/T1071/"
+      ],
+      "mitre": [
+        "T1071"
+      ],
+      "content": "FROM logs-network.traffic-*\n| WHERE destination.port in (443, 8443) and network.direction == \"outbound\"\n| STATS beacons = COUNT(*) BY source.ip, destination.ip\n| WHERE beacons > 100\n"
+    }
+  ]
+}

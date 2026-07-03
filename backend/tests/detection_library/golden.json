@@ -1,0 +1,950 @@
+{
+  "recommendations": {
+    "actor_only": {
+      "entity": "threat_actor:APT29",
+      "exact": 0,
+      "matches": [
+        {
+          "coverage": 0,
+          "rule_id": "APT_Sample_Payload_Hash",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 12,
+          "source": "yara-rules",
+          "type": "partial"
+        }
+      ],
+      "partial": 1,
+      "related": 0
+    },
+    "domain_c2": {
+      "entity": "domain:malware-c2.example.net",
+      "exact": 2,
+      "matches": [
+        {
+          "coverage": 100,
+          "rule_id": "9a1b2c3d-0004-4a00-9000-000000000004",
+          "shared_iocs": [
+            "domain:malware-c2.example.net"
+          ],
+          "shared_techniques": [
+            "T1071.001"
+          ],
+          "similarity": 76,
+          "source": "sigmahq",
+          "type": "exact"
+        },
+        {
+          "coverage": 100,
+          "rule_id": "2400002",
+          "shared_iocs": [
+            "domain:malware-c2.example.net"
+          ],
+          "shared_techniques": [
+            "T1071.001"
+          ],
+          "similarity": 73,
+          "source": "emerging-threats",
+          "type": "exact"
+        },
+        {
+          "coverage": 0,
+          "rule_id": "2400001",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 11,
+          "source": "emerging-threats",
+          "type": "related"
+        },
+        {
+          "coverage": 0,
+          "rule_id": "2400003",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 11,
+          "source": "emerging-threats",
+          "type": "related"
+        },
+        {
+          "coverage": 0,
+          "rule_id": "1000001",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 11,
+          "source": "talos",
+          "type": "related"
+        },
+        {
+          "coverage": 0,
+          "rule_id": "1000002",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 11,
+          "source": "talos",
+          "type": "related"
+        }
+      ],
+      "partial": 0,
+      "related": 4
+    },
+    "hash_payload": {
+      "entity": "sha256:275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f",
+      "exact": 1,
+      "matches": [
+        {
+          "coverage": 100,
+          "rule_id": "APT_Sample_Payload_Hash",
+          "shared_iocs": [
+            "sha256:275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"
+          ],
+          "shared_techniques": [
+            "T1204.002"
+          ],
+          "similarity": 85,
+          "source": "yara-rules",
+          "type": "exact"
+        },
+        {
+          "coverage": 50,
+          "rule_id": "elastic-0001-user-execution",
+          "shared_iocs": [],
+          "shared_techniques": [
+            "T1204.002"
+          ],
+          "similarity": 28,
+          "source": "elastic",
+          "type": "partial"
+        },
+        {
+          "coverage": 0,
+          "rule_id": "Suspicious_PowerShell_Encoded",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 15,
+          "source": "yara-rules",
+          "type": "related"
+        },
+        {
+          "coverage": 0,
+          "rule_id": "Generic_Downloader_A",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 15,
+          "source": "yara-rules",
+          "type": "related"
+        }
+      ],
+      "partial": 1,
+      "related": 2
+    },
+    "ip_c2": {
+      "entity": "ipv4:45.155.205.233",
+      "exact": 2,
+      "matches": [
+        {
+          "coverage": 100,
+          "rule_id": "2400001",
+          "shared_iocs": [
+            "ipv4:45.155.205.233"
+          ],
+          "shared_techniques": [
+            "T1071"
+          ],
+          "similarity": 84,
+          "source": "emerging-threats",
+          "type": "exact"
+        },
+        {
+          "coverage": 100,
+          "rule_id": "splunk-c2-known-ip",
+          "shared_iocs": [
+            "ipv4:45.155.205.233"
+          ],
+          "shared_techniques": [
+            "T1071"
+          ],
+          "similarity": 80,
+          "source": "splunk",
+          "type": "exact"
+        },
+        {
+          "coverage": 50,
+          "rule_id": "1000001",
+          "shared_iocs": [],
+          "shared_techniques": [
+            "T1071"
+          ],
+          "similarity": 34,
+          "source": "talos",
+          "type": "partial"
+        },
+        {
+          "coverage": 50,
+          "rule_id": "elastic-0002-c2-beacon",
+          "shared_iocs": [],
+          "shared_techniques": [
+            "T1071"
+          ],
+          "similarity": 24,
+          "source": "elastic",
+          "type": "partial"
+        },
+        {
+          "coverage": 50,
+          "rule_id": "ms-sentinel-c2-beacon",
+          "shared_iocs": [],
+          "shared_techniques": [
+            "T1071"
+          ],
+          "similarity": 24,
+          "source": "microsoft",
+          "type": "partial"
+        },
+        {
+          "coverage": 0,
+          "rule_id": "9a1b2c3d-0004-4a00-9000-000000000004",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 23,
+          "source": "sigmahq",
+          "type": "partial"
+        },
+        {
+          "coverage": 0,
+          "rule_id": "2400003",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 10,
+          "source": "emerging-threats",
+          "type": "related"
+        },
+        {
+          "coverage": 0,
+          "rule_id": "2400002",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 10,
+          "source": "emerging-threats",
+          "type": "related"
+        },
+        {
+          "coverage": 0,
+          "rule_id": "1000002",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 10,
+          "source": "talos",
+          "type": "related"
+        }
+      ],
+      "partial": 4,
+      "related": 3
+    },
+    "multi_ioc": {
+      "entity": "ipv4:45.155.205.233",
+      "exact": 3,
+      "matches": [
+        {
+          "coverage": 33,
+          "rule_id": "APT_Sample_Payload_Hash",
+          "shared_iocs": [
+            "sha256:275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"
+          ],
+          "shared_techniques": [
+            "T1204.002"
+          ],
+          "similarity": 29,
+          "source": "yara-rules",
+          "type": "exact"
+        },
+        {
+          "coverage": 33,
+          "rule_id": "2400001",
+          "shared_iocs": [
+            "ipv4:45.155.205.233"
+          ],
+          "shared_techniques": [
+            "T1071"
+          ],
+          "similarity": 27,
+          "source": "emerging-threats",
+          "type": "exact"
+        },
+        {
+          "coverage": 33,
+          "rule_id": "splunk-c2-known-ip",
+          "shared_iocs": [
+            "ipv4:45.155.205.233"
+          ],
+          "shared_techniques": [
+            "T1071"
+          ],
+          "similarity": 27,
+          "source": "splunk",
+          "type": "exact"
+        },
+        {
+          "coverage": 17,
+          "rule_id": "Suspicious_PowerShell_Encoded",
+          "shared_iocs": [],
+          "shared_techniques": [
+            "T1059.001"
+          ],
+          "similarity": 16,
+          "source": "yara-rules",
+          "type": "partial"
+        },
+        {
+          "coverage": 17,
+          "rule_id": "9a1b2c3d-0001-4a00-9000-000000000001",
+          "shared_iocs": [],
+          "shared_techniques": [
+            "T1059.001"
+          ],
+          "similarity": 14,
+          "source": "sigmahq",
+          "type": "partial"
+        },
+        {
+          "coverage": 17,
+          "rule_id": "1000001",
+          "shared_iocs": [],
+          "shared_techniques": [
+            "T1071"
+          ],
+          "similarity": 14,
+          "source": "talos",
+          "type": "partial"
+        },
+        {
+          "coverage": 17,
+          "rule_id": "elastic-0001-user-execution",
+          "shared_iocs": [],
+          "shared_techniques": [
+            "T1204.002"
+          ],
+          "similarity": 9,
+          "source": "elastic",
+          "type": "partial"
+        },
+        {
+          "coverage": 17,
+          "rule_id": "elastic-0002-c2-beacon",
+          "shared_iocs": [],
+          "shared_techniques": [
+            "T1071"
+          ],
+          "similarity": 9,
+          "source": "elastic",
+          "type": "partial"
+        },
+        {
+          "coverage": 17,
+          "rule_id": "ms-sentinel-encoded-powershell",
+          "shared_iocs": [],
+          "shared_techniques": [
+            "T1059.001"
+          ],
+          "similarity": 9,
+          "source": "microsoft",
+          "type": "partial"
+        },
+        {
+          "coverage": 17,
+          "rule_id": "ms-sentinel-c2-beacon",
+          "shared_iocs": [],
+          "shared_techniques": [
+            "T1071"
+          ],
+          "similarity": 9,
+          "source": "microsoft",
+          "type": "partial"
+        },
+        {
+          "coverage": 17,
+          "rule_id": "splunk-powershell-download",
+          "shared_iocs": [],
+          "shared_techniques": [
+            "T1059.001"
+          ],
+          "similarity": 9,
+          "source": "splunk",
+          "type": "partial"
+        },
+        {
+          "coverage": 0,
+          "rule_id": "9a1b2c3d-0004-4a00-9000-000000000004",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 8,
+          "source": "sigmahq",
+          "type": "related"
+        },
+        {
+          "coverage": 0,
+          "rule_id": "Generic_Downloader_A",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 8,
+          "source": "yara-rules",
+          "type": "related"
+        }
+      ],
+      "partial": 8,
+      "related": 2
+    },
+    "no_findings": {
+      "entity": "ipv4:8.8.8.8",
+      "exact": 0,
+      "matches": [],
+      "partial": 0,
+      "related": 0
+    },
+    "powershell": {
+      "entity": "powershell_command:IEX(x)",
+      "exact": 0,
+      "matches": [
+        {
+          "coverage": 50,
+          "rule_id": "Suspicious_PowerShell_Encoded",
+          "shared_iocs": [],
+          "shared_techniques": [
+            "T1059.001"
+          ],
+          "similarity": 38,
+          "source": "yara-rules",
+          "type": "partial"
+        },
+        {
+          "coverage": 50,
+          "rule_id": "9a1b2c3d-0001-4a00-9000-000000000001",
+          "shared_iocs": [],
+          "shared_techniques": [
+            "T1059.001"
+          ],
+          "similarity": 35,
+          "source": "sigmahq",
+          "type": "partial"
+        },
+        {
+          "coverage": 50,
+          "rule_id": "ms-sentinel-encoded-powershell",
+          "shared_iocs": [],
+          "shared_techniques": [
+            "T1059.001"
+          ],
+          "similarity": 24,
+          "source": "microsoft",
+          "type": "partial"
+        },
+        {
+          "coverage": 50,
+          "rule_id": "splunk-powershell-download",
+          "shared_iocs": [],
+          "shared_techniques": [
+            "T1059.001"
+          ],
+          "similarity": 24,
+          "source": "splunk",
+          "type": "partial"
+        },
+        {
+          "coverage": 0,
+          "rule_id": "Generic_Downloader_A",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 14,
+          "source": "yara-rules",
+          "type": "related"
+        },
+        {
+          "coverage": 0,
+          "rule_id": "APT_Sample_Payload_Hash",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 14,
+          "source": "yara-rules",
+          "type": "related"
+        },
+        {
+          "coverage": 0,
+          "rule_id": "9a1b2c3d-0002-4a00-9000-000000000002",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 11,
+          "source": "sigmahq",
+          "type": "related"
+        },
+        {
+          "coverage": 0,
+          "rule_id": "9a1b2c3d-0003-4a00-9000-000000000003",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 11,
+          "source": "sigmahq",
+          "type": "related"
+        }
+      ],
+      "partial": 4,
+      "related": 4
+    },
+    "unmatched": {
+      "entity": "ipv4:203.0.113.77",
+      "exact": 0,
+      "matches": [
+        {
+          "coverage": 0,
+          "rule_id": "9a1b2c3d-0004-4a00-9000-000000000004",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 14,
+          "source": "sigmahq",
+          "type": "related"
+        },
+        {
+          "coverage": 0,
+          "rule_id": "2400001",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 11,
+          "source": "emerging-threats",
+          "type": "related"
+        },
+        {
+          "coverage": 0,
+          "rule_id": "2400003",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 11,
+          "source": "emerging-threats",
+          "type": "related"
+        },
+        {
+          "coverage": 0,
+          "rule_id": "2400002",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 11,
+          "source": "emerging-threats",
+          "type": "related"
+        },
+        {
+          "coverage": 0,
+          "rule_id": "1000001",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 11,
+          "source": "talos",
+          "type": "related"
+        },
+        {
+          "coverage": 0,
+          "rule_id": "1000002",
+          "shared_iocs": [],
+          "shared_techniques": [],
+          "similarity": 11,
+          "source": "talos",
+          "type": "related"
+        }
+      ],
+      "partial": 0,
+      "related": 6
+    }
+  },
+  "rules": {
+    "com_0fdc3d8fb94ead42": {
+      "actors": [],
+      "category": "generic",
+      "content_available": true,
+      "content_hash": "f9c1d32c6481c26d",
+      "id": "com_0fdc3d8fb94ead42",
+      "iocs": [],
+      "language": "sentinel_kql",
+      "license": "MIT/permissive",
+      "malware": [],
+      "mitre": [
+        "T1059.001"
+      ],
+      "platforms": [
+        "generic"
+      ],
+      "rule_id": "ms-sentinel-encoded-powershell",
+      "severity": 2,
+      "source": "microsoft",
+      "tags": []
+    },
+    "com_1185aed2f7d02b6f": {
+      "actors": [],
+      "category": "network",
+      "content_available": true,
+      "content_hash": "bab914f3ac525a08",
+      "id": "com_1185aed2f7d02b6f",
+      "iocs": [],
+      "language": "snort",
+      "license": "GPL-2.0-only/copyleft",
+      "malware": [],
+      "mitre": [
+        "T1071"
+      ],
+      "platforms": [
+        "network"
+      ],
+      "rule_id": "1000001",
+      "severity": 2,
+      "source": "talos",
+      "tags": []
+    },
+    "com_29d8780f37440f22": {
+      "actors": [],
+      "category": "network",
+      "content_available": true,
+      "content_hash": "a22914660ddfc6f2",
+      "id": "com_29d8780f37440f22",
+      "iocs": [
+        "ipv4:45.155.205.233"
+      ],
+      "language": "suricata",
+      "license": "BSD-3-Clause/permissive",
+      "malware": [
+        "GenericC2"
+      ],
+      "mitre": [
+        "T1071"
+      ],
+      "platforms": [
+        "network"
+      ],
+      "rule_id": "2400001",
+      "severity": 2,
+      "source": "emerging-threats",
+      "tags": []
+    },
+    "com_455ef75f5c8a58ce": {
+      "actors": [],
+      "category": "generic",
+      "content_available": true,
+      "content_hash": "e10221163c95c3bd",
+      "id": "com_455ef75f5c8a58ce",
+      "iocs": [],
+      "language": "sentinel_kql",
+      "license": "MIT/permissive",
+      "malware": [],
+      "mitre": [
+        "T1071"
+      ],
+      "platforms": [
+        "generic"
+      ],
+      "rule_id": "ms-sentinel-c2-beacon",
+      "severity": 2,
+      "source": "microsoft",
+      "tags": []
+    },
+    "com_558b0ddaf27e7373": {
+      "actors": [],
+      "category": "process",
+      "content_available": true,
+      "content_hash": "64cf3ba03389303a",
+      "id": "com_558b0ddaf27e7373",
+      "iocs": [],
+      "language": "sigma",
+      "license": "DRL-1.1/permissive",
+      "malware": [],
+      "mitre": [
+        "T1218.011"
+      ],
+      "platforms": [
+        "windows"
+      ],
+      "rule_id": "9a1b2c3d-0002-4a00-9000-000000000002",
+      "severity": 2,
+      "source": "sigmahq",
+      "tags": []
+    },
+    "com_66e73434abd9b0a5": {
+      "actors": [],
+      "category": "generic",
+      "content_available": false,
+      "content_hash": "ea2f59b144404456",
+      "id": "com_66e73434abd9b0a5",
+      "iocs": [],
+      "language": "elastic_esql",
+      "license": "Elastic-2.0/restricted",
+      "malware": [],
+      "mitre": [
+        "T1204.002"
+      ],
+      "platforms": [
+        "generic"
+      ],
+      "rule_id": "elastic-0001-user-execution",
+      "severity": 2,
+      "source": "elastic",
+      "tags": []
+    },
+    "com_75f49b016bf46f93": {
+      "actors": [],
+      "category": "generic",
+      "content_available": true,
+      "content_hash": "120a58044e3faf35",
+      "id": "com_75f49b016bf46f93",
+      "iocs": [],
+      "language": "splunk_spl",
+      "license": "Apache-2.0/permissive",
+      "malware": [],
+      "mitre": [
+        "T1059.001"
+      ],
+      "platforms": [
+        "generic"
+      ],
+      "rule_id": "splunk-powershell-download",
+      "severity": 2,
+      "source": "splunk",
+      "tags": []
+    },
+    "com_85249581de94bb74": {
+      "actors": [],
+      "category": "network",
+      "content_available": true,
+      "content_hash": "9fad80d060f9f4a4",
+      "id": "com_85249581de94bb74",
+      "iocs": [
+        "ipv4:45.155.205.233"
+      ],
+      "language": "splunk_spl",
+      "license": "Apache-2.0/permissive",
+      "malware": [
+        "GenericC2"
+      ],
+      "mitre": [
+        "T1071"
+      ],
+      "platforms": [
+        "generic"
+      ],
+      "rule_id": "splunk-c2-known-ip",
+      "severity": 2,
+      "source": "splunk",
+      "tags": []
+    },
+    "com_87b9b23344c6901e": {
+      "actors": [],
+      "category": "network",
+      "content_available": true,
+      "content_hash": "e5b3b34cded492c5",
+      "id": "com_87b9b23344c6901e",
+      "iocs": [],
+      "language": "suricata",
+      "license": "BSD-3-Clause/permissive",
+      "malware": [],
+      "mitre": [],
+      "platforms": [
+        "network"
+      ],
+      "rule_id": "2400003",
+      "severity": 2,
+      "source": "emerging-threats",
+      "tags": []
+    },
+    "com_95fa97d4d17e5257": {
+      "actors": [],
+      "category": "registry",
+      "content_available": true,
+      "content_hash": "ab55ef1548bc88c0",
+      "id": "com_95fa97d4d17e5257",
+      "iocs": [],
+      "language": "sigma",
+      "license": "DRL-1.1/permissive",
+      "malware": [],
+      "mitre": [
+        "T1547.001"
+      ],
+      "platforms": [
+        "windows"
+      ],
+      "rule_id": "9a1b2c3d-0003-4a00-9000-000000000003",
+      "severity": 2,
+      "source": "sigmahq",
+      "tags": []
+    },
+    "com_a204a433ff273981": {
+      "actors": [],
+      "category": "network",
+      "content_available": true,
+      "content_hash": "419471c00216020b",
+      "id": "com_a204a433ff273981",
+      "iocs": [
+        "domain:malware-c2.example.net"
+      ],
+      "language": "suricata",
+      "license": "BSD-3-Clause/permissive",
+      "malware": [],
+      "mitre": [
+        "T1071.001"
+      ],
+      "platforms": [
+        "network"
+      ],
+      "rule_id": "2400002",
+      "severity": 2,
+      "source": "emerging-threats",
+      "tags": []
+    },
+    "com_b1a9061fbac41662": {
+      "actors": [],
+      "category": "network",
+      "content_available": true,
+      "content_hash": "14afa1da16183201",
+      "id": "com_b1a9061fbac41662",
+      "iocs": [],
+      "language": "snort",
+      "license": "GPL-2.0-only/copyleft",
+      "malware": [],
+      "mitre": [],
+      "platforms": [
+        "network"
+      ],
+      "rule_id": "1000002",
+      "severity": 2,
+      "source": "talos",
+      "tags": []
+    },
+    "com_b74fbf3d6522c30a": {
+      "actors": [],
+      "category": "file",
+      "content_available": true,
+      "content_hash": "e0e4708da2c8158e",
+      "id": "com_b74fbf3d6522c30a",
+      "iocs": [],
+      "language": "yara",
+      "license": "GPL-2.0-only/copyleft",
+      "malware": [],
+      "mitre": [
+        "T1059.001"
+      ],
+      "platforms": [
+        "generic"
+      ],
+      "rule_id": "Suspicious_PowerShell_Encoded",
+      "severity": 2,
+      "source": "yara-rules",
+      "tags": []
+    },
+    "com_ba17a41bf7bd8355": {
+      "actors": [],
+      "category": "process",
+      "content_available": true,
+      "content_hash": "7372678a2f513bba",
+      "id": "com_ba17a41bf7bd8355",
+      "iocs": [],
+      "language": "sigma",
+      "license": "DRL-1.1/permissive",
+      "malware": [],
+      "mitre": [
+        "T1059.001"
+      ],
+      "platforms": [
+        "windows"
+      ],
+      "rule_id": "9a1b2c3d-0001-4a00-9000-000000000001",
+      "severity": 3,
+      "source": "sigmahq",
+      "tags": []
+    },
+    "com_c4924af14ca82640": {
+      "actors": [],
+      "category": "generic",
+      "content_available": false,
+      "content_hash": "a57d6760c0d0563b",
+      "id": "com_c4924af14ca82640",
+      "iocs": [],
+      "language": "elastic_esql",
+      "license": "Elastic-2.0/restricted",
+      "malware": [],
+      "mitre": [
+        "T1071"
+      ],
+      "platforms": [
+        "generic"
+      ],
+      "rule_id": "elastic-0002-c2-beacon",
+      "severity": 2,
+      "source": "elastic",
+      "tags": []
+    },
+    "com_c5ddc69fe7836ea3": {
+      "actors": [],
+      "category": "file",
+      "content_available": true,
+      "content_hash": "17f53aa79768ffee",
+      "id": "com_c5ddc69fe7836ea3",
+      "iocs": [],
+      "language": "yara",
+      "license": "GPL-2.0-only/copyleft",
+      "malware": [
+        "GenericDownloader"
+      ],
+      "mitre": [],
+      "platforms": [
+        "generic"
+      ],
+      "rule_id": "Generic_Downloader_A",
+      "severity": 2,
+      "source": "yara-rules",
+      "tags": []
+    },
+    "com_e574032285290f0d": {
+      "actors": [
+        "APT29"
+      ],
+      "category": "file",
+      "content_available": true,
+      "content_hash": "2214a895ed72eeb4",
+      "id": "com_e574032285290f0d",
+      "iocs": [
+        "sha256:275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"
+      ],
+      "language": "yara",
+      "license": "GPL-2.0-only/copyleft",
+      "malware": [
+        "CobaltStrike"
+      ],
+      "mitre": [
+        "T1204.002"
+      ],
+      "platforms": [
+        "generic"
+      ],
+      "rule_id": "APT_Sample_Payload_Hash",
+      "severity": 2,
+      "source": "yara-rules",
+      "tags": []
+    },
+    "com_f6ab2307326554ab": {
+      "actors": [],
+      "category": "dns",
+      "content_available": true,
+      "content_hash": "a795b24ac62d1bd5",
+      "id": "com_f6ab2307326554ab",
+      "iocs": [
+        "domain:malware-c2.example.net"
+      ],
+      "language": "sigma",
+      "license": "DRL-1.1/permissive",
+      "malware": [
+        "GenericC2"
+      ],
+      "mitre": [
+        "T1071.001"
+      ],
+      "platforms": [
+        "windows"
+      ],
+      "rule_id": "9a1b2c3d-0004-4a00-9000-000000000004",
+      "severity": 3,
+      "source": "sigmahq",
+      "tags": []
+    }
+  }
+}

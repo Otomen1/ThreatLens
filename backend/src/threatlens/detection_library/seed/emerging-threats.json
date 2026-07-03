@@ -1,0 +1,49 @@
+{
+  "rules": [
+    {
+      "rule_id": "2400001",
+      "name": "ET TROJAN Known C2 IP Beacon",
+      "path": "rules/emerging-trojan.rules",
+      "author": "Emerging Threats",
+      "updated": "2024-01-05",
+      "language": "suricata",
+      "references": [
+        "https://attack.mitre.org/techniques/T1071/"
+      ],
+      "mitre": [
+        "T1071"
+      ],
+      "malware": [
+        "GenericC2"
+      ],
+      "content": "alert tcp $HOME_NET any -> 45.155.205.233 any (msg:\"ET TROJAN Known C2 IP Beacon\"; flow:established,to_server; dsize:>0; reference:url,attack.mitre.org/techniques/T1071/; classtype:trojan-activity; sid:2400001; rev:2; metadata:attack_target Client_Endpoint, mitre_technique_id T1071;)\n"
+    },
+    {
+      "rule_id": "2400002",
+      "name": "ET MALWARE Observed Malicious C2 Domain in DNS",
+      "path": "rules/emerging-malware.rules",
+      "author": "Emerging Threats",
+      "updated": "2024-01-12",
+      "language": "suricata",
+      "references": [
+        "https://rules.emergingthreats.net/open/"
+      ],
+      "mitre": [
+        "T1071.001"
+      ],
+      "content": "alert dns $HOME_NET any -> any any (msg:\"ET MALWARE Observed Malicious C2 Domain in DNS Query\"; dns.query; content:\"malware-c2.example.net\"; nocase; classtype:trojan-activity; sid:2400002; rev:1; metadata:mitre_technique_id T1071.001;)\n"
+    },
+    {
+      "rule_id": "2400003",
+      "name": "ET SCAN Potential SSH Scan",
+      "path": "rules/emerging-scan.rules",
+      "author": "Emerging Threats",
+      "updated": "2020-06-01",
+      "language": "suricata",
+      "references": [
+        "https://rules.emergingthreats.net/open/"
+      ],
+      "content": "alert tcp $EXTERNAL_NET any -> $HOME_NET 22 (msg:\"ET SCAN Potential SSH Scan\"; flow:to_server; threshold:type both, track by_src, count 5, seconds 60; classtype:attempted-recon; sid:2400003; rev:3;)\n"
+    }
+  ]
+}

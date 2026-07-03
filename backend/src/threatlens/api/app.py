@@ -16,6 +16,17 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from ..ai import AIExplanation, AIExplanationService, build_ai_service
+from ..detection import DetectionPackage
+from ..detection import build_default_registry as build_detection_registry
+from ..detection import generate as generate_detections
+from ..detection_library import (
+    CommunityRecommendation,
+    CommunitySearchResult,
+    DetectionKnowledgeService,
+    DetectionLanguage,
+    DetectionSeverity,
+    RulePlatform,
+)
 from ..investigation import InvestigationService
 from ..providers import build_default_router
 from ..reasoning import InvestigationSummary, reason
@@ -86,6 +97,24 @@ def get_ai_service() -> AIExplanationService:
     return _ai_service
 
 
+# The Detection Engineering registry is a downstream, deterministic consumer of
+# the InvestigationSummary. Built once; empty in Phase 4.0 (no generators yet).
+_detection_registry = build_detection_registry()
+
+
+# The Detection Knowledge Library is a separate, read-only downstream consumer:
+# it indexes *community* detection content and recommends it, never generating
+# rules and never touching the Detection Engine. Built once, offline-first (the
+# bundled seed corpus, or a synced cache when configured) — an investigation
+# never reaches the network to serve a recommendation.
+_knowledge_service = DetectionKnowledgeService.from_default()
+
+
+def get_knowledge_service() -> DetectionKnowledgeService:
+    """Provide the Detection Knowledge Library service (overridable in tests)."""
+    return _knowledge_service
+
+
 # Operational-readiness endpoints. Mounted at the root (``/health``, ``/ready``,
 # ``/version``, …) for infrastructure probes hitting the backend directly, and
 # again under ``/api/v1`` so a same-origin frontend reaches them through the
@@ -147,3 +176,77 @@ async def explain_investigation(
     AI layer can never fail an investigation. ``/investigate`` is unchanged.
     """
     return await service.explain(summary)
+
+
+@app.post("/api/v1/detections", response_model=DetectionPackage)
+def create_detections(summary: InvestigationSummary) -> DetectionPackage:
+    """Convert a completed investigation into a ``DetectionPackage``.
+
+    The input is the deterministic ``InvestigationSummary`` produced by
+    ``/investigate``; the output is a content-addressed ``DetectionPackage``. The
+    Detection Engine is strictly downstream and pure — it never influences
+    findings, confidence, severity, priority, recommendations, or relationships,
+    and it has no access to providers or AI.
+
+    In Phase 4.0 no generators are registered, so the package is well-formed but
+    carries no artifacts (``is_empty``). The endpoint and contract already exist
+    so future generators light up without an API change.
+    """
+    return generate_detections(summary, registry=_detection_registry)
+
+
+@app.post("/api/v1/detection-knowledge/recommend", response_model=CommunityRecommendation)
+def recommend_community_detections(
+    summary: InvestigationSummary,
+    service: Annotated[DetectionKnowledgeService, Depends(get_knowledge_service)],
+) -> CommunityRecommendation:
+    """Recommend *community* detections that resemble a completed investigation.
+
+    Strictly downstream, read-only, and deterministic (no AI, no embeddings, no
+    network): the same summary always yields the same ranked exact/partial/
+    related community rules. These are complementary to — never merged with — the
+    generated ``DetectionPackage`` from ``/detections``; provenance (repository,
+    author, license, version, URL) is preserved on every match.
+    """
+    return service.recommend(summary)
+
+
+@app.get("/api/v1/detection-knowledge/search", response_model=CommunitySearchResult)
+def search_community_detections(
+    service: Annotated[DetectionKnowledgeService, Depends(get_knowledge_service)],
+    ioc: str | None = None,
+    technique: str | None = None,
+    actor: str | None = None,
+    malware: str | None = None,
+    name: str | None = None,
+    tag: str | None = None,
+    rule_id: str | None = None,
+    language: DetectionLanguage | None = None,
+    repository: str | None = None,
+    min_severity: DetectionSeverity | None = None,
+    platform: RulePlatform | None = None,
+    text: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> CommunitySearchResult:
+    """Search the offline community library by any combination of axes (AND).
+
+    Every filter is optional; results are returned in a stable, deterministic
+    order with a snapshot of library stats. Read-only and offline.
+    """
+    return service.search(
+        ioc=ioc,
+        technique=technique,
+        actor=actor,
+        malware=malware,
+        name=name,
+        tag=tag,
+        rule_id=rule_id,
+        language=language,
+        repository=repository,
+        min_severity=min_severity,
+        platform=platform,
+        text=text,
+        limit=limit,
+        offset=offset,
+    )

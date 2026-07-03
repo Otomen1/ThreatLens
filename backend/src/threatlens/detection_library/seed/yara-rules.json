@@ -1,0 +1,49 @@
+{
+  "rules": [
+    {
+      "rule_id": "Generic_Downloader_A",
+      "name": "Generic_Downloader_A",
+      "path": "malware/Generic_Downloader_A.yar",
+      "author": "Yara-Rules Project",
+      "updated": "2021-03-04",
+      "references": [
+        "https://github.com/Yara-Rules/rules"
+      ],
+      "malware": [
+        "GenericDownloader"
+      ],
+      "content": "rule Generic_Downloader_A\n{\n    meta:\n        description = \"Generic malware downloader strings\"\n        author = \"Yara-Rules Project\"\n        reference = \"https://github.com/Yara-Rules/rules\"\n    strings:\n        $s1 = \"URLDownloadToFile\" ascii\n        $s2 = \"WinExec\" ascii\n        $s3 = \"GetTempPathA\" ascii\n    condition:\n        2 of them\n}\n"
+    },
+    {
+      "rule_id": "APT_Sample_Payload_Hash",
+      "name": "APT_Sample_Payload_Hash",
+      "path": "apt/APT_Sample_Payload_Hash.yar",
+      "author": "ThreatLens Community Seed",
+      "updated": "2024-02-20",
+      "references": [
+        "https://attack.mitre.org/techniques/T1204/002/"
+      ],
+      "actors": [
+        "APT29"
+      ],
+      "malware": [
+        "CobaltStrike"
+      ],
+      "content": "import \"hash\"\n\nrule APT_Sample_Payload_Hash\n{\n    meta:\n        description = \"Detects a known malicious payload by SHA-256 (T1204.002)\"\n        author = \"ThreatLens Community Seed\"\n        hash = \"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f\"\n        actor = \"APT29\"\n    condition:\n        hash.sha256(0, filesize) == \"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f\"\n}\n"
+    },
+    {
+      "rule_id": "Suspicious_PowerShell_Encoded",
+      "name": "Suspicious_PowerShell_Encoded",
+      "path": "maldocs/Suspicious_PowerShell_Encoded.yar",
+      "author": "Florian Roth",
+      "updated": "2022-07-19",
+      "references": [
+        "https://attack.mitre.org/techniques/T1059/001/"
+      ],
+      "mitre": [
+        "T1059.001"
+      ],
+      "content": "rule Suspicious_PowerShell_Encoded\n{\n    meta:\n        description = \"Detects encoded PowerShell command usage\"\n        author = \"Florian Roth\"\n    strings:\n        $a = \"powershell\" nocase\n        $b = \"-enc\" nocase\n        $c = \"FromBase64String\" nocase\n    condition:\n        $a and ($b or $c)\n}\n"
+    }
+  ]
+}

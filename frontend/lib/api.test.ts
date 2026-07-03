@@ -5,7 +5,10 @@ import {
   aiHealth,
   detect,
   explain,
+  generateDetections,
   health,
+  recommendCommunityDetections,
+  searchCommunityDetections,
   type InvestigationSummary,
 } from "./api";
 
@@ -158,5 +161,87 @@ describe("aiHealth", () => {
     expect(String(url)).toMatch(/\/health\/ai$/);
     expect(init.method).toBe("GET");
     expect(result.status).toBe("disabled");
+  });
+});
+
+describe("generateDetections", () => {
+  it("POSTs the summary to the detections endpoint and returns the package", async () => {
+    const payload = { id: "pkg_abc", artifacts: [], languages: [], source_finding_ids: [] };
+    const fetchMock = stubFetch(200, payload);
+
+    const result = await generateDetections(SUMMARY);
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(/\/detections$/);
+    expect(init.method).toBe("POST");
+    // The summary itself is the body — never raw provider data, never `{ query }`.
+    expect(JSON.parse(init.body as string)).toEqual(SUMMARY);
+    expect(result).toEqual(payload);
+  });
+
+  it("returns an empty (artifact-free) package in this phase", async () => {
+    stubFetch(200, { id: "pkg_abc", artifacts: [], languages: [], source_finding_ids: ["fnd_1"] });
+    const result = await generateDetections(SUMMARY);
+    expect(result.artifacts).toEqual([]);
+  });
+
+  it("throws ApiError on a non-2xx response", async () => {
+    stubFetch(422, { detail: "bad" });
+    await expect(generateDetections(SUMMARY)).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(200, { id: "pkg_x", artifacts: [] });
+    const controller = new AbortController();
+
+    await generateDetections(SUMMARY, controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("recommendCommunityDetections", () => {
+  it("POSTs the summary to the recommend endpoint and returns the matches", async () => {
+    const payload = {
+      entity_type: "ipv4",
+      entity_value: "8.8.8.8",
+      matches: [],
+      exact_count: 0,
+      partial_count: 0,
+      related_count: 0,
+      library_version: "1.0",
+      sync_status: "seed",
+    };
+    const fetchMock = stubFetch(200, payload);
+
+    const result = await recommendCommunityDetections(SUMMARY);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(/\/detection-knowledge\/recommend$/);
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual(SUMMARY);
+    expect(result.matches).toEqual([]);
+  });
+
+  it("throws ApiError on a non-2xx response", async () => {
+    stubFetch(500, { detail: "boom" });
+    await expect(recommendCommunityDetections(SUMMARY)).rejects.toBeInstanceOf(ApiError);
+  });
+});
+
+describe("searchCommunityDetections", () => {
+  it("GETs the search endpoint with only the provided filters as query params", async () => {
+    const fetchMock = stubFetch(200, { total: 0, rules: [], stats: {} });
+
+    await searchCommunityDetections({ technique: "T1071", language: "yara", ignored: undefined });
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.method).toBe("GET");
+    expect(String(url)).toContain("/detection-knowledge/search?");
+    expect(String(url)).toContain("technique=T1071");
+    expect(String(url)).toContain("language=yara");
+    expect(String(url)).not.toContain("ignored");
   });
 });
