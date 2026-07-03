@@ -1,14 +1,37 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   generateDetections,
   type DetectionArtifact,
+  type DetectionMetadata,
   type DetectionPackage,
+  type Finding,
   type InvestigationSummary,
 } from "@/lib/api";
-import { artifactFilename, detectionSeverityClass, detectionSeverityLabel } from "@/lib/detection";
+import {
+  artifactFilename,
+  detectionSeverityClass,
+  detectionSeverityLabel,
+  groupByLanguage,
+  mitreFromMetadata,
+  mitreTechniqueUrl,
+  type LanguageGroup,
+} from "@/lib/detection";
+import { confidenceBandLabel, findingsByIds } from "@/lib/investigation";
+import {
+  Badge,
+  Chevron,
+  CodeViewer,
+  DetailTabs,
+  Field,
+  IconButton,
+  InfoIcon,
+  LanguageGroupHeader,
+  type DetailTab,
+} from "./shared/DetectionDisclosure";
+import { FindingCard } from "./FindingsSection";
 
 interface Props {
   summary: InvestigationSummary;
@@ -17,15 +40,17 @@ interface Props {
 /**
  * The Detection Engineering panel — a downstream, optional consumer of the
  * deterministic summary. Collapsed by default; the DetectionPackage is fetched
- * lazily on first expand. In this phase the framework generates no artifacts, so
- * the panel shows a friendly empty state. The UI already understands a
- * fully-populated DetectionPackage; rule rendering arrives with the generators.
+ * lazily on first expand. Analysts drill down Language → Rule → Rule Details
+ * rather than scanning one long list of full rule bodies.
  */
 export function DetectionEngineeringCard({ summary }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<DetectionPackage | null>(null);
   const [failed, setFailed] = useState(false);
+  const [openLanguages, setOpenLanguages] = useState<ReadonlySet<string>>(new Set());
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("overview");
   const abortRef = useRef<AbortController | null>(null);
 
   // Reset when a new investigation arrives (the summary identity changes).
@@ -35,6 +60,9 @@ export function DetectionEngineeringCard({ summary }: Props) {
     setData(null);
     setFailed(false);
     setLoading(false);
+    setOpenLanguages(new Set());
+    setSelectedId(null);
+    setActiveTab("overview");
   }, [summary]);
 
   // Abort any in-flight request on unmount.
@@ -58,6 +86,27 @@ export function DetectionEngineeringCard({ summary }: Props) {
       setLoading(false);
     }
   }
+
+  function toggleLanguage(language: string) {
+    setOpenLanguages((prev) => {
+      const next = new Set(prev);
+      if (next.has(language)) next.delete(language);
+      else next.add(language);
+      return next;
+    });
+  }
+
+  // Selecting a different rule always returns to the Overview tab; re-selecting
+  // the open rule collapses its detail panel.
+  function selectArtifact(id: string) {
+    setSelectedId((prev) => {
+      if (prev === id) return null;
+      setActiveTab("overview");
+      return id;
+    });
+  }
+
+  const groups = useMemo(() => (data ? groupByLanguage(data.artifacts) : []), [data]);
 
   return (
     <section
@@ -94,14 +143,48 @@ export function DetectionEngineeringCard({ summary }: Props) {
               The detection package could not be generated. The investigation above is unaffected.
             </p>
           )}
-          {!loading && !failed && data && <PackageView data={data} />}
+          {!loading && !failed && data && (
+            <PackageView
+              data={data}
+              groups={groups}
+              findings={summary.findings}
+              openLanguages={openLanguages}
+              onToggleLanguage={toggleLanguage}
+              selectedId={selectedId}
+              onSelectArtifact={selectArtifact}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+            />
+          )}
         </div>
       )}
     </section>
   );
 }
 
-function PackageView({ data }: { data: DetectionPackage }) {
+interface PackageViewProps {
+  data: DetectionPackage;
+  groups: LanguageGroup<DetectionArtifact>[];
+  findings: Finding[];
+  openLanguages: ReadonlySet<string>;
+  onToggleLanguage: (language: string) => void;
+  selectedId: string | null;
+  onSelectArtifact: (id: string) => void;
+  activeTab: string;
+  onTabChange: (key: string) => void;
+}
+
+function PackageView({
+  data,
+  groups,
+  findings,
+  openLanguages,
+  onToggleLanguage,
+  selectedId,
+  onSelectArtifact,
+  activeTab,
+  onTabChange,
+}: PackageViewProps) {
   if (data.artifacts.length === 0) {
     return (
       <div className="space-y-4 pt-3">
@@ -127,15 +210,37 @@ function PackageView({ data }: { data: DetectionPackage }) {
   return (
     <div className="space-y-3 pt-3">
       <p className="text-[11px] text-zinc-500 uppercase tracking-wider">
-        Detection Artifacts ({data.artifacts.length})
+        {groups.length} language{groups.length === 1 ? "" : "s"} · {data.artifacts.length} rule
+        {data.artifacts.length === 1 ? "" : "s"}
       </p>
-      <ul className="space-y-3">
-        {data.artifacts.map((artifact) => (
-          <li key={artifact.id}>
-            <ArtifactCard artifact={artifact} />
-          </li>
+      <div className="space-y-2">
+        {groups.map((group) => (
+          <LanguageGroupHeader
+            key={group.language}
+            id={`det-lang-${group.language}`}
+            label={group.label}
+            count={group.items.length}
+            expanded={openLanguages.has(group.language)}
+            onToggle={() => onToggleLanguage(group.language)}
+          >
+            <ul className="space-y-2">
+              {group.items.map((artifact) => (
+                <li key={artifact.id}>
+                  <ArtifactRow
+                    artifact={artifact}
+                    packageMeta={data.metadata}
+                    findings={findings}
+                    selected={selectedId === artifact.id}
+                    onSelect={() => onSelectArtifact(artifact.id)}
+                    activeTab={activeTab}
+                    onTabChange={onTabChange}
+                  />
+                </li>
+              ))}
+            </ul>
+          </LanguageGroupHeader>
         ))}
-      </ul>
+      </div>
       <PackageFooter data={data} />
     </div>
   );
@@ -152,9 +257,92 @@ function PackageFooter({ data }: { data: DetectionPackage }) {
   );
 }
 
-/** A single read-only detection artifact: metadata badges + the rule text. */
-function ArtifactCard({ artifact }: { artifact: DetectionArtifact }) {
+interface ArtifactRowProps {
+  artifact: DetectionArtifact;
+  packageMeta: DetectionMetadata;
+  findings: Finding[];
+  selected: boolean;
+  onSelect: () => void;
+  activeTab: string;
+  onTabChange: (key: string) => void;
+}
+
+/** A rule's scan-first row: title, severity, finding count, platform, timestamp — no body. */
+function ArtifactRow({
+  artifact,
+  packageMeta,
+  findings,
+  selected,
+  onSelect,
+  activeTab,
+  onTabChange,
+}: ArtifactRowProps) {
+  const linked = useMemo(
+    () => findingsByIds(findings, artifact.source_finding_ids),
+    [findings, artifact.source_finding_ids],
+  );
+
+  return (
+    <div className="rounded-lg border border-zinc-800 bg-zinc-950/50 overflow-hidden">
+      <button
+        onClick={onSelect}
+        aria-expanded={selected}
+        className="w-full flex flex-wrap items-center gap-2 px-3 py-2.5 text-left hover:bg-zinc-800/40 transition-colors"
+      >
+        <span className="flex-1 min-w-0 text-sm text-zinc-200 truncate">{artifact.title}</span>
+        <Badge className={detectionSeverityClass(artifact.severity)}>
+          {detectionSeverityLabel(artifact.severity)}
+        </Badge>
+        <span className="text-[10px] text-zinc-500 font-mono">
+          {artifact.source_finding_ids.length} finding{artifact.source_finding_ids.length === 1 ? "" : "s"}
+        </span>
+        <Badge className="text-zinc-400 bg-zinc-800/60 border-zinc-700">{artifact.target.platform}</Badge>
+        <span className="hidden sm:inline text-[10px] text-zinc-600">{packageMeta.generated_at}</span>
+        <Chevron expanded={selected} />
+      </button>
+
+      {selected && (
+        <div className="border-t border-zinc-800 p-3">
+          <DetailTabs
+            idPrefix={artifact.id}
+            activeKey={activeTab}
+            onChange={onTabChange}
+            tabs={buildArtifactTabs(artifact, linked, packageMeta)}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function buildArtifactTabs(
+  artifact: DetectionArtifact,
+  linked: Finding[],
+  packageMeta: DetectionMetadata,
+): DetailTab[] {
+  return [
+    { key: "overview", label: "Overview", content: <OverviewTab artifact={artifact} linked={linked} packageMeta={packageMeta} /> },
+    { key: "rule", label: "Rule", content: <CodeViewer content={artifact.content} /> },
+    { key: "findings", label: "Findings", content: <FindingsTab linked={linked} /> },
+    { key: "mitre", label: "MITRE", content: <MitreTab artifact={artifact} linked={linked} /> },
+    { key: "metadata", label: "Metadata", content: <MetadataTab artifact={artifact} /> },
+  ];
+}
+
+function OverviewTab({
+  artifact,
+  linked,
+  packageMeta,
+}: {
+  artifact: DetectionArtifact;
+  linked: Finding[];
+  packageMeta: DetectionMetadata;
+}) {
   const [copied, setCopied] = useState(false);
+  const confidence = linked.reduce<Finding["confidence"] | null>(
+    (best, f) => (!best || f.confidence.score > best.score ? f.confidence : best),
+    null,
+  );
 
   async function copy() {
     try {
@@ -162,7 +350,7 @@ function ArtifactCard({ artifact }: { artifact: DetectionArtifact }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      /* clipboard unavailable — no-op, the rule text is visible below */
+      /* clipboard unavailable — the rule text is still visible in the Rule tab */
     }
   }
 
@@ -179,60 +367,106 @@ function ArtifactCard({ artifact }: { artifact: DetectionArtifact }) {
   }
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 overflow-hidden">
-      <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-zinc-800">
-        <Badge className="uppercase tracking-wider text-zinc-300 bg-zinc-800 border-zinc-700">
-          {artifact.language}
-        </Badge>
-        <span className="flex-1 min-w-0 text-sm font-medium text-zinc-200 truncate">
-          {artifact.title}
-        </span>
-        <Badge className={detectionSeverityClass(artifact.severity)}>
-          {detectionSeverityLabel(artifact.severity)}
-        </Badge>
-        <Badge className="text-zinc-400 bg-zinc-800/60 border-zinc-700">{artifact.category}</Badge>
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[11px] sm:grid-cols-3">
+        <Field label="Rule Name" value={artifact.title} />
+        <Field label="Detection ID" value={artifact.id} mono />
+        <Field label="Rule ID" value={artifact.rule_id ?? "—"} mono />
+        <Field label="Severity" value={detectionSeverityLabel(artifact.severity)} />
+        <Field label="Confidence" value={confidence ? confidenceBandLabel(confidence.band) : "—"} />
+        <Field label="Finding IDs" value={artifact.source_finding_ids.join(", ") || "—"} mono />
+        <Field label="Platform" value={artifact.target.platform} />
+        <Field label="Language" value={artifact.language} mono />
+        <Field label="Generated" value={packageMeta.generated_at} />
+        <Field label="Engine Version" value={packageMeta.engine_version} />
       </div>
-
-      {artifact.source_finding_ids.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 px-4 pt-3">
-          <span className="text-[10px] uppercase tracking-wider text-zinc-600">Findings</span>
-          {artifact.source_finding_ids.map((id) => (
-            <span key={id} className="text-[10px] font-mono text-zinc-500">
-              {id}
-            </span>
-          ))}
-        </div>
-      )}
-
-      <div className="relative px-4 py-3">
-        <div className="absolute right-5 top-5 flex gap-1.5">
-          <IconButton label={copied ? "Copied" : "Copy"} onClick={copy} />
-          <IconButton label="Download" onClick={download} />
-        </div>
-        <pre className="overflow-x-auto rounded-lg bg-black/40 p-3 text-[11px] leading-relaxed text-zinc-300">
-          <code className="font-mono whitespace-pre">{artifact.content}</code>
-        </pre>
+      <div className="flex gap-1.5 pt-1">
+        <IconButton label={copied ? "Copied" : "Copy"} onClick={copy} />
+        <IconButton label="Download" onClick={download} />
       </div>
     </div>
   );
 }
 
-function Badge({ className, children }: { className?: string; children: React.ReactNode }) {
+function FindingsTab({ linked }: { linked: Finding[] }) {
+  if (linked.length === 0) {
+    return <p className="text-xs text-zinc-500">No linked findings.</p>;
+  }
   return (
-    <span className={`text-[10px] font-mono rounded border px-1.5 py-0.5 ${className ?? ""}`}>
-      {children}
-    </span>
+    <div className="space-y-2">
+      {linked.map((finding) => (
+        <FindingCard key={finding.id} finding={finding} />
+      ))}
+    </div>
   );
 }
 
-function IconButton({ label, onClick }: { label: string; onClick: () => void }) {
+function MitreTab({ artifact, linked }: { artifact: DetectionArtifact; linked: Finding[] }) {
+  const fromMetadata = mitreFromMetadata(artifact.metadata);
+  const fromFindings = linked.flatMap((f) =>
+    f.relationships
+      .filter((r) => r.relationship.target_type === "attack_pattern")
+      .map((r) => r.relationship.target_value),
+  );
+  const techniques = Array.from(new Set([...fromMetadata, ...fromFindings]));
+
+  if (techniques.length === 0) {
+    return <p className="text-xs text-zinc-500">No ATT&amp;CK mappings for this rule.</p>;
+  }
   return (
-    <button
-      onClick={onClick}
-      className="text-[10px] font-medium text-zinc-400 hover:text-zinc-200 bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700 rounded px-2 py-1 transition-colors"
-    >
-      {label}
-    </button>
+    <div className="flex flex-wrap gap-1.5">
+      {techniques.map((technique) => (
+        <a key={technique} href={mitreTechniqueUrl(technique)} target="_blank" rel="noreferrer noopener">
+          <Badge className="text-indigo-300 bg-indigo-500/10 border-indigo-500/30 hover:bg-indigo-500/20">
+            {technique}
+          </Badge>
+        </a>
+      ))}
+    </div>
+  );
+}
+
+function MetadataTab({ artifact }: { artifact: DetectionArtifact }) {
+  const entries = Object.entries(artifact.metadata);
+  return (
+    <div className="space-y-3">
+      {entries.length > 0 && (
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[11px] sm:grid-cols-3">
+          {entries.map(([key, value]) => (
+            <Field key={key} label={key} value={value} mono />
+          ))}
+        </div>
+      )}
+      <div>
+        <p className="text-[9px] uppercase tracking-wider text-zinc-600 mb-1">Validation</p>
+        <Badge className="text-zinc-400 bg-zinc-800/60 border-zinc-700">
+          {artifact.validation.status}
+        </Badge>
+      </div>
+      {artifact.references.length > 0 && (
+        <div>
+          <p className="text-[9px] uppercase tracking-wider text-zinc-600 mb-1">References</p>
+          <ul className="space-y-1 text-[11px]">
+            {artifact.references.map((reference, i) => (
+              <li key={i}>
+                {reference.url ? (
+                  <a
+                    href={reference.url}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="text-sky-400 hover:text-sky-300"
+                  >
+                    {reference.title}
+                  </a>
+                ) : (
+                  <span className="text-zinc-400">{reference.title}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -251,45 +485,6 @@ function ShieldIcon() {
       aria-hidden
     >
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    </svg>
-  );
-}
-
-function InfoIcon() {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="mt-0.5 shrink-0 text-zinc-500"
-      aria-hidden
-    >
-      <circle cx="12" cy="12" r="10" />
-      <path d="M12 16v-4M12 8h.01" />
-    </svg>
-  );
-}
-
-function Chevron({ expanded }: { expanded: boolean }) {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={`shrink-0 text-zinc-500 transition-transform duration-150 ${expanded ? "rotate-180" : ""}`}
-      aria-hidden
-    >
-      <polyline points="6 9 12 15 18 9" />
     </svg>
   );
 }
