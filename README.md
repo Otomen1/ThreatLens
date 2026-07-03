@@ -33,7 +33,7 @@ SOC analysts, incident responders, detection engineers, and threat-intel teams w
 | **Knowledge Intelligence** | Offline, bundled reference knowledge: MITRE ATT&CK (techniques, groups, software), NVD/CVE, CWE, and CAPEC — no network or keys required. |
 | **Reasoning Engine v1.0 (frozen)** | A pure, deterministic engine: weighted evidence assembly → typed finding rules → four-factor confidence (authority · agreement · corroboration · freshness) → derived priority → recommendation rollup. Content-addressed finding IDs; identical inputs always produce identical output. |
 | **AI Explanation** | Optional, downstream narration of a completed investigation via Ollama (local LLM). Grounded in code — hallucinated findings/recommendations are dropped. Disabled by default. |
-| **Detection Engineering** | A pure, deterministic downstream consumer that converts findings into a content-addressed `DetectionPackage` (`POST /api/v1/detections`). Ships **Sigma**, **YARA** (file hashes), and **Suricata + Snort** (network IOCs) generators — one investigation can yield complementary rules across all four; SIEM/EDR generators plug into the same registry in later phases. It never alters the investigation. |
+| **Detection Engineering** | A pure, deterministic downstream consumer that converts findings into a content-addressed `DetectionPackage` (`POST /api/v1/detections`). Ships **nine** generators — **Sigma**, **YARA**, **Suricata + Snort** (network), and native **SIEM** queries for **Splunk (SPL), Microsoft Sentinel (KQL), Elastic (ES\|QL), Google Chronicle (YARA-L), and IBM QRadar (AQL)** — so one investigation yields complementary detections across every format. It never alters the investigation. |
 | **Investigation Workspace** | A Next.js analyst UI: assessment headline, priority-ordered recommendations, expandable finding cards with confidence breakdowns, provider details, relationships, and references. |
 | **Provider Framework** | Plug-in architecture for both TI and knowledge providers — declare metadata, return the canonical `IntelligenceResult`, register in one place. |
 | **Offline Operation** | Detection, knowledge lookup, reasoning, and the full test suite run with zero network access. External TI and AI are optional add-ons. |
@@ -331,8 +331,8 @@ curl http://localhost:11434/api/tags     # is the Ollama server reachable?
 
 | Suite | Size | What it locks down |
 |---|---|---|
-| Backend tests | **1,279 passing** | Detection, providers, aggregation, reasoning, AI layer, detection engineering, Sigma + YARA + Suricata + Snort generation, API contracts, health/readiness. |
-| Frontend tests | 27 passing (Vitest) | API client behaviour incl. `explain()`, `generateDetections()`, detection helpers, health checks, and abort handling. |
+| Backend tests | **1,317 passing** | Detection, providers, aggregation, reasoning, AI layer, detection engineering, Sigma + YARA + Suricata + Snort + SIEM (Splunk/Sentinel/Elastic/Chronicle/QRadar) generation, API contracts, health/readiness. |
+| Frontend tests | 28 passing (Vitest) | API client behaviour incl. `explain()`, `generateDetections()`, detection helpers, health checks, and abort handling. |
 | 100-IOC validation suite | 316 tests | The complete pipeline over ~100 curated real-world IOC investigations (`backend/tests/validation/`). |
 | Reasoning benchmark | 179 tests / 58 scenarios | The frozen Reasoning Engine v1.0 contract (`backend/tests/benchmark/`). |
 | Golden regression | 155 pinned summaries | Byte-level snapshots of engine output (58 benchmark + 97 validation); any drift fails CI and requires an explicit `THREATLENS_UPDATE_GOLDEN=1` regeneration plus review. |

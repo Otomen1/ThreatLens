@@ -31,6 +31,11 @@ const FILE_EXTENSIONS: Record<string, string> = {
   yara: "yar",
   suricata: "rules",
   snort: "rules",
+  splunk_spl: "spl",
+  sentinel_kql: "kql",
+  elastic_esql: "esql",
+  chronicle_yara_l: "yaral",
+  qradar_aql: "aql",
 };
 
 /** A safe download filename for an artifact (stable id, language extension). */

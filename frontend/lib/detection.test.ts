@@ -42,8 +42,22 @@ describe("artifactFilename", () => {
     expect(artifactFilename(snort)).toBe("snr_1.rules");
   });
 
+  it("uses native extensions for SIEM languages", () => {
+    const cases: Array<[string, string]> = [
+      ["splunk_spl", "spl"],
+      ["sentinel_kql", "kql"],
+      ["elastic_esql", "esql"],
+      ["chronicle_yara_l", "yaral"],
+      ["qradar_aql", "aql"],
+    ];
+    for (const [language, ext] of cases) {
+      const artifact = { id: "det_x", language, rule_id: "r_1" } as unknown as DetectionArtifact;
+      expect(artifactFilename(artifact)).toBe(`r_1.${ext}`);
+    }
+  });
+
   it("falls back to .txt for unknown languages", () => {
-    const artifact = { id: "det_z", language: "splunk", rule_id: null } as unknown as DetectionArtifact;
+    const artifact = { id: "det_z", language: "crowdstrike", rule_id: null } as unknown as DetectionArtifact;
     expect(artifactFilename(artifact)).toBe("det_z.txt");
   });
 });

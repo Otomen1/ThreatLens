@@ -26,7 +26,17 @@ from .engine import (
     compute_package_id,
     generate,
 )
-from .future import SigmaGenerator, SnortGenerator, SuricataGenerator, YaraGenerator
+from .future import (
+    ChronicleGenerator,
+    ElasticGenerator,
+    QRadarGenerator,
+    SentinelGenerator,
+    SigmaGenerator,
+    SnortGenerator,
+    SplunkGenerator,
+    SuricataGenerator,
+    YaraGenerator,
+)
 from .models import (
     DetectionArtifact,
     DetectionMetadata,
@@ -77,8 +87,13 @@ __all__ = [
     "DetectionValidator",
     "DuplicateDetectionGeneratorError",
     "DuplicateDetectionTemplateError",
+    "ChronicleGenerator",
+    "ElasticGenerator",
+    "QRadarGenerator",
+    "SentinelGenerator",
     "SigmaGenerator",
     "SnortGenerator",
+    "SplunkGenerator",
     "SuricataGenerator",
     "TemplateRegistry",
     "YaraGenerator",

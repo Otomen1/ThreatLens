@@ -133,8 +133,13 @@ def build_default_registry() -> DetectionRegistry:
     light them up, exactly as ``providers.defaults`` wires providers. Imported
     lazily so the generator modules can depend on the framework without a cycle.
     """
+    from .future.chronicle import ChronicleGenerator
+    from .future.elastic import ElasticGenerator
+    from .future.qradar import QRadarGenerator
+    from .future.sentinel import SentinelGenerator
     from .future.sigma import SigmaGenerator
     from .future.snort import SnortGenerator
+    from .future.splunk import SplunkGenerator
     from .future.suricata import SuricataGenerator
     from .future.yara import YaraGenerator
 
@@ -143,4 +148,9 @@ def build_default_registry() -> DetectionRegistry:
     registry.register(YaraGenerator())
     registry.register(SuricataGenerator())
     registry.register(SnortGenerator())
+    registry.register(SplunkGenerator())
+    registry.register(SentinelGenerator())
+    registry.register(ElasticGenerator())
+    registry.register(ChronicleGenerator())
+    registry.register(QRadarGenerator())
     return registry

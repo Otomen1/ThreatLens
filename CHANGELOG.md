@@ -6,6 +6,33 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Phase 4.4 — SIEM Detection Generators
+
+- **Five platform-native SIEM generators** (`detection/future/splunk.py`,
+  `sentinel.py`, `elastic.py`, `chronicle.py`, `qradar.py`, sharing a new pure
+  `_siemcommon.py`) — deterministic `DetectionGenerator`s emitting **Splunk SPL,
+  Microsoft Sentinel KQL, Elastic ES|QL, Google Chronicle YARA-L, and IBM QRadar
+  AQL**. Registered in `build_default_registry()` (nine generators total); the
+  engine and `POST /api/v1/detections` are unchanged.
+- **Native syntax, not Sigma-converted.** Log-observable subjects only — IP,
+  domain, URL, file hash, process, registry key, PowerShell command (and their
+  ATT&CK context). Never for CWE/CAPEC, actor/technique-only, informational, or
+  unsupported findings.
+- **Full provenance** in every detection (artifact metadata + query comment /
+  YARA-L `meta:`): detection id, generator, platform, finding ids, severity,
+  confidence, MITRE mappings, IOC type/value, generated timestamp, engine version.
+- **Deterministic** — identical summary → identical query; identifiers hash only
+  stable values (no randomness, no UUIDs). The timestamp/detection-id live in
+  metadata only and are excluded from identity, keeping ids and the package id
+  timestamp-independent.
+- **Parser-level validation** (`validator: threatlens-parser`) since native
+  validators are unavailable: required-token and brace-balance checks per language.
+- Added `DetectionLanguage` values `elastic_esql`, `chronicle_yara_l`,
+  `qradar_aql`.
+- **Frontend:** the panel renders any artifact; added native export extensions
+  (`.spl`, `.kql`, `.esql`, `.yaral`, `.aql`) so analysts can export all nine
+  formats.
+
 ### Phase 4.3 — Network Detection Generators (Suricata & Snort)
 
 - **Two network generators** (`detection/future/suricata.py`, `snort.py`, sharing
