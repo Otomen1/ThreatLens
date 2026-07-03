@@ -11,24 +11,66 @@ interface Props {
   entity: Entity;
   threatIntelligence: AggregatedResult;
   knowledge: AggregatedResult;
+  relationshipCount: number;
+  referenceCount: number;
+  timestamp: string;
 }
 
-export function OverviewCard({ entity, threatIntelligence, knowledge }: Props) {
+/**
+ * A compact investigation summary: identity, reputation/classification, scope
+ * counts (sources queried, relationships, references), confidence/validation,
+ * and the investigation timestamp. Every value already exists elsewhere in the
+ * response (the header, the Relationships/References sections) — this card
+ * only reorganizes it into one scannable place.
+ */
+export function OverviewCard({
+  entity,
+  threatIntelligence,
+  knowledge,
+  relationshipCount,
+  referenceCount,
+  timestamp,
+}: Props) {
+  const tiOk = threatIntelligence.providers.filter(
+    (p) => p.status === "ok" || p.status === "partial",
+  ).length;
+  const kbOk = knowledge.providers.filter(
+    (p) => p.status === "ok" || p.status === "partial",
+  ).length;
+
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-col gap-4">
       <h2 className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">
         Overview
       </h2>
 
-      {isIocType(entity.type) ? (
-        <IocReputation providers={threatIntelligence.providers} />
-      ) : (
-        <ReferenceClassification evidence={knowledge.evidence} />
-      )}
-
-      <div className="pt-3 border-t border-zinc-800 space-y-3">
+      {/* Identity */}
+      <div className="space-y-3">
+        <Field label="Entity">
+          <span className="font-mono text-xs break-all">{entity.value}</span>
+        </Field>
         <Field label="Entity Type">{entityLabel(entity.type)}</Field>
+      </div>
 
+      {/* Reputation / classification */}
+      <div className="pt-3 border-t border-zinc-800">
+        {isIocType(entity.type) ? (
+          <IocReputation providers={threatIntelligence.providers} />
+        ) : (
+          <ReferenceClassification evidence={knowledge.evidence} />
+        )}
+      </div>
+
+      {/* Scope counts — same figures shown in the header, kept in sync */}
+      <dl className="grid grid-cols-2 gap-3 pt-3 border-t border-zinc-800">
+        <CountField label="Sources Queried" value={tiOk} />
+        <CountField label="Knowledge Sources" value={kbOk} />
+        <CountField label="Relationships" value={relationshipCount} />
+        <CountField label="References" value={referenceCount} />
+      </dl>
+
+      {/* Confidence / validation */}
+      <div className="pt-3 border-t border-zinc-800 space-y-3">
         <Field label="Confidence">
           <div className="flex items-center gap-2">
             <div className="h-1.5 w-20 rounded-full bg-zinc-800 overflow-hidden flex-shrink-0">
@@ -60,29 +102,32 @@ export function OverviewCard({ entity, threatIntelligence, knowledge }: Props) {
           </Field>
         )}
       </div>
+
+      {/* Timestamp */}
+      <div className="pt-3 border-t border-zinc-800">
+        <Field label="Investigation Timestamp">
+          <span className="font-mono text-xs text-zinc-400">{timestamp}</span>
+        </Field>
+      </div>
     </div>
   );
 }
 
 function IocReputation({ providers }: { providers: ProviderSummary[] }) {
   const worst = worstReputation(providers);
-  const okCount = providers.filter((p) => p.status === "ok" || p.status === "partial").length;
 
   return (
-    <div className="space-y-3">
-      <div>
-        <p className="text-[11px] text-zinc-500 mb-2">Reputation</p>
-        {worst ? (
-          <span
-            className={`inline-block px-3 py-1.5 rounded-lg border text-sm font-bold uppercase tracking-wider ${reputationClasses(worst)}`}
-          >
-            {reputationLabel(worst)}
-          </span>
-        ) : (
-          <span className="text-zinc-500 text-sm">No data</span>
-        )}
-      </div>
-      <Field label="Sources queried">{String(okCount)}</Field>
+    <div>
+      <p className="text-[11px] text-zinc-500 mb-2">Reputation</p>
+      {worst ? (
+        <span
+          className={`inline-block px-3 py-1.5 rounded-lg border text-sm font-bold uppercase tracking-wider ${reputationClasses(worst)}`}
+        >
+          {reputationLabel(worst)}
+        </span>
+      ) : (
+        <span className="text-zinc-500 text-sm">No data</span>
+      )}
     </div>
   );
 }
@@ -143,6 +188,15 @@ function Field({
     <div>
       <dt className="text-[11px] text-zinc-500 mb-1">{label}</dt>
       <dd className="text-sm text-zinc-300">{children}</dd>
+    </div>
+  );
+}
+
+function CountField({ label, value }: { label: string; value: number }) {
+  return (
+    <div>
+      <dt className="text-[11px] text-zinc-500 mb-1">{label}</dt>
+      <dd className="text-sm font-semibold text-white">{value}</dd>
     </div>
   );
 }

@@ -1,17 +1,30 @@
+"use client";
+
+import { useState } from "react";
+
 import type { AttributedReference } from "@/lib/api";
+import { groupReferencesBySource } from "@/lib/investigation";
+
+import { LanguageGroupHeader } from "./shared/DetectionDisclosure";
 
 interface Props {
   references: AttributedReference[];
 }
 
 export function ReferenceSection({ references }: Props) {
+  const [openSources, setOpenSources] = useState<ReadonlySet<string>>(new Set());
+
   if (references.length === 0) return null;
 
-  // Group by primary source
-  const bySource: Record<string, AttributedReference[]> = {};
-  for (const ref of references) {
-    const src = ref.sources[0] ?? "other";
-    (bySource[src] ??= []).push(ref);
+  const groups = groupReferencesBySource(references);
+
+  function toggleSource(source: string) {
+    setOpenSources((prev) => {
+      const next = new Set(prev);
+      if (next.has(source)) next.delete(source);
+      else next.add(source);
+      return next;
+    });
   }
 
   return (
@@ -24,14 +37,18 @@ export function ReferenceSection({ references }: Props) {
         <span className="ml-2 text-xs font-normal text-zinc-500">({references.length})</span>
       </h2>
 
-      <div className="space-y-5">
-        {Object.entries(bySource).map(([source, refs]) => (
-          <div key={source}>
-            <p className="text-[11px] text-zinc-500 uppercase tracking-wider mb-2">
-              {source.replace(/_/g, " ")}
-            </p>
+      <div className="space-y-2">
+        {groups.map((group) => (
+          <LanguageGroupHeader
+            key={group.source}
+            id={`ref-source-${group.source}`}
+            label={group.label}
+            count={group.items.length}
+            expanded={openSources.has(group.source)}
+            onToggle={() => toggleSource(group.source)}
+          >
             <ul className="space-y-2">
-              {refs.map((r) => (
+              {group.items.map((r) => (
                 <li key={r.reference.url} className="flex items-start gap-2">
                   <ExternalIcon />
                   <div className="min-w-0">
@@ -52,7 +69,7 @@ export function ReferenceSection({ references }: Props) {
                 </li>
               ))}
             </ul>
-          </div>
+          </LanguageGroupHeader>
         ))}
       </div>
     </section>
