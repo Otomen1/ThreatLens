@@ -34,6 +34,7 @@ SOC analysts, incident responders, detection engineers, and threat-intel teams w
 | **Reasoning Engine v1.0 (frozen)** | A pure, deterministic engine: weighted evidence assembly → typed finding rules → four-factor confidence (authority · agreement · corroboration · freshness) → derived priority → recommendation rollup. Content-addressed finding IDs; identical inputs always produce identical output. |
 | **AI Explanation** | Optional, downstream narration of a completed investigation via Ollama (local LLM). Grounded in code — hallucinated findings/recommendations are dropped. Disabled by default. |
 | **Detection Engineering** | A pure, deterministic downstream consumer that converts findings into a content-addressed `DetectionPackage` (`POST /api/v1/detections`). Ships **nine** generators — **Sigma**, **YARA**, **Suricata + Snort** (network), and native **SIEM** queries for **Splunk (SPL), Microsoft Sentinel (KQL), Elastic (ES\|QL), Google Chronicle (YARA-L), and IBM QRadar (AQL)** — so one investigation yields complementary detections across every format. It never alters the investigation. |
+| **Detection Knowledge Library** | A separate, **read-only** downstream subsystem that discovers, normalizes, indexes, searches, and recommends **community** detections (SigmaHQ, YARA-Rules, Emerging Threats, Elastic, Microsoft, Talos, Splunk). Deterministic 0–100 similarity + exact/partial/related matching — **no AI, no embeddings** — with full provenance (repository · author · license · version · URL). Offline once synced; a *community* detection is never merged with a *generated* one. |
 | **Investigation Workspace** | A Next.js analyst UI: assessment headline, priority-ordered recommendations, expandable finding cards with confidence breakdowns, provider details, relationships, and references. |
 | **Provider Framework** | Plug-in architecture for both TI and knowledge providers — declare metadata, return the canonical `IntelligenceResult`, register in one place. |
 | **Offline Operation** | Detection, knowledge lookup, reasoning, and the full test suite run with zero network access. External TI and AI are optional add-ons. |
@@ -331,17 +332,19 @@ curl http://localhost:11434/api/tags     # is the Ollama server reachable?
 
 | Suite | Size | What it locks down |
 |---|---|---|
-| Backend tests | **1,506 passing** | Detection, providers, aggregation, reasoning, AI layer, detection engineering, Sigma + YARA + Suricata + Snort + SIEM (Splunk/Sentinel/Elastic/Chronicle/QRadar) generation, API contracts, health/readiness. |
-| Frontend tests | 28 passing (Vitest) | API client behaviour incl. `explain()`, `generateDetections()`, detection helpers, health checks, and abort handling. |
+| Backend tests | **1,580 passing** | Detection, providers, aggregation, reasoning, AI layer, detection engineering, Sigma + YARA + Suricata + Snort + SIEM generation, the community Detection Knowledge Library, API contracts, health/readiness. |
+| Frontend tests | 39 passing (Vitest) | API client behaviour incl. `explain()`, `generateDetections()`, `recommendCommunityDetections()`, detection + knowledge helpers, health checks, and abort handling. |
 | 100-IOC validation suite | 318 tests | The complete pipeline over ~100 curated real-world IOC investigations (`backend/tests/validation/`). |
 | Reasoning benchmark | 179 tests / 58 scenarios | The frozen Reasoning Engine v1.0 contract (`backend/tests/benchmark/`). |
 | Detection freeze suite | 184 tests / 140-scenario corpus | The frozen **Detection Engine v1.0** contract — every scenario × nine generators, invariants, validators, and golden regression (`backend/tests/detection/`). |
-| Golden regression | pinned snapshots | Byte-level snapshots of reasoning summaries **and** all nine generators' output; any drift fails CI and requires an explicit `THREATLENS_UPDATE_GOLDEN=1` regeneration plus review. |
+| Detection Knowledge Library | 74 tests | Community normalization, search, similarity, matching, licensing, versioning, offline cache, and golden regression (`backend/tests/detection_library/`). |
+| Golden regression | pinned snapshots | Byte-level snapshots of reasoning summaries, all nine generators' output, **and** community normalization + matching; any drift fails CI and requires an explicit `THREATLENS_UPDATE_GOLDEN=1` regeneration plus review. |
 
 ```bash
 cd backend && pytest                            # full backend suite (offline)
 cd backend && python tests/benchmark/perf.py    # reasoning performance report
 cd backend && python tests/detection/perf.py    # detection generation scaling report
+cd backend && python tests/detection_library/perf.py  # community library scaling report
 cd frontend && npm test && npm run build
 ```
 
@@ -353,7 +356,7 @@ Everything runs offline: external TI providers are exercised against recorded/si
 
 | Phase | Capability |
 |---|---|
-| **Phase 4 — Detection Engineering** | Generate detections (Sigma/YARA/SIEM queries) from investigation findings; deterministic templating with validated output, citing the findings each rule derives from. |
+| **Phase 4 — Detection Engineering** ✅ | Generate detections (Sigma/YARA/SIEM queries) from investigation findings; deterministic templating with validated output, citing the findings each rule derives from. Frozen at v1.0, plus a read-only **Detection Knowledge Library** recommending community detections alongside generated ones. |
 | **Phase 5 — Exposure Intelligence** | Asset/exposure context: what is internet-facing, what is vulnerable, how findings map to your attack surface. |
 | **Phase 6 — Identity Intelligence** | Identity-centric investigation: accounts, credentials, and identity-driven attack paths. |
 

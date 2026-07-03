@@ -7,6 +7,8 @@ import {
   explain,
   generateDetections,
   health,
+  recommendCommunityDetections,
+  searchCommunityDetections,
   type InvestigationSummary,
 } from "./api";
 
@@ -197,5 +199,49 @@ describe("generateDetections", () => {
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("recommendCommunityDetections", () => {
+  it("POSTs the summary to the recommend endpoint and returns the matches", async () => {
+    const payload = {
+      entity_type: "ipv4",
+      entity_value: "8.8.8.8",
+      matches: [],
+      exact_count: 0,
+      partial_count: 0,
+      related_count: 0,
+      library_version: "1.0",
+      sync_status: "seed",
+    };
+    const fetchMock = stubFetch(200, payload);
+
+    const result = await recommendCommunityDetections(SUMMARY);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(/\/detection-knowledge\/recommend$/);
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual(SUMMARY);
+    expect(result.matches).toEqual([]);
+  });
+
+  it("throws ApiError on a non-2xx response", async () => {
+    stubFetch(500, { detail: "boom" });
+    await expect(recommendCommunityDetections(SUMMARY)).rejects.toBeInstanceOf(ApiError);
+  });
+});
+
+describe("searchCommunityDetections", () => {
+  it("GETs the search endpoint with only the provided filters as query params", async () => {
+    const fetchMock = stubFetch(200, { total: 0, rules: [], stats: {} });
+
+    await searchCommunityDetections({ technique: "T1071", language: "yara", ignored: undefined });
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.method).toBe("GET");
+    expect(String(url)).toContain("/detection-knowledge/search?");
+    expect(String(url)).toContain("technique=T1071");
+    expect(String(url)).toContain("language=yara");
+    expect(String(url)).not.toContain("ignored");
   });
 });

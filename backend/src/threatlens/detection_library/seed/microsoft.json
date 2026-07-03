@@ -1,0 +1,34 @@
+{
+  "rules": [
+    {
+      "rule_id": "ms-sentinel-c2-beacon",
+      "name": "Command and Control Beacon to Suspicious IP",
+      "path": "Detections/CommonSecurityLog/C2Beacon.yaml",
+      "author": "Microsoft Security",
+      "updated": "2023-09-20",
+      "language": "sentinel_kql",
+      "references": [
+        "https://attack.mitre.org/techniques/T1071/"
+      ],
+      "mitre": [
+        "T1071"
+      ],
+      "content": "CommonSecurityLog\n| where DeviceVendor == \"Palo Alto Networks\"\n| where DestinationPort in (443, 8443)\n| summarize Beacons = count() by SourceIP, DestinationIP, bin(TimeGenerated, 1h)\n| where Beacons > 100\n"
+    },
+    {
+      "rule_id": "ms-sentinel-encoded-powershell",
+      "name": "Encoded PowerShell Execution",
+      "path": "Hunting Queries/SecurityEvent/EncodedPowerShell.yaml",
+      "author": "Microsoft Security",
+      "updated": "2023-04-11",
+      "language": "sentinel_kql",
+      "references": [
+        "https://attack.mitre.org/techniques/T1059/001/"
+      ],
+      "mitre": [
+        "T1059.001"
+      ],
+      "content": "SecurityEvent\n| where EventID == 4688\n| where NewProcessName endswith \"powershell.exe\"\n| where CommandLine has_any (\"-enc\", \"-EncodedCommand\", \"FromBase64String\")\n| project TimeGenerated, Computer, Account, CommandLine\n"
+    }
+  ]
+}

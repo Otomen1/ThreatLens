@@ -1,0 +1,31 @@
+{
+  "rules": [
+    {
+      "rule_id": "1000001",
+      "name": "MALWARE-CNC Trojan outbound connection",
+      "path": "community-rules/community.rules",
+      "author": "Cisco Talos",
+      "updated": "2023-02-15",
+      "language": "snort",
+      "references": [
+        "https://www.snort.org/"
+      ],
+      "mitre": [
+        "T1071"
+      ],
+      "content": "alert tcp $HOME_NET any -> $EXTERNAL_NET any (msg:\"MALWARE-CNC Trojan outbound connection\"; flow:to_server,established; content:\"POST\"; http_method; content:\"/gate.php\"; http_uri; classtype:trojan-activity; sid:1000001; rev:4;)\n"
+    },
+    {
+      "rule_id": "1000002",
+      "name": "EXPLOIT-KIT landing page",
+      "path": "community-rules/community.rules",
+      "author": "Cisco Talos",
+      "updated": "2021-10-30",
+      "language": "snort",
+      "references": [
+        "https://www.snort.org/"
+      ],
+      "content": "alert tcp $EXTERNAL_NET $HTTP_PORTS -> $HOME_NET any (msg:\"EXPLOIT-KIT landing page detected\"; flow:to_client,established; content:\"applet\"; nocase; content:\"archive\"; nocase; classtype:attempted-user; sid:1000002; rev:2;)\n"
+    }
+  ]
+}

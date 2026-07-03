@@ -6,6 +6,58 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Phase 4.6 — Detection Knowledge Library
+
+- **New downstream, read-only subsystem** (`threatlens.detection_library`) that
+  discovers, normalizes, indexes, searches, and recommends **community**
+  detection content. It never generates detections and **does not modify the
+  frozen Detection Engine v1.0** (generators, identities, metadata, and the
+  `/detections` contract are untouched). A *generated* detection and a
+  *community* detection are kept explicitly separate and never merged.
+- **Seven community sources** (bundled offline seed, fully attributed): SigmaHQ,
+  YARA-Rules, Emerging Threats Open, Elastic Detection Rules, Microsoft Sentinel,
+  Cisco Talos, Splunk Security Content. A single configurable
+  `BundledCommunityProvider` implements the read-only `CommunityProvider`
+  interface from a `RuleSource` descriptor + seed file, so a new repository plugs
+  in as data — no framework change. A future live-fetch provider is a subclass.
+- **Deterministic normalization** (`normalize_record`): content-addressed ids,
+  real ATT&CK/IOC extraction from rule text (conservative domain handling that
+  rejects rule-DSL tokens and vendor/reference hosts), and severity/category/
+  platform inference — into one canonical `CommunityRule` per repository.
+- **Offline indexed library + search** by IOC, MITRE technique, threat actor,
+  malware family, rule name, tags, rule id, language, repository, severity, and
+  platform (AND-combined, stable order).
+- **Deterministic matching & similarity** — 0–100 weighted set-overlap similarity
+  (IOC 38 · MITRE 24 · malware 12 · actor 8 · category 8 · tags 6 · platform 4)
+  plus a coverage metric, classifying each rule as exact / partial / related.
+  **No AI, no embeddings, no fuzzy matching**; `recommend` inherits `generated_at`
+  from the summary and reads no clock.
+- **Synchronization separate from investigation** — `synchronize` snapshots to a
+  `LibraryCache` (incremental diff, per-source version hashes, atomic write,
+  tolerant read, invalidate, staleness TTL). Offline-first: with no cache
+  configured the service serves the bundled seed; the investigation path never
+  depends on GitHub.
+- **Licensing preserved** — repository, author, license, version, and URL are
+  never dropped and content is never rewritten. Redistribution follows the
+  license: permissive/copyleft bodies are shown; Elastic's restricted
+  (Elastic-2.0) bodies are withheld (metadata + attribution + link only) with a
+  documented note.
+- **API:** `POST /api/v1/detection-knowledge/recommend` (summary → ranked
+  community matches) and `GET /api/v1/detection-knowledge/search`. Both read-only,
+  offline, deterministic.
+- **Frontend:** a new **Detection Knowledge** card, rendered separately from the
+  generated Detection Engineering card — repository, language, similarity,
+  coverage, MITRE, license, author, last-updated, view/download (download gated on
+  license). New `recommendCommunityDetections`/`searchCommunityDetections` client
+  + `lib/knowledge.ts` helpers.
+- **Testing:** 74 offline DKL tests (normalization, search, similarity, matching,
+  licensing, versioning, cache, determinism, golden regression) added to the CI
+  golden-regression job; +11 frontend tests. Backend suite: **1,580 passing**.
+  Linear performance (per-rule cost ≈1.1× from 18→1000 rules).
+- **Docs:** `docs/architecture/PHASE-4.6-DETECTION-KNOWLEDGE-LIBRARY.md`
+  (architecture, normalization/matching/similarity/caching design, licensing,
+  testing & performance).
+
 ### Phase 4.5 — Detection Engine v1.0 (Validation & Freeze)
 
 - **Detection Engineering frozen at v1.0** (`DETECTION_ENGINE_VERSION = "1.0"`).

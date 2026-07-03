@@ -1,0 +1,51 @@
+{
+  "rules": [
+    {
+      "rule_id": "9a1b2c3d-0001-4a00-9000-000000000001",
+      "name": "PowerShell IEX Download Cradle",
+      "path": "rules/windows/process_creation/proc_creation_win_powershell_iex_download.yml",
+      "author": "Florian Roth",
+      "updated": "2023-05-11",
+      "references": [
+        "https://attack.mitre.org/techniques/T1059/001/"
+      ],
+      "content": "title: PowerShell IEX Download Cradle\nid: 9a1b2c3d-0001-4a00-9000-000000000001\nstatus: stable\ndescription: Detects PowerShell downloading and executing remote content via IEX.\nauthor: Florian Roth\nlevel: high\nlogsource:\n    product: windows\n    category: process_creation\ndetection:\n    selection:\n        Image|endswith: '\\powershell.exe'\n        CommandLine|contains|all:\n            - 'IEX'\n            - 'DownloadString'\n    condition: selection\ntags:\n    - attack.execution\n    - attack.t1059.001\n"
+    },
+    {
+      "rule_id": "9a1b2c3d-0002-4a00-9000-000000000002",
+      "name": "Rundll32 Without Parameters",
+      "path": "rules/windows/process_creation/proc_creation_win_rundll32_no_params.yml",
+      "author": "Nasreddine Bencherchali",
+      "updated": "2023-08-02",
+      "references": [
+        "https://attack.mitre.org/techniques/T1218/011/"
+      ],
+      "content": "title: Rundll32 Without Parameters\nid: 9a1b2c3d-0002-4a00-9000-000000000002\nstatus: experimental\ndescription: Detects rundll32.exe execution without command line parameters.\nauthor: Nasreddine Bencherchali\nlevel: medium\nlogsource:\n    product: windows\n    category: process_creation\ndetection:\n    selection:\n        Image|endswith: '\\rundll32.exe'\n    filter:\n        CommandLine|contains: '.dll'\n    condition: selection and not filter\ntags:\n    - attack.defense_evasion\n    - attack.t1218.011\n"
+    },
+    {
+      "rule_id": "9a1b2c3d-0003-4a00-9000-000000000003",
+      "name": "Registry Run Key Persistence",
+      "path": "rules/windows/registry/registry_set/registry_set_run_key.yml",
+      "author": "Roberto Rodriguez",
+      "updated": "2022-12-01",
+      "references": [
+        "https://attack.mitre.org/techniques/T1547/001/"
+      ],
+      "content": "title: Registry Run Key Persistence\nid: 9a1b2c3d-0003-4a00-9000-000000000003\nstatus: stable\ndescription: Detects modification of the Run key for persistence.\nauthor: Roberto Rodriguez\nlevel: medium\nlogsource:\n    product: windows\n    category: registry_set\ndetection:\n    selection:\n        TargetObject|contains: '\\CurrentVersion\\Run\\'\n    condition: selection\ntags:\n    - attack.persistence\n    - attack.t1547.001\n"
+    },
+    {
+      "rule_id": "9a1b2c3d-0004-4a00-9000-000000000004",
+      "name": "DNS Query to Known C2 Domain",
+      "path": "rules/windows/dns_query/dns_query_win_c2_domain.yml",
+      "author": "ThreatLens Community Seed",
+      "updated": "2024-01-15",
+      "references": [
+        "https://attack.mitre.org/techniques/T1071/001/"
+      ],
+      "malware": [
+        "GenericC2"
+      ],
+      "content": "title: DNS Query to Known C2 Domain\nid: 9a1b2c3d-0004-4a00-9000-000000000004\nstatus: test\ndescription: Detects DNS resolution of a known command-and-control domain.\nauthor: ThreatLens Community Seed\nlevel: high\nlogsource:\n    product: windows\n    category: dns_query\ndetection:\n    selection:\n        QueryName: 'malware-c2.example.net'\n    condition: selection\ntags:\n    - attack.command_and_control\n    - attack.t1071.001\n"
+    }
+  ]
+}
