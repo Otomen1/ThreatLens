@@ -6,6 +6,28 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Added — Operational Dashboard v1
+
+- **New read-only subsystem** (`threatlens.system`) for administrators and
+  developers: system health, API consumption, and configuration status. It is
+  strictly downstream and isolated — it never calls a provider, runs an
+  investigation, generates a detection, or invokes the AI layer; it only reads
+  already-computed response objects and the existing health checks. No change
+  to the Investigation Engine, the frozen Reasoning Engine, the Detection
+  Engine, the Detection Knowledge Library, or the AI layer's behavior or API
+  contracts.
+- Three new endpoints under `/api/v1/system`: `GET /health` (per-service
+  Healthy/Degraded/Offline/Disabled + overall rollup, reusing the Phase 3.17
+  health checks), `GET /usage` (in-memory, process-local request/latency
+  counters per provider, the AI layer, Detection Engineering, Detection
+  Knowledge, and investigations — reset on restart, no database), and
+  `GET /config` (configured/enabled booleans only — never a key, token,
+  secret, or credential-bearing URL).
+- **New frontend page** at `/dashboard` (separate from the Investigation
+  Workspace) with three tabs — System Health, API Consumption, Configuration —
+  reachable from the existing status pill. Reuses the app's dark theme and
+  existing shared presentation primitives.
+
 ## [1.1.0] — 2026-07-03
 
 **Detection Engineering v1.0**: a complete, deterministic detection subsystem

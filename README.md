@@ -247,7 +247,19 @@ livenessProbe:  { httpGet: { path: /health, port: 8000 } }
 readinessProbe: { httpGet: { path: /ready,  port: 8000 } }
 ```
 
-Build provenance on `/version` (`build.commit` / `build.timestamp`) is read from environment variables when set (`THREATLENS_BUILD_COMMIT` / `VERCEL_GIT_COMMIT_SHA` / `GIT_COMMIT`, and `THREATLENS_BUILD_TIME` / `BUILD_TIMESTAMP`); otherwise `null`. The frontend shows a passive status pill (top-right) driven by `GET /health` and `GET /health/ai`.
+Build provenance on `/version` (`build.commit` / `build.timestamp`) is read from environment variables when set (`THREATLENS_BUILD_COMMIT` / `VERCEL_GIT_COMMIT_SHA` / `GIT_COMMIT`, and `THREATLENS_BUILD_TIME` / `BUILD_TIMESTAMP`); otherwise `null`. The frontend shows a passive status pill (top-right) driven by `GET /health` and `GET /health/ai` — click it to open the **Operational Dashboard**.
+
+### Operational Dashboard
+
+A read-only page for administrators/developers at **`/dashboard`** (separate from the Investigation Workspace), covering three tabs backed by three endpoints under `/api/v1/system`:
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/v1/system/health` | Per-service Healthy/Degraded/Offline/Disabled (backend, API, TI providers, knowledge providers, AI, Detection Engine, Detection Knowledge Library) plus an overall rollup. Reuses the checks above — no new probing. |
+| `GET /api/v1/system/usage` | Incremental request/success/failure/latency counters per TI and knowledge provider, the AI layer, Detection Engineering generations, Detection Knowledge queries, and investigation statistics (avg duration/findings/recommendations/confidence). In-memory, process-local, reset on restart — no database, no monitoring stack. |
+| `GET /api/v1/system/config` | Configured/enabled booleans per provider and the AI provider/model. Never a key, token, secret, or credential-bearing URL. |
+
+The dashboard is strictly downstream and isolated: it never calls a provider, runs an investigation, generates a detection, or invokes the AI layer — it only reads already-computed response objects and existing configuration checks. See [`docs/architecture/PHASE-OPERATIONAL-DASHBOARD-V1.md`](docs/architecture/PHASE-OPERATIONAL-DASHBOARD-V1.md) for the full design.
 
 ---
 
