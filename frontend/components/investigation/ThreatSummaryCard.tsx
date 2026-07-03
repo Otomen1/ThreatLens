@@ -1,6 +1,8 @@
 import type { AggregatedResult, Entity } from "@/lib/api";
 import { extractKeyAttributes, groupKeyAttributes } from "@/lib/investigation";
 
+import { TagList } from "./shared/TagList";
+
 interface Props {
   entity: Entity;
   threatIntelligence: AggregatedResult;
@@ -47,17 +49,7 @@ export function ThreatSummaryCard({ entity, threatIntelligence, knowledge }: Pro
 
         {tags.length > 0 && (
           <div className={groups.length > 0 ? "pt-4 border-t border-zinc-800" : ""}>
-            <p className="text-[11px] text-zinc-500 mb-2">Tags</p>
-            <div className="flex flex-wrap gap-1.5">
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="px-2 py-0.5 rounded-md bg-zinc-800 border border-zinc-700 text-xs text-zinc-400"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+            <TagList tags={tags} labelClassName="text-[11px] text-zinc-500" />
           </div>
         )}
       </div>

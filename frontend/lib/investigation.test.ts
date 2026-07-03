@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { AttributedReference, AttributedRelationship, Finding } from "./api";
 import {
   findingsByIds,
+  getTagPreview,
   groupKeyAttributes,
   groupReferencesBySource,
   groupRelationshipsByTarget,
@@ -122,5 +123,45 @@ describe("groupReferencesBySource", () => {
 
   it("returns an empty array for no references", () => {
     expect(groupReferencesBySource([])).toEqual([]);
+  });
+});
+
+describe("getTagPreview", () => {
+  const tags = Array.from({ length: 163 }, (_, i) => `tag-${i}`);
+
+  it("previews the default configured count and reports more remain", () => {
+    const preview = getTagPreview(tags, 20);
+    expect(preview.visible).toHaveLength(20);
+    expect(preview.hasMore).toBe(true);
+  });
+
+  it("preserves the original (backend) order, never sorts", () => {
+    const preview = getTagPreview(tags, 20);
+    expect(preview.visible).toEqual(tags.slice(0, 20));
+  });
+
+  it("reports the correct total via hasMore for a large set", () => {
+    expect(getTagPreview(tags, 20).hasMore).toBe(true);
+    expect(tags.length).toBe(163);
+  });
+
+  it("does not report more when the set is smaller than the preview count", () => {
+    const small = ["a", "b", "c"];
+    const preview = getTagPreview(small, 20);
+    expect(preview.visible).toEqual(small);
+    expect(preview.hasMore).toBe(false);
+  });
+
+  it("does not report more when the set exactly equals the preview count", () => {
+    const exact = Array.from({ length: 20 }, (_, i) => `tag-${i}`);
+    const preview = getTagPreview(exact, 20);
+    expect(preview.visible).toHaveLength(20);
+    expect(preview.hasMore).toBe(false);
+  });
+
+  it("returns an empty preview for an empty tag set", () => {
+    const preview = getTagPreview([], 20);
+    expect(preview.visible).toEqual([]);
+    expect(preview.hasMore).toBe(false);
   });
 });
