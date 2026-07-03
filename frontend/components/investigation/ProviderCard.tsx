@@ -10,6 +10,8 @@ import {
   statusLabel,
 } from "@/lib/investigation";
 
+import { TagList } from "./shared/TagList";
+
 interface Props {
   provider: ProviderSummary;
   evidence: AttributedEvidence[];
@@ -111,19 +113,10 @@ export function ProviderCard({ provider, evidence }: Props) {
 
           {/* Tags */}
           {tagEvidence.length > 0 && (
-            <div>
-              <p className="text-[11px] text-zinc-500 uppercase tracking-wider mb-2">Tags</p>
-              <div className="flex flex-wrap gap-1.5">
-                {tagEvidence.map((e, i) => (
-                  <span
-                    key={i}
-                    className="px-2 py-0.5 rounded-md bg-zinc-700/50 border border-zinc-600/40 text-xs text-zinc-400"
-                  >
-                    {e.evidence.value ?? e.evidence.summary}
-                  </span>
-                ))}
-              </div>
-            </div>
+            <TagList
+              tags={tagEvidence.map((e) => e.evidence.value ?? e.evidence.summary)}
+              badgeClassName="px-2 py-0.5 rounded-md bg-zinc-700/50 border border-zinc-600/40 text-xs text-zinc-400"
+            />
           )}
 
           {/* Error info */}

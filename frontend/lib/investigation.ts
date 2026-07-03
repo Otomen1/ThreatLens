@@ -558,6 +558,21 @@ export function groupReferencesBySource(references: AttributedReference[]): Refe
     .sort((a, b) => b.items.length - a.items.length || a.label.localeCompare(b.label));
 }
 
+// --- tag preview (presentation only — never changes tags, order, or ranking) ---
+
+export interface TagPreview {
+  visible: string[];
+  hasMore: boolean;
+}
+
+/** Slice a tag list down to a fixed-size preview, preserving existing order. */
+export function getTagPreview(tags: string[], previewCount: number): TagPreview {
+  return {
+    visible: tags.slice(0, previewCount),
+    hasMore: tags.length > previewCount,
+  };
+}
+
 // --- misc ---
 
 export function truncate(text: string, maxLen: number): string {
