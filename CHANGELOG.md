@@ -6,6 +6,17 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-07-03
+
+**Detection Engineering v1.0**: a complete, deterministic detection subsystem
+built downstream of the frozen Investigation & Reasoning Engines, delivered
+across Phases 4.0–4.6 and validated end-to-end (140-scenario detection corpus,
+golden regression across nine generators, 1,581 backend tests, linear
+performance scaling). It never modifies the Investigation Engine, the frozen
+Reasoning Engine (`ENGINE_VERSION` unchanged at `"1.0"`), findings, confidence,
+or recommendations. Detection Engineering is itself frozen at
+`DETECTION_ENGINE_VERSION = "1.0"` as of Phase 4.5.
+
 ### Phase 4.6 — Detection Knowledge Library
 
 - **New downstream, read-only subsystem** (`threatlens.detection_library`) that

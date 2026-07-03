@@ -3,7 +3,7 @@
 **A search-first, deterministic threat-intelligence and investigation platform.**
 
 [![CI](https://github.com/Otomen1/ThreatLens/actions/workflows/ci.yml/badge.svg)](https://github.com/Otomen1/ThreatLens/actions/workflows/ci.yml)
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-1.1.0-blue)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -366,7 +366,9 @@ All future phases consume the frozen `InvestigationSummary` — the reasoning co
 
 ## Versioning
 
-ThreatLens follows [Semantic Versioning](https://semver.org/). **v1.0.0** is the first stable Core Platform release. Patch releases (v1.0.x) fix bugs without changing engine output; minor releases (v1.1.0, …) add capabilities additively — new providers, new consumers, new endpoints; a major release (v2.0.0) is required for any breaking change to the public API or the reasoning output contract. Engine-output changes are always deliberate: they require regenerating the golden snapshots and bumping `ENGINE_VERSION`.
+ThreatLens follows [Semantic Versioning](https://semver.org/). **v1.0.0** was the first stable Core Platform release; **v1.1.0** adds Detection Engineering (nine generators + the Detection Knowledge Library) additively — new consumers, new endpoints, no change to any frozen engine's output contract. Patch releases (v1.x.y) fix bugs without changing engine output; minor releases add capabilities additively — new providers, new consumers, new endpoints; a major release (v2.0.0) is required for any breaking change to the public API or an engine's output contract.
+
+The **package/release version** (this badge, `pyproject.toml`, `package.json`, the git tag) advances with every release. It is deliberately separate from the **frozen engine version constants** (`ENGINE_VERSION` for reasoning, `DETECTION_ENGINE_VERSION` for detection — both still `"1.0"`) and from the **running platform version** reported by `GET /version` (`threatlens.__version__`, still `"1.0.0"`): the latter is embedded verbatim in generated YARA/Chronicle rule content, so it is part of the frozen Detection Engine v1.0 golden output and only changes alongside a deliberate, reviewed golden regeneration — never as a side effect of an ordinary release.
 
 ## License
 
