@@ -48,7 +48,10 @@ export function FindingsSection({ findings }: Props) {
   );
 }
 
-function FindingCard({ finding }: { finding: Finding }) {
+/** A single finding's collapsed card (rationale, confidence, evidence,
+ * relationships, recommendations). Exported for reuse — e.g. the Detection
+ * Engineering panel's Findings tab renders the same card for linked findings. */
+export function FindingCard({ finding }: { finding: Finding }) {
   const [expanded, setExpanded] = useState(false);
 
   return (

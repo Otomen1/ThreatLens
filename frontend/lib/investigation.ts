@@ -9,6 +9,7 @@ import type {
   ConfidenceBand,
   Entity,
   EntityType,
+  Finding,
   ProviderSummary,
   ReputationLevel,
   ResultStatus,
@@ -435,4 +436,10 @@ export function formatTargetType(targetType: string): string {
 export function truncate(text: string, maxLen: number): string {
   if (text.length <= maxLen) return text;
   return text.slice(0, maxLen).trimEnd() + "…";
+}
+
+/** Findings matching a set of ids, in the ids' order (for a detection's linked findings). */
+export function findingsByIds(findings: Finding[], ids: string[]): Finding[] {
+  const byId = new Map(findings.map((f) => [f.id, f]));
+  return ids.map((id) => byId.get(id)).filter((f): f is Finding => f !== undefined);
 }

@@ -2,7 +2,8 @@
 // No React, no I/O — unit-testable in the node test environment. Kept separate
 // from lib/detection.ts because community detections are a distinct concept.
 
-import type { CommunityRule, LicenseSupport, RuleMatchType } from "./api";
+import type { CommunityRule, LicenseSupport, RuleMatch, RuleMatchType } from "./api";
+import { groupByLanguage, type LanguageGroup } from "./detection";
 
 /** Human label for a match strength. */
 export function matchTypeLabel(type: RuleMatchType): string {
@@ -84,4 +85,12 @@ export function communityRuleFilename(rule: CommunityRule): string {
   const base = (rule.rule_id || rule.id).replace(/[^a-zA-Z0-9._-]/g, "-");
   const ext = FILE_EXTENSIONS[rule.language] ?? "txt";
   return `${base}.${ext}`;
+}
+
+/** Group community matches by language, in the same canonical order/labels
+ * used by Detection Engineering (matches share the DetectionLanguage set). */
+export function groupMatchesByLanguage(matches: RuleMatch[]): LanguageGroup<RuleMatch>[] {
+  return groupByLanguage(matches.map((match) => ({ language: match.rule.language, match }))).map(
+    (group) => ({ ...group, items: group.items.map((wrapped) => wrapped.match) }),
+  );
 }

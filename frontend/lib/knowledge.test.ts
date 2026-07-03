@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import type { CommunityRule } from "./api";
+import type { CommunityRule, RuleMatch } from "./api";
 import {
   communityRuleFilename,
+  groupMatchesByLanguage,
   isRedistributable,
   licenseSupportLabel,
   matchTypeClass,
@@ -74,5 +75,26 @@ describe("communityRuleFilename", () => {
   it("falls back to .txt for an unknown language", () => {
     const unknown = { ...rule, language: "mystery" } as unknown as CommunityRule;
     expect(communityRuleFilename(unknown)).toBe("ET-TROJAN-2400001.txt");
+  });
+});
+
+function match(language: string, id: string): RuleMatch {
+  return { rule: { id, language } } as unknown as RuleMatch;
+}
+
+describe("groupMatchesByLanguage", () => {
+  it("groups community matches by their rule's language", () => {
+    const groups = groupMatchesByLanguage([
+      match("yara", "a"),
+      match("sigma", "b"),
+      match("sigma", "c"),
+    ]);
+    expect(groups.map((g) => g.language)).toEqual(["sigma", "yara"]);
+    expect(groups[0].items.map((m) => m.rule.id)).toEqual(["b", "c"]);
+    expect(groups[0].label).toBe("Sigma");
+  });
+
+  it("returns an empty array for no matches", () => {
+    expect(groupMatchesByLanguage([])).toEqual([]);
   });
 });
