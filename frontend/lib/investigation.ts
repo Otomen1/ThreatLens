@@ -408,6 +408,90 @@ export function extractKeyAttributes(
   return attrs;
 }
 
+// --- key attribute grouping (presentation only — never changes attrs themselves) ---
+
+export const KEY_ATTRIBUTE_CATEGORY_ORDER = [
+  "Malware Families",
+  "Threat Actors",
+  "Techniques",
+  "Vulnerabilities",
+  "Campaigns",
+  "Software",
+  "Infrastructure",
+  "Other",
+] as const;
+
+// Exact labels extractKeyAttributes is known to produce (precise categorization).
+const LABEL_CATEGORY: Record<string, (typeof KEY_ATTRIBUTE_CATEGORY_ORDER)[number]> = {
+  Tactics: "Techniques",
+  "Parent Technique": "Techniques",
+  "Sub-techniques": "Techniques",
+  "ATT&CK Techniques": "Techniques",
+  "Known Techniques": "Techniques",
+  Mitigations: "Techniques",
+  "CVSS Score": "Vulnerabilities",
+  "Attack Vector": "Vulnerabilities",
+  "Attack Complexity": "Vulnerabilities",
+  "Privileges Required": "Vulnerabilities",
+  "User Interaction": "Vulnerabilities",
+  Published: "Vulnerabilities",
+  "Last Modified": "Vulnerabilities",
+  Weaknesses: "Vulnerabilities",
+  "Affected Products": "Vulnerabilities",
+  Likelihood: "Vulnerabilities",
+  Consequences: "Vulnerabilities",
+  Severity: "Vulnerabilities",
+  Abstraction: "Vulnerabilities",
+  Aliases: "Threat Actors",
+  "Associated Groups": "Threat Actors",
+  "Associated Software": "Software",
+  Platforms: "Infrastructure",
+};
+
+// Fallback for labels not in the exact table above (e.g. dynamic IOC-evidence
+// labels, whose text varies by provider phrasing) — substring heuristic.
+function categoryFromLabelHeuristic(label: string): (typeof KEY_ATTRIBUTE_CATEGORY_ORDER)[number] {
+  const lower = label.toLowerCase();
+  if (lower.includes("malware")) return "Malware Families";
+  if (lower.includes("actor") || lower.includes("group")) return "Threat Actors";
+  if (lower.includes("campaign")) return "Campaigns";
+  if (lower.includes("technique") || lower.includes("tactic")) return "Techniques";
+  if (lower.includes("cve") || lower.includes("vulnerab") || lower.includes("cvss")) {
+    return "Vulnerabilities";
+  }
+  if (lower.includes("software") || lower.includes("product")) return "Software";
+  if (
+    lower.includes("platform") ||
+    lower.includes("infrastructure") ||
+    lower.includes("network") ||
+    lower.includes("asn") ||
+    lower.includes("isp") ||
+    lower.includes("country")
+  ) {
+    return "Infrastructure";
+  }
+  return "Other";
+}
+
+export interface KeyAttributeGroup {
+  category: (typeof KEY_ATTRIBUTE_CATEGORY_ORDER)[number];
+  items: KeyAttribute[];
+}
+
+/** Group key attributes by category, in canonical order; only non-empty categories. */
+export function groupKeyAttributes(attrs: KeyAttribute[]): KeyAttributeGroup[] {
+  const byCategory = new Map<string, KeyAttribute[]>();
+  for (const attr of attrs) {
+    const category = LABEL_CATEGORY[attr.label] ?? categoryFromLabelHeuristic(attr.label);
+    const bucket = byCategory.get(category);
+    if (bucket) bucket.push(attr);
+    else byCategory.set(category, [attr]);
+  }
+  return KEY_ATTRIBUTE_CATEGORY_ORDER.filter((category) => byCategory.has(category)).map(
+    (category) => ({ category, items: byCategory.get(category)! }),
+  );
+}
+
 // --- relationship / reference formatting ---
 
 export function formatRelationship(rel: string): string {
@@ -429,6 +513,49 @@ export function formatTargetType(targetType: string): string {
     url: "URL",
   };
   return labels[targetType] ?? targetType.replace(/_/g, " ");
+}
+
+export interface RelationshipGroup {
+  targetType: string;
+  label: string;
+  items: AttributedRelationship[];
+}
+
+/** Group relationships by target type (e.g. Technique, Malware, Threat Actor). */
+export function groupRelationshipsByTarget(
+  relationships: AttributedRelationship[],
+): RelationshipGroup[] {
+  const byType = new Map<string, AttributedRelationship[]>();
+  for (const rel of relationships) {
+    const type = rel.relationship.target_type;
+    const bucket = byType.get(type);
+    if (bucket) bucket.push(rel);
+    else byType.set(type, [rel]);
+  }
+  // Largest group first; ties broken alphabetically by label for stable order.
+  return [...byType.entries()]
+    .map(([targetType, items]) => ({ targetType, label: formatTargetType(targetType), items }))
+    .sort((a, b) => b.items.length - a.items.length || a.label.localeCompare(b.label));
+}
+
+export interface ReferenceGroup {
+  source: string;
+  label: string;
+  items: AttributedReference[];
+}
+
+/** Group references by their primary contributing source (e.g. OTX, MITRE). */
+export function groupReferencesBySource(references: AttributedReference[]): ReferenceGroup[] {
+  const bySource = new Map<string, AttributedReference[]>();
+  for (const ref of references) {
+    const source = ref.sources[0] ?? "other";
+    const bucket = bySource.get(source);
+    if (bucket) bucket.push(ref);
+    else bySource.set(source, [ref]);
+  }
+  return [...bySource.entries()]
+    .map(([source, items]) => ({ source, label: source.replace(/_/g, " "), items }))
+    .sort((a, b) => b.items.length - a.items.length || a.label.localeCompare(b.label));
 }
 
 // --- misc ---

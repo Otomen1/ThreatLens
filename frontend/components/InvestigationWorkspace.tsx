@@ -65,6 +65,9 @@ export function InvestigationWorkspace({ data, timestamp }: Props) {
         knowledge={knowledge}
       />
 
+      {/* ── Investigation Results (analyst workflow) ──────────────── */}
+      <SectionDivider label="Investigation Results" />
+
       {/* ── 2. Investigation assessment (reasoning headline) ──────── */}
       {summary && <InvestigationSummaryCard summary={summary} />}
 
@@ -83,12 +86,18 @@ export function InvestigationWorkspace({ data, timestamp }: Props) {
       {/* ── 4d. Detection knowledge — COMMUNITY detections (separate) ── */}
       {summary && <DetectionKnowledgeCard summary={summary} />}
 
+      {/* ── Supporting Investigation Data (visual grouping only) ──── */}
+      <SectionDivider label="Supporting Investigation Data" />
+
       {/* ── 5. Entity context + key attributes ────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <OverviewCard
           entity={entity}
           threatIntelligence={threat_intelligence}
           knowledge={knowledge}
+          relationshipCount={allRelationships.length}
+          referenceCount={allReferences.length}
+          timestamp={timestamp}
         />
         <div className="lg:col-span-2">
           <ThreatSummaryCard
@@ -102,10 +111,15 @@ export function InvestigationWorkspace({ data, timestamp }: Props) {
       {/* ── 6. Provider details (supporting) — Threat Intelligence ── */}
       {hasTI && (
         <section
-          className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-3"
+          className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-2.5"
           aria-label="Threat Intelligence"
         >
-          <h2 className="text-sm font-semibold text-white">Threat Intelligence</h2>
+          <h2 className="text-sm font-semibold text-white">
+            Threat Intelligence
+            <span className="ml-2 text-xs font-normal text-zinc-500">
+              ({threat_intelligence.providers.length})
+            </span>
+          </h2>
           {threat_intelligence.providers.map((provider) => (
             <ProviderCard
               key={provider.provider}
@@ -119,10 +133,15 @@ export function InvestigationWorkspace({ data, timestamp }: Props) {
       {/* ── 7. Provider details (supporting) — Knowledge ──────────── */}
       {hasKB && (
         <section
-          className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-3"
+          className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-2.5"
           aria-label="Knowledge"
         >
-          <h2 className="text-sm font-semibold text-white">Knowledge</h2>
+          <h2 className="text-sm font-semibold text-white">
+            Knowledge
+            <span className="ml-2 text-xs font-normal text-zinc-500">
+              ({knowledge.providers.length})
+            </span>
+          </h2>
           {knowledge.providers.map((provider) => (
             <KnowledgeCard
               key={provider.provider}
@@ -142,6 +161,20 @@ export function InvestigationWorkspace({ data, timestamp }: Props) {
 
       {/* ── 10. Advanced Details ──────────────────────────────────── */}
       <AdvancedPanel threatIntelligence={threat_intelligence} knowledge={knowledge} />
+    </div>
+  );
+}
+
+/** A lightweight eyebrow + rule dividing the page into its two visual zones
+ * (Investigation Results / Supporting Investigation Data). Grouping only —
+ * it changes no layout, order, or functionality of the sections it separates. */
+function SectionDivider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3 pt-2" role="separator" aria-label={label}>
+      <span className="text-[11px] font-semibold text-zinc-600 uppercase tracking-widest whitespace-nowrap">
+        {label}
+      </span>
+      <div className="h-px flex-1 bg-zinc-800" aria-hidden />
     </div>
   );
 }

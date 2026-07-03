@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import type { AttributedRelationship } from "@/lib/api";
-import { formatRelationship, formatTargetType } from "@/lib/investigation";
+import { formatRelationship, groupRelationshipsByTarget } from "@/lib/investigation";
 
 interface Props {
   relationships: AttributedRelationship[];
@@ -18,63 +18,49 @@ export function RelationshipSection({ relationships }: Props) {
 
   const displayed = showAll ? relationships : relationships.slice(0, PAGE_SIZE);
   const hasMore = relationships.length > PAGE_SIZE;
+  const groups = groupRelationshipsByTarget(displayed);
 
   return (
     <section
       className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5"
       aria-label="Relationships"
     >
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-semibold text-white">
-          Relationships
-          <span className="ml-2 text-xs font-normal text-zinc-500">
-            ({relationships.length})
-          </span>
-        </h2>
-      </div>
+      <h2 className="text-sm font-semibold text-white mb-4">
+        Relationships
+        <span className="ml-2 text-xs font-normal text-zinc-500">
+          ({relationships.length})
+        </span>
+      </h2>
 
-      <div className="overflow-x-auto -mx-1 px-1">
-        <table className="w-full text-xs border-collapse">
-          <thead>
-            <tr className="border-b border-zinc-800">
-              <th className="text-left text-[11px] font-medium text-zinc-500 pb-2 pr-4 whitespace-nowrap">
-                Relationship
-              </th>
-              <th className="text-left text-[11px] font-medium text-zinc-500 pb-2 pr-4 whitespace-nowrap">
-                Type
-              </th>
-              <th className="text-left text-[11px] font-medium text-zinc-500 pb-2 pr-4">
-                Target
-              </th>
-              <th className="text-left text-[11px] font-medium text-zinc-500 pb-2 whitespace-nowrap hidden sm:table-cell">
-                Source
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {displayed.map((r, i) => (
-              <tr
-                key={i}
-                className="border-b border-zinc-800/40 last:border-0 hover:bg-zinc-800/20 transition-colors"
-              >
-                <td className="py-2 pr-4 text-zinc-400 capitalize whitespace-nowrap">
-                  {formatRelationship(r.relationship.relationship)}
-                </td>
-                <td className="py-2 pr-4 whitespace-nowrap">
-                  <span className="px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700/60 text-zinc-400">
-                    {formatTargetType(r.relationship.target_type)}
-                  </span>
-                </td>
-                <td className="py-2 pr-4 font-mono text-zinc-300 break-all">
-                  {r.relationship.target_value}
-                </td>
-                <td className="py-2 text-zinc-600 whitespace-nowrap hidden sm:table-cell">
-                  {r.sources.join(", ")}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {groups.map((group) => (
+          <div
+            key={group.targetType}
+            className="rounded-xl border border-zinc-800 bg-zinc-950/40 overflow-hidden"
+          >
+            <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-800 bg-zinc-800/30">
+              <span className="text-xs font-medium text-zinc-300">{group.label}</span>
+              <span className="text-[10px] font-mono text-zinc-500 bg-zinc-800 rounded-full px-1.5 py-0.5">
+                {group.items.length}
+              </span>
+            </div>
+            <ul className="divide-y divide-zinc-800/60">
+              {group.items.map((r, i) => (
+                <li key={i} className="px-3 py-2 text-xs">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-zinc-500 capitalize shrink-0">
+                      {formatRelationship(r.relationship.relationship)}
+                    </span>
+                    <span className="font-mono text-zinc-300 break-all">
+                      {r.relationship.target_value}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-zinc-600 mt-0.5">{r.sources.join(", ")}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
 
       {hasMore && (
@@ -82,9 +68,7 @@ export function RelationshipSection({ relationships }: Props) {
           onClick={() => setShowAll((v) => !v)}
           className="mt-3 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
         >
-          {showAll
-            ? "Show fewer"
-            : `Show all ${relationships.length} relationships`}
+          {showAll ? "Show fewer" : `Show all ${relationships.length} relationships`}
         </button>
       )}
     </section>
