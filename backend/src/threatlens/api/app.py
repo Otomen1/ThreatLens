@@ -9,6 +9,7 @@ transport, validation, and a per-request ``search_id``.
 from __future__ import annotations
 
 import os
+import time
 from typing import Annotated
 from uuid import uuid4
 
@@ -32,6 +33,14 @@ from ..providers import build_default_router
 from ..reasoning import InvestigationSummary, reason
 from ..reference import build_default_reference_router
 from ..search import detect
+from ..system import build_system_router
+from ..system import registry as metrics_registry
+from ..system.record import (
+    record_ai_explanation,
+    record_detection_generation,
+    record_dkl_query,
+    record_investigation,
+)
 from .health import router as health_router
 from .schemas import DetectRequest, DetectResponse, InvestigationResponse
 
@@ -122,6 +131,17 @@ def get_knowledge_service() -> DetectionKnowledgeService:
 app.include_router(health_router)
 app.include_router(health_router, prefix="/api/v1")
 
+# Operational Dashboard (read-only): system health, API consumption, and
+# configuration status for administrators/developers. Isolated from the
+# investigation path — see docs/architecture/PHASE-OPERATIONAL-DASHBOARD-V1.md.
+app.include_router(
+    build_system_router(
+        detection_registry=_detection_registry,
+        knowledge_service=_knowledge_service,
+    ),
+    prefix="/api/v1",
+)
+
 
 @app.post("/api/v1/detect", response_model=DetectResponse)
 def detect_entity(request: DetectRequest) -> DetectResponse:
@@ -148,8 +168,17 @@ async def investigate_entity(
     Providers that fail contribute their status, not an exception.
     """
     entity = detect(request.query)
+    _start = time.perf_counter()
     threat_intelligence, knowledge = await service.investigate(entity)
+    _duration_ms = (time.perf_counter() - _start) * 1000
     investigation_summary = reason(entity, threat_intelligence, knowledge)
+    record_investigation(
+        metrics_registry,
+        threat_intelligence=threat_intelligence,
+        knowledge=knowledge,
+        summary=investigation_summary,
+        duration_ms=_duration_ms,
+    )
     return InvestigationResponse(
         investigation_id=uuid4(),
         entity=entity,
@@ -175,7 +204,17 @@ async def explain_investigation(
     a structured ``disabled`` / ``unavailable`` response (never an error), so the
     AI layer can never fail an investigation. ``/investigate`` is unchanged.
     """
-    return await service.explain(summary)
+    _start = time.perf_counter()
+    explanation = await service.explain(summary)
+    _duration_ms = (time.perf_counter() - _start) * 1000
+    if explanation.status != "disabled":
+        record_ai_explanation(
+            metrics_registry,
+            explanation=explanation,
+            prompt_chars=len(summary.model_dump_json()),
+            duration_ms=_duration_ms,
+        )
+    return explanation
 
 
 @app.post("/api/v1/detections", response_model=DetectionPackage)
@@ -192,7 +231,11 @@ def create_detections(summary: InvestigationSummary) -> DetectionPackage:
     carries no artifacts (``is_empty``). The endpoint and contract already exist
     so future generators light up without an API change.
     """
-    return generate_detections(summary, registry=_detection_registry)
+    _start = time.perf_counter()
+    package = generate_detections(summary, registry=_detection_registry)
+    _duration_ms = (time.perf_counter() - _start) * 1000
+    record_detection_generation(metrics_registry, package=package, duration_ms=_duration_ms)
+    return package
 
 
 @app.post("/api/v1/detection-knowledge/recommend", response_model=CommunityRecommendation)
@@ -208,7 +251,10 @@ def recommend_community_detections(
     generated ``DetectionPackage`` from ``/detections``; provenance (repository,
     author, license, version, URL) is preserved on every match.
     """
-    return service.recommend(summary)
+    _start = time.perf_counter()
+    result = service.recommend(summary)
+    record_dkl_query(metrics_registry, duration_ms=(time.perf_counter() - _start) * 1000)
+    return result
 
 
 @app.get("/api/v1/detection-knowledge/search", response_model=CommunitySearchResult)
@@ -234,7 +280,8 @@ def search_community_detections(
     Every filter is optional; results are returned in a stable, deterministic
     order with a snapshot of library stats. Read-only and offline.
     """
-    return service.search(
+    _start = time.perf_counter()
+    result = service.search(
         ioc=ioc,
         technique=technique,
         actor=actor,
@@ -250,3 +297,5 @@ def search_community_detections(
         limit=limit,
         offset=offset,
     )
+    record_dkl_query(metrics_registry, duration_ms=(time.perf_counter() - _start) * 1000)
+    return result

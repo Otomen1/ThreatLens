@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { aiHealth, health, type AIHealth, type HealthStatus } from "@/lib/api";
@@ -50,16 +51,17 @@ export function SystemStatus() {
 
   return (
     <div className="fixed top-4 right-4 z-50">
-      <div
-        className="flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/70 px-3 py-1.5 backdrop-blur-sm"
-        role="status"
-        aria-label={title}
-        title={title}
-      >
-        <span className={`h-2 w-2 rounded-full ${dotClass}`} aria-hidden />
-        <span className="text-[11px] font-medium text-zinc-400">{label}</span>
-        {state.kind === "online" && <AIBadge ai={state.ai} />}
-      </div>
+      <Link href="/dashboard" title={`${title} — View Operational Dashboard`}>
+        <div
+          className="flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/70 px-3 py-1.5 backdrop-blur-sm hover:border-zinc-700 transition-colors"
+          role="status"
+          aria-label={title}
+        >
+          <span className={`h-2 w-2 rounded-full ${dotClass}`} aria-hidden />
+          <span className="text-[11px] font-medium text-zinc-400">{label}</span>
+          {state.kind === "online" && <AIBadge ai={state.ai} />}
+        </div>
+      </Link>
     </div>
   );
 }

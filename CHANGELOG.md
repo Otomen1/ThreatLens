@@ -6,6 +6,52 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+## [1.1.1] — 2026-07-04
+
+Patch release: operational tooling and frontend presentation refinements, no
+change to any frozen engine's behavior or output contract, no new
+investigation/detection capability. Kept at patch rather than minor because
+nothing here is analyst-facing capability — it's admin-only observability
+plus pure presentation restructuring of data the UI already had.
+
+### Added — Operational Dashboard v1
+
+- **New read-only subsystem** (`threatlens.system`) for administrators and
+  developers: system health, API consumption, and configuration status. It is
+  strictly downstream and isolated — it never calls a provider, runs an
+  investigation, generates a detection, or invokes the AI layer; it only reads
+  already-computed response objects and the existing health checks. No change
+  to the Investigation Engine, the frozen Reasoning Engine, the Detection
+  Engine, the Detection Knowledge Library, or the AI layer's behavior or API
+  contracts.
+- Three new endpoints under `/api/v1/system`: `GET /health` (per-service
+  Healthy/Degraded/Offline/Disabled + overall rollup, reusing the Phase 3.17
+  health checks), `GET /usage` (in-memory, process-local request/latency
+  counters per provider, the AI layer, Detection Engineering, Detection
+  Knowledge, and investigations — reset on restart, no database), and
+  `GET /config` (configured/enabled booleans only — never a key, token,
+  secret, or credential-bearing URL).
+- **New frontend page** at `/dashboard` (separate from the Investigation
+  Workspace) with three tabs — System Health, API Consumption, Configuration —
+  reachable from the existing status pill. Reuses the app's dark theme and
+  existing shared presentation primitives.
+
+### Changed — Frontend UI Refinements
+
+- **Detection Workspace v1**: restructured the Detection Engineering and
+  Detection Knowledge panels into a progressive-disclosure Language → Rule →
+  Rule Details drill-down, replacing one long list of full rule bodies.
+  Presentation only — no change to detection generation, matching, or scoring.
+- **Investigation Workspace v2**: grouped Overview, Threat Intelligence, Key
+  Attributes, Relationships, and References under a "Supporting Investigation
+  Data" zone below "Investigation Results," with a compact Overview summary,
+  categorized Key Attributes, and grouped Relationships/References cards.
+  Presentation only — no change to investigation data or logic.
+- **Tag Presentation v1**: large tag lists (Key Attributes and per-provider
+  Tags) now preview ~20 with a "Show all" disclosure instead of rendering
+  every tag unconditionally. Presentation only — tag content, order, and
+  count unchanged.
+
 ## [1.1.0] — 2026-07-03
 
 **Detection Engineering v1.0**: a complete, deterministic detection subsystem
