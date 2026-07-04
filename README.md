@@ -3,7 +3,7 @@
 **A search-first, deterministic threat-intelligence and investigation platform.**
 
 [![CI](https://github.com/Otomen1/ThreatLens/actions/workflows/ci.yml/badge.svg)](https://github.com/Otomen1/ThreatLens/actions/workflows/ci.yml)
-![Version](https://img.shields.io/badge/version-1.1.0-blue)
+![Version](https://img.shields.io/badge/version-1.1.1-blue)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -48,11 +48,12 @@ SOC analysts, incident responders, detection engineers, and threat-intel teams w
 
 | View | Screenshot |
 |---|---|
-| Dashboard (search) | `docs/screenshots/dashboard.png` *(placeholder)* |
+| Home (search) | `docs/screenshots/home.png` *(placeholder)* |
 | Investigation Workspace | `docs/screenshots/investigation-workspace.png` *(placeholder)* |
 | Findings | `docs/screenshots/findings.png` *(placeholder)* |
 | Recommendations | `docs/screenshots/recommendations.png` *(placeholder)* |
 | AI Explanation | `docs/screenshots/ai-explanation.png` *(placeholder)* |
+| Operational Dashboard | `docs/screenshots/operational-dashboard.png` *(placeholder)* |
 
 ---
 
@@ -192,6 +193,13 @@ All variables are optional — with none set, ThreatLens runs fully offline (kno
 | `OLLAMA_URL` | `http://localhost:11434` | Ollama server URL. |
 | `OLLAMA_MODEL` | `qwen3:8b` | Chat model for explanations (never hardcoded). `.env.example` ships the lighter `qwen3:4b` — see [AI Setup](#ai-setup). |
 | `AI_TIMEOUT` | `60` | AI request timeout in seconds. |
+
+### Backend — Detection Knowledge Library
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `THREATLENS_DKL_CACHE_DIR` | *(unset — bundled seed only)* | Optional directory for a synced community-detection cache. Unset means fully offline, seed-only. |
+| `THREATLENS_DKL_CACHE_TTL_SECONDS` | `604800` (7 days) | How long a synced cache is considered fresh before `sync_status` reports stale. |
 
 ### Frontend
 
@@ -378,7 +386,7 @@ All future phases consume the frozen `InvestigationSummary` — the reasoning co
 
 ## Versioning
 
-ThreatLens follows [Semantic Versioning](https://semver.org/). **v1.0.0** was the first stable Core Platform release; **v1.1.0** adds Detection Engineering (nine generators + the Detection Knowledge Library) additively — new consumers, new endpoints, no change to any frozen engine's output contract. Patch releases (v1.x.y) fix bugs without changing engine output; minor releases add capabilities additively — new providers, new consumers, new endpoints; a major release (v2.0.0) is required for any breaking change to the public API or an engine's output contract.
+ThreatLens follows [Semantic Versioning](https://semver.org/). **v1.0.0** was the first stable Core Platform release; **v1.1.0** adds Detection Engineering (nine generators + the Detection Knowledge Library) additively — new analyst-facing capability, new endpoints, no change to any frozen engine's output contract. **v1.1.1** is a patch: the read-only **Operational Dashboard** (admin/developer-only observability, not an investigation capability) plus frontend presentation refinements (Detection Workspace v1, Investigation Workspace v2, Tag Presentation v1) — no new analyst-facing capability, no engine change. Patch releases (v1.x.y) fix bugs or add non-capability tooling/presentation without changing engine output or analyst-facing behavior; minor releases add analyst-facing capability additively — new providers, new investigation/detection consumers; a major release (v2.0.0) is required for any breaking change to the public API or an engine's output contract.
 
 The **package/release version** (this badge, `pyproject.toml`, `package.json`, the git tag) advances with every release. It is deliberately separate from the **frozen engine version constants** (`ENGINE_VERSION` for reasoning, `DETECTION_ENGINE_VERSION` for detection — both still `"1.0"`) and from the **running platform version** reported by `GET /version` (`threatlens.__version__`, still `"1.0.0"`): the latter is embedded verbatim in generated YARA/Chronicle rule content, so it is part of the frozen Detection Engine v1.0 golden output and only changes alongside a deliberate, reviewed golden regeneration — never as a side effect of an ordinary release.
 

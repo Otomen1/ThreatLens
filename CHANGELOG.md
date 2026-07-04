@@ -6,6 +6,14 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+## [1.1.1] — 2026-07-04
+
+Patch release: operational tooling and frontend presentation refinements, no
+change to any frozen engine's behavior or output contract, no new
+investigation/detection capability. Kept at patch rather than minor because
+nothing here is analyst-facing capability — it's admin-only observability
+plus pure presentation restructuring of data the UI already had.
+
 ### Added — Operational Dashboard v1
 
 - **New read-only subsystem** (`threatlens.system`) for administrators and
@@ -27,6 +35,22 @@ All notable changes to ThreatLens are documented here. The project follows
   Workspace) with three tabs — System Health, API Consumption, Configuration —
   reachable from the existing status pill. Reuses the app's dark theme and
   existing shared presentation primitives.
+
+### Changed — Frontend UI Refinements
+
+- **Detection Workspace v1**: restructured the Detection Engineering and
+  Detection Knowledge panels into a progressive-disclosure Language → Rule →
+  Rule Details drill-down, replacing one long list of full rule bodies.
+  Presentation only — no change to detection generation, matching, or scoring.
+- **Investigation Workspace v2**: grouped Overview, Threat Intelligence, Key
+  Attributes, Relationships, and References under a "Supporting Investigation
+  Data" zone below "Investigation Results," with a compact Overview summary,
+  categorized Key Attributes, and grouped Relationships/References cards.
+  Presentation only — no change to investigation data or logic.
+- **Tag Presentation v1**: large tag lists (Key Attributes and per-provider
+  Tags) now preview ~20 with a "Show all" disclosure instead of rendering
+  every tag unconditionally. Presentation only — tag content, order, and
+  count unchanged.
 
 ## [1.1.0] — 2026-07-03
 
