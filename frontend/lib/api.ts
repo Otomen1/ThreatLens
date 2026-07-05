@@ -796,3 +796,21 @@ export function systemUsage(signal?: AbortSignal): Promise<UsageResponse> {
 export function systemConfig(signal?: AbortSignal): Promise<ConfigStatusResponse> {
   return get<ConfigStatusResponse>("/system/config", signal);
 }
+
+// --- exposure intelligence (Phase 5.0 — framework only, no providers yet) ---
+//
+// Answers "where is this entity exposed", never "is it malicious" (that
+// remains Threat Intelligence's question — a separate framework). This is a
+// pure readiness probe: no entity lookup, not integrated into /investigate.
+
+export interface ExposureFrameworkStatus {
+  status: string;
+  message: string;
+  framework_version: string;
+  providers_registered: number;
+}
+
+/** Exposure Intelligence Framework readiness — no providers configured yet. */
+export function exposureFrameworkStatus(signal?: AbortSignal): Promise<ExposureFrameworkStatus> {
+  return get<ExposureFrameworkStatus>("/exposure", signal);
+}

@@ -61,3 +61,17 @@ class InvestigationResponse(BaseModel):
     threat_intelligence: AggregatedResult
     knowledge: AggregatedResult
     investigation_summary: InvestigationSummary
+
+
+class ExposureFrameworkStatus(BaseModel):
+    """Readiness of the Exposure Intelligence Framework (Phase 5.0 — no providers yet).
+
+    A pure status probe, not an entity lookup: it reports whether the
+    framework is present and how many providers are registered, never
+    exposure data. Not integrated into ``/investigate``.
+    """
+
+    status: str
+    message: str
+    framework_version: str
+    providers_registered: int

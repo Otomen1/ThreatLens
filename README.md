@@ -201,6 +201,15 @@ All variables are optional — with none set, ThreatLens runs fully offline (kno
 | `THREATLENS_DKL_CACHE_DIR` | *(unset — bundled seed only)* | Optional directory for a synced community-detection cache. Unset means fully offline, seed-only. |
 | `THREATLENS_DKL_CACHE_TTL_SECONDS` | `604800` (7 days) | How long a synced cache is considered fresh before `sync_status` reports stale. |
 
+### Backend — Exposure Intelligence (Phase 5.0 — reserved, not yet read by any code path)
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `EXPOSURE_ENABLED` | `false` | Master switch — reserved for Phase 5.1's first provider. |
+| `EXPOSURE_CACHE_ENABLED` | `true` | Reserved — no cache is wired into the service yet. |
+| `EXPOSURE_TIMEOUT` | `10` | Reserved per-lookup timeout (seconds). |
+| `EXPOSURE_RATE_LIMIT_PER_MINUTE` | *(unset)* | Reserved rate limit. |
+
 ### Frontend
 
 | Variable | Default | Purpose |
@@ -268,6 +277,10 @@ A read-only page for administrators/developers at **`/dashboard`** (separate fro
 | `GET /api/v1/system/config` | Configured/enabled booleans per provider and the AI provider/model. Never a key, token, secret, or credential-bearing URL. |
 
 The dashboard is strictly downstream and isolated: it never calls a provider, runs an investigation, generates a detection, or invokes the AI layer — it only reads already-computed response objects and existing configuration checks. See [`docs/architecture/PHASE-OPERATIONAL-DASHBOARD-V1.md`](docs/architecture/PHASE-OPERATIONAL-DASHBOARD-V1.md) for the full design.
+
+### Exposure Intelligence (Phase 5.0 — framework only)
+
+`GET /api/v1/exposure` is a pure readiness probe for the new Exposure Intelligence framework — `{status, message, framework_version, providers_registered}`, never entity data. A placeholder page at **`/exposure`** shows the same three fields. Phase 5.0 ships zero providers, so `providers_registered` is always `0` today; see [`docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md`](docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md).
 
 ---
 
@@ -377,10 +390,10 @@ Everything runs offline: external TI providers are exercised against recorded/si
 | Phase | Capability |
 |---|---|
 | **Phase 4 — Detection Engineering** ✅ | Generate detections (Sigma/YARA/SIEM queries) from investigation findings; deterministic templating with validated output, citing the findings each rule derives from. Frozen at v1.0, plus a read-only **Detection Knowledge Library** recommending community detections alongside generated ones. |
-| **Phase 5 — Exposure Intelligence** | Asset/exposure context: what is internet-facing, what is vulnerable, how findings map to your attack surface. |
+| **Phase 5 — Exposure Intelligence** 🚧 | Asset/exposure context: what is internet-facing, what is vulnerable, how findings map to your attack surface. Answers "where is this exposed", never "is this malicious" — a separate framework from Threat Intelligence. **Phase 5.0 (framework only, no providers) is complete** — see [`docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md`](docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md). Providers (Shodan, Censys, GreyNoise, HIBP, SecurityTrails, …) and `InvestigationSummary` integration are later, unstarted milestones. |
 | **Phase 6 — Identity Intelligence** | Identity-centric investigation: accounts, credentials, and identity-driven attack paths. |
 
-All future phases consume the frozen `InvestigationSummary` — the reasoning core does not change to support them.
+All future phases consume the frozen `InvestigationSummary` — the reasoning core does not change to support them. Exposure Intelligence (Phase 5) is additionally isolated from Threat Intelligence, Knowledge Intelligence, Reasoning, Detection Engineering, the Detection Knowledge Library, and the Operational Dashboard — no shared models, no shared registry, dependency flows one way into `entities/` only.
 
 ---
 
