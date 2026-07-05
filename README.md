@@ -220,6 +220,16 @@ All variables are optional — with none set, ThreatLens runs fully offline (kno
 | `SHODAN_TIMEOUT` | `15` | Per-request timeout (seconds). |
 | `SHODAN_BASE_URL` | `https://api.shodan.io` | Override for testing or a self-hosted proxy. |
 
+### Backend — Exposure Intelligence: Censys (Phase 5.2)
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `CENSYS_ENABLED` | `true` | Enables/disables the Censys provider; `false` excludes it from routing. |
+| `CENSYS_API_ID` | *(unset)* | From https://search.censys.io/account/api, paired with `CENSYS_API_SECRET` as HTTP Basic auth. Either missing → every lookup returns a structured `unauthorized` finding. |
+| `CENSYS_API_SECRET` | *(unset)* | Paired with `CENSYS_API_ID`. |
+| `CENSYS_TIMEOUT` | `15` | Per-request timeout (seconds). |
+| `CENSYS_BASE_URL` | `https://search.censys.io/api` | Override for testing or a self-hosted proxy. |
+
 ### Frontend
 
 | Variable | Default | Purpose |
@@ -288,9 +298,9 @@ A read-only page for administrators/developers at **`/dashboard`** (separate fro
 
 The dashboard is strictly downstream and isolated: it never calls a provider, runs an investigation, generates a detection, or invokes the AI layer — it only reads already-computed response objects and existing configuration checks. See [`docs/architecture/PHASE-OPERATIONAL-DASHBOARD-V1.md`](docs/architecture/PHASE-OPERATIONAL-DASHBOARD-V1.md) for the full design.
 
-### Exposure Intelligence (Phase 5.1 — Shodan is the first provider)
+### Exposure Intelligence (Phase 5.1 Shodan + Phase 5.2 Censys)
 
-`GET /api/v1/exposure` reports framework + per-provider status — `{status, message, framework_version, providers_registered, providers[], summary}` — and, given an optional `?value=` query param (an IP), also runs a real lookup and returns the merged `summary` (an `ExposureSummary`: findings, evidence, assets, references). The **`/exposure`** page shows Provider Status (framework version, provider count, each provider's health) plus a search box; results render per-provider with full evidence/asset detail when configured, or a friendly message when a provider is disabled or missing credentials — never a crash. Still not integrated into `/investigate`. See [`docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md`](docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md) and [`docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md`](docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md).
+`GET /api/v1/exposure` reports framework + per-provider status — `{status, message, framework_version, providers_registered, providers[], summary}` — and, given an optional `?value=` query param (an IP), also runs a real lookup and returns the merged `summary` (an `ExposureSummary`: findings, evidence, assets, references) across every enabled provider. The **`/exposure`** page shows Provider Status (framework version, provider count, each provider's health) plus a search box; results render per-provider with full evidence/asset detail when configured, or a friendly message when a provider is disabled or missing credentials — never a crash. Two providers (Shodan, Censys) merge into one summary through the same unmodified aggregation path Phase 5.0 shipped with zero providers — see "Framework validation summary" in the Phase 5.2 doc. Still not integrated into `/investigate`. See [`docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md`](docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md), [`docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md`](docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md), and [`docs/architecture/PHASE-5.2-CENSYS-PROVIDER.md`](docs/architecture/PHASE-5.2-CENSYS-PROVIDER.md).
 
 ---
 
@@ -400,7 +410,7 @@ Everything runs offline: external TI providers are exercised against recorded/si
 | Phase | Capability |
 |---|---|
 | **Phase 4 — Detection Engineering** ✅ | Generate detections (Sigma/YARA/SIEM queries) from investigation findings; deterministic templating with validated output, citing the findings each rule derives from. Frozen at v1.0, plus a read-only **Detection Knowledge Library** recommending community detections alongside generated ones. |
-| **Phase 5 — Exposure Intelligence** 🚧 | Asset/exposure context: what is internet-facing, what is vulnerable, how findings map to your attack surface. Answers "where is this exposed", never "is this malicious" — a separate framework from Threat Intelligence. **Phase 5.0 (framework)** and **Phase 5.1 (Shodan — open ports, certificates, hosting for IPv4/IPv6)** are complete — see [`docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md`](docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md) and [`docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md`](docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md). Further providers (Censys, GreyNoise, HIBP, SecurityTrails, …), domain/email exposure, and `InvestigationSummary` integration are later, unstarted milestones. |
+| **Phase 5 — Exposure Intelligence** 🚧 | Asset/exposure context: what is internet-facing, what is vulnerable, how findings map to your attack surface. Answers "where is this exposed", never "is this malicious" — a separate framework from Threat Intelligence. **Phase 5.0 (framework)**, **Phase 5.1 (Shodan)**, and **Phase 5.2 (Censys)** are complete — two independent providers merge into one summary with zero framework changes, validating the design. See [`docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md`](docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md), [`docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md`](docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md), and [`docs/architecture/PHASE-5.2-CENSYS-PROVIDER.md`](docs/architecture/PHASE-5.2-CENSYS-PROVIDER.md). Further providers (GreyNoise, HIBP, SecurityTrails, …), domain/email exposure, and `InvestigationSummary` integration are later, unstarted milestones. |
 | **Phase 6 — Identity Intelligence** | Identity-centric investigation: accounts, credentials, and identity-driven attack paths. |
 
 All future phases consume the frozen `InvestigationSummary` — the reasoning core does not change to support them. Exposure Intelligence (Phase 5) is additionally isolated from Threat Intelligence, Knowledge Intelligence, Reasoning, Detection Engineering, the Detection Knowledge Library, and the Operational Dashboard — no shared models, no shared registry, dependency flows one way into `entities/` only.

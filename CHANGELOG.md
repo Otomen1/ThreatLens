@@ -84,6 +84,41 @@ Censys, GreyNoise, HIBP, SecurityTrails, IntelligenceX, BinaryEdge, FOFA,
 CriminalIP, LeakIX, domain/email exposure, and `InvestigationSummary`
 integration remain explicitly deferred to later, unstarted phases.
 
+### Added — Phase 5.2: Censys Exposure Provider (framework validation)
+
+- **`CensysProvider`** — the second concrete Exposure Intelligence provider,
+  reporting open ports, services, TLS certificates, reverse-DNS hostnames,
+  and hosting/ASN facts for IPv4/IPv6 via Censys Search's v2 Host view.
+  Authenticates with an API ID + Secret pair (`CENSYS_API_ID`/
+  `CENSYS_API_SECRET`) over HTTP Basic auth; missing/partial credentials
+  yield a structured `unauthorized` finding, never an exception.
+- **Validates the framework scales to multiple providers with zero
+  architectural change**: `build_default_registry()` gained one
+  `register()` line; `ExposureService`, `merge_findings()`, the
+  `GET /api/v1/exposure` endpoint, and the `/exposure` frontend page are all
+  byte-for-byte unmodified. A single IPv4 lookup now routes to and merges
+  both Shodan and Censys, in deterministic order (existing priority-then-
+  name tiebreak — no new ordering logic).
+- **Same provider-local in-memory caching** as Shodan (one hour TTL,
+  definitive results only).
+- **Test isolation fix** (`tests/exposure/conftest.py`, new): clears
+  provider-credential env vars before every exposure test, so the suite's
+  outcome never depends on what a local `backend/.env` happens to contain.
+- **No changes to any frozen v1.x subsystem**, no changes to any file under
+  `providers/`, and **no frontend file changes at all** — browser-verified
+  that the existing Phase 5.1 page/components already render a second
+  provider correctly.
+- **Testing:** 36 new/updated tests (32 in `test_censys_provider.py`, plus
+  registry/service/API updates and the new conftest). Exposure suite:
+  **141 tests** (was 105). Backend suite: **1,758 passed, 1 skipped** (was
+  1,722). Frontend: **98 tests, unchanged**. Ruff/mypy clean across 134
+  source files.
+- **Docs:** `docs/architecture/PHASE-5.2-CENSYS-PROVIDER.md`.
+
+GreyNoise, SecurityTrails, FOFA, LeakIX, BinaryEdge, CriminalIP, HIBP,
+IntelligenceX, domain/email exposure, and `InvestigationSummary` integration
+remain explicitly deferred to later, unstarted phases.
+
 ## [1.1.1] — 2026-07-04
 
 Patch release: operational tooling and frontend presentation refinements, no
