@@ -19,6 +19,7 @@ from .exceptions import DuplicateExposureProviderError
 from .models import ExposureCapability
 from .provider import ExposureProvider
 from .providers.censys import CensysProvider
+from .providers.greynoise import GreyNoiseProvider
 from .providers.shodan import ShodanProvider
 
 
@@ -88,18 +89,20 @@ def build_default_registry() -> ExposureRegistry:
     """Build the default exposure-provider registry.
 
     Phase 5.1 registered the first concrete provider, :class:`ShodanProvider`.
-    Phase 5.2 adds the second, :class:`CensysProvider`, through the exact same
-    integration point Phase 5.0 reserved (this function, unmodified in
-    shape) — proving the registry, routing, and aggregation already scale to
-    more than one provider with no framework change. Both are always
-    registered; whether each participates in routing is controlled by its
-    own ``*_ENABLED`` setting via ``ExposureProviderMetadata.enabled``, the
-    same mechanism :meth:`ExposureRegistry.route` already filters on. With
-    equal default priority, ordering falls back to the existing
-    priority-then-name tiebreak, so ``censys`` sorts before ``shodan`` —
-    deterministic without any new ordering logic.
+    Phase 5.2 added the second, :class:`CensysProvider`. Phase 5.3 adds the
+    third, :class:`GreyNoiseProvider`, through the exact same integration
+    point Phase 5.0 reserved (this function, unmodified in shape) —
+    reconfirming the registry, routing, and aggregation scale to N providers
+    with no framework change. All three are always registered; whether each
+    participates in routing is controlled by its own ``*_ENABLED`` setting
+    via ``ExposureProviderMetadata.enabled``, the same mechanism
+    :meth:`ExposureRegistry.route` already filters on. With equal default
+    priority, ordering falls back to the existing priority-then-name
+    tiebreak, so ``censys`` < ``greynoise`` < ``shodan`` — deterministic
+    without any new ordering logic.
     """
     registry = ExposureRegistry()
     registry.register(CensysProvider())
+    registry.register(GreyNoiseProvider())
     registry.register(ShodanProvider())
     return registry

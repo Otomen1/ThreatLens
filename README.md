@@ -233,6 +233,17 @@ All variables are optional — with none set, ThreatLens runs fully offline (kno
 
 No credentials at all (neither PAT nor the legacy pair) → every lookup returns a structured `unauthorized` finding, never an exception.
 
+### Backend — Exposure Intelligence: GreyNoise (Phase 5.3)
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `GREYNOISE_ENABLED` | `true` | Enables/disables the GreyNoise provider; `false` excludes it from routing. |
+| `GREYNOISE_API_KEY` | *(unset)* | From https://viz.greynoise.io/. Sent as a `key` header. Unset → every lookup returns a structured `unauthorized` finding, never an error. |
+| `GREYNOISE_TIMEOUT` | `15` | Per-request timeout (seconds). |
+| `GREYNOISE_BASE_URL` | `https://api.greynoise.io` | Override for testing or a self-hosted proxy. |
+
+IPv4 only — GreyNoise's own API scope, not a ThreatLens choice. Reports internet-noise/business-service classification (reputation/context), not scan-surface data; still purely descriptive — GreyNoise's own classification is quoted as a third-party fact, never a ThreatLens-computed verdict.
+
 ### Frontend
 
 | Variable | Default | Purpose |
@@ -301,9 +312,9 @@ A read-only page for administrators/developers at **`/dashboard`** (separate fro
 
 The dashboard is strictly downstream and isolated: it never calls a provider, runs an investigation, generates a detection, or invokes the AI layer — it only reads already-computed response objects and existing configuration checks. See [`docs/architecture/PHASE-OPERATIONAL-DASHBOARD-V1.md`](docs/architecture/PHASE-OPERATIONAL-DASHBOARD-V1.md) for the full design.
 
-### Exposure Intelligence (Phase 5.1 Shodan + Phase 5.2 Censys)
+### Exposure Intelligence (Phase 5.1 Shodan + Phase 5.2 Censys + Phase 5.3 GreyNoise)
 
-`GET /api/v1/exposure` reports framework + per-provider status — `{status, message, framework_version, providers_registered, providers[], summary}` — and, given an optional `?value=` query param (an IP), also runs a real lookup and returns the merged `summary` (an `ExposureSummary`: findings, evidence, assets, references) across every enabled provider. The **`/exposure`** page shows Provider Status (framework version, provider count, each provider's health) plus a search box; results render per-provider with full evidence/asset detail when configured, or a friendly message when a provider is disabled or missing credentials — never a crash. Two providers (Shodan, Censys) merge into one summary through the same unmodified aggregation path Phase 5.0 shipped with zero providers — see "Framework validation summary" in the Phase 5.2 doc. Still not integrated into `/investigate`. See [`docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md`](docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md), [`docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md`](docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md), and [`docs/architecture/PHASE-5.2-CENSYS-PROVIDER.md`](docs/architecture/PHASE-5.2-CENSYS-PROVIDER.md).
+`GET /api/v1/exposure` reports framework + per-provider status — `{status, message, framework_version, providers_registered, providers[], summary}` — and, given an optional `?value=` query param (an IP), also runs a real lookup and returns the merged `summary` (an `ExposureSummary`: findings, evidence, assets, references) across every enabled provider. The **`/exposure`** page shows Provider Status (framework version, provider count, each provider's health) plus a search box; results render per-provider with full evidence/asset detail when configured, or a friendly message when a provider is disabled or missing credentials — never a crash. Three providers (Censys, GreyNoise, Shodan) merge into one summary through the same unmodified aggregation path Phase 5.0 shipped with zero providers — see "Framework validation summary" in the Phase 5.2 and Phase 5.3 docs. GreyNoise contributes reputation/context (internet-noise/business-service classification, IPv4 only) rather than scan-surface data, still reported purely descriptively. Still not integrated into `/investigate`. See [`docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md`](docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md), [`docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md`](docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md), [`docs/architecture/PHASE-5.2-CENSYS-PROVIDER.md`](docs/architecture/PHASE-5.2-CENSYS-PROVIDER.md), and [`docs/architecture/PHASE-5.3-GREYNOISE-PROVIDER.md`](docs/architecture/PHASE-5.3-GREYNOISE-PROVIDER.md).
 
 ---
 
@@ -413,7 +424,7 @@ Everything runs offline: external TI providers are exercised against recorded/si
 | Phase | Capability |
 |---|---|
 | **Phase 4 — Detection Engineering** ✅ | Generate detections (Sigma/YARA/SIEM queries) from investigation findings; deterministic templating with validated output, citing the findings each rule derives from. Frozen at v1.0, plus a read-only **Detection Knowledge Library** recommending community detections alongside generated ones. |
-| **Phase 5 — Exposure Intelligence** 🚧 | Asset/exposure context: what is internet-facing, what is vulnerable, how findings map to your attack surface. Answers "where is this exposed", never "is this malicious" — a separate framework from Threat Intelligence. **Phase 5.0 (framework)**, **Phase 5.1 (Shodan)**, and **Phase 5.2 (Censys)** are complete — two independent providers merge into one summary with zero framework changes, validating the design. See [`docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md`](docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md), [`docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md`](docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md), and [`docs/architecture/PHASE-5.2-CENSYS-PROVIDER.md`](docs/architecture/PHASE-5.2-CENSYS-PROVIDER.md). Further providers (GreyNoise, HIBP, SecurityTrails, …), domain/email exposure, and `InvestigationSummary` integration are later, unstarted milestones. |
+| **Phase 5 — Exposure Intelligence** 🚧 | Asset/exposure context: what is internet-facing, what is vulnerable, how findings map to your attack surface. Answers "where is this exposed", never "is this malicious" — a separate framework from Threat Intelligence. **Phase 5.0 (framework)**, **Phase 5.1 (Shodan)**, **Phase 5.2 (Censys)**, and **Phase 5.3 (GreyNoise)** are complete — three independent providers merge into one summary with zero framework changes, validating the design scales to N providers. See [`docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md`](docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md), [`docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md`](docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md), [`docs/architecture/PHASE-5.2-CENSYS-PROVIDER.md`](docs/architecture/PHASE-5.2-CENSYS-PROVIDER.md), and [`docs/architecture/PHASE-5.3-GREYNOISE-PROVIDER.md`](docs/architecture/PHASE-5.3-GREYNOISE-PROVIDER.md). Further providers (HIBP, SecurityTrails, …), domain/email exposure, and `InvestigationSummary` integration are later, unstarted milestones. |
 | **Phase 6 — Identity Intelligence** | Identity-centric investigation: accounts, credentials, and identity-driven attack paths. |
 
 All future phases consume the frozen `InvestigationSummary` — the reasoning core does not change to support them. Exposure Intelligence (Phase 5) is additionally isolated from Threat Intelligence, Knowledge Intelligence, Reasoning, Detection Engineering, the Detection Knowledge Library, and the Operational Dashboard — no shared models, no shared registry, dependency flows one way into `entities/` only.

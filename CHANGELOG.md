@@ -141,6 +141,59 @@ remain explicitly deferred to later, unstarted phases.
   tests total). No frontend changes. No changes to any frozen v1.x
   subsystem or to any file under `providers/`.
 
+### Added — Phase 5.3: GreyNoise Exposure Provider (framework re-validation)
+
+- **`GreyNoiseProvider`** — the third concrete Exposure Intelligence
+  provider, reporting internet-noise/business-service classification for
+  IPv4 (only) via GreyNoise's Context API. A genuinely different kind of
+  fact than Shodan/Censys's scan-surface data — reputation/context, not open
+  ports — but still purely descriptive: GreyNoise's own classification is
+  reported as a quoted, attributed third-party statement
+  (`"GreyNoise classification: malicious"`), never a ThreatLens-computed
+  verdict. Authenticates with a single API key (`GREYNOISE_API_KEY`) sent as
+  GreyNoise's own `key` header convention; a missing key yields a structured
+  `unauthorized` finding, never an exception. Contributes no assets (no
+  ports/certs/hostnames) — every finding is evidence-only, a shape the
+  canonical model already supported.
+- **New canonical vocabulary value**: `ExposureCapability.INTERNET_NOISE` —
+  the framework's first new model addition since Phase 5.0, added because no
+  existing capability describes "internet-scanning background noise or a
+  recognized business service." Purely additive; no existing value's meaning
+  changed.
+- **Re-validates the framework scales to N providers with zero architectural
+  change**: `build_default_registry()` gained one more `register()` line;
+  `ExposureService`, `merge_findings()`, the `GET /api/v1/exposure` endpoint,
+  and the `/exposure` frontend rendering are all byte-for-byte unmodified. A
+  single IPv4 lookup now routes to and merges all three providers, in
+  deterministic order (`censys` < `greynoise` < `shodan`, existing
+  priority-then-name tiebreak — no new ordering logic).
+- **Same provider-local in-memory caching** as Shodan/Censys (one hour TTL,
+  definitive results only).
+- **Health semantics follow Shodan's original convention, not Censys's PAT
+  migration**: a missing API key reports `DEGRADED`, not `DISABLED` — the
+  `DISABLED`-on-missing-credentials distinction stays scoped to the Censys
+  migration that explicitly requested it.
+- **Frontend**: one type-parity addition (`ExposureCapability` gains
+  `"internet_noise"` in `lib/api.ts`, mirroring the backend enum) and a
+  one-line copy fix to the exposure page's static provider-scope caption;
+  no rendering-logic change. Browser-verified with a mocked three-provider
+  response that the existing generic provider-status and finding-card
+  rendering (including GreyNoise's zero-assets, evidence-only shape) needs
+  no component changes.
+- **No changes to any frozen v1.x subsystem**, and no changes to any file
+  under `providers/` (only imports `providers/http.py`'s `HttpClient`, the
+  same disclosed exception Shodan/Censys already established).
+- **Testing:** 36 new tests (`test_greynoise_provider.py`), plus
+  registry/service/API updates for three default providers. Exposure suite:
+  **187 tests** (was 151). Backend suite: **1,804 passed, 1 skipped** (was
+  1,768). Frontend: **98 tests, unchanged**. Ruff/mypy clean across 135
+  source files.
+- **Docs:** `docs/architecture/PHASE-5.3-GREYNOISE-PROVIDER.md`.
+
+SecurityTrails, FOFA, LeakIX, BinaryEdge, CriminalIP, HIBP, IntelligenceX,
+domain/email exposure, and `InvestigationSummary` integration remain
+explicitly deferred to later, unstarted phases (Phase 5.4+).
+
 ## [1.1.1] — 2026-07-04
 
 Patch release: operational tooling and frontend presentation refinements, no

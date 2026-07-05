@@ -177,7 +177,8 @@ export default function ExposurePage() {
                 </button>
               </div>
               <p className="text-xs text-zinc-600">
-                IPv4/IPv6 only today (Shodan). Results are descriptive facts, never a verdict.
+                IPv4/IPv6 (Shodan, Censys); IPv4 only (GreyNoise). Results are descriptive facts,
+                never a verdict.
               </p>
             </div>
 

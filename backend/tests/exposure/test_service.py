@@ -80,14 +80,14 @@ class TestEmptyRegistry:
 
 
 class TestDefaultRegistry:
-    """Phase 5.1 added Shodan; Phase 5.2 adds Censys — both real providers."""
+    """Phase 5.1 added Shodan; Phase 5.2 added Censys; Phase 5.3 adds GreyNoise."""
 
-    async def test_ipv4_routes_to_both_shodan_and_censys(self) -> None:
-        """Framework validation: two real providers merge with zero service.py changes."""
+    async def test_ipv4_routes_to_all_three_providers(self) -> None:
+        """Framework validation: three real providers merge with zero service.py changes."""
         service = ExposureService(build_default_registry())
         summary = await service.investigate(_entity())
-        assert summary.statistics.providers_queried == 2
-        assert [f.provider for f in summary.findings] == ["censys", "shodan"]
+        assert summary.statistics.providers_queried == 3
+        assert [f.provider for f in summary.findings] == ["censys", "greynoise", "shodan"]
 
     async def test_unsupported_entity_type_still_routes_to_nothing(self) -> None:
         service = ExposureService(build_default_registry())

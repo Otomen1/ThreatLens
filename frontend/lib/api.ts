@@ -837,7 +837,8 @@ export type ExposureCapability =
   | "dns_history"
   | "breaches"
   | "credential_exposure"
-  | "pastes";
+  | "pastes"
+  | "internet_noise";
 
 export interface ExposureFindingErrorInfo {
   message: string;

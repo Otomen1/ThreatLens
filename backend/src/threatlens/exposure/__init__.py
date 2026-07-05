@@ -1,4 +1,4 @@
-"""Exposure Intelligence Framework (Phase 5.0 architecture + Phase 5.1/5.2 providers).
+"""Exposure Intelligence Framework (Phase 5.0 architecture + Phase 5.1/5.2/5.3 providers).
 
 Threat Intelligence (``providers/``) answers "is this IOC malicious?" —
 Exposure Intelligence answers "where is this entity exposed?" (open ports,
@@ -8,18 +8,22 @@ shares no models, registry, or provider logic with Threat Intelligence —
 dependency flows one way, inward from this package to ``entities/`` only.
 Nothing in the frozen v1.x subsystems imports from here. The one narrow,
 disclosed exception is each provider (``providers/shodan.py``,
-``providers/censys.py``) reusing ``providers/http.py``'s generic,
-dependency-free ``HttpClient`` transport rather than duplicating an HTTP
-layer — see ``docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md``.
+``providers/censys.py``, ``providers/greynoise.py``) reusing
+``providers/http.py``'s generic, dependency-free ``HttpClient`` transport
+rather than duplicating an HTTP layer — see
+``docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md``.
 
 Phase 5.0 shipped the framework — models, provider interface, registry,
 config, cache, service — with zero concrete providers; every code path
 (registration, routing, aggregation, the service) was already real and
 tested. Phase 5.1 registered the first concrete provider, ``ShodanProvider``.
-Phase 5.2 adds the second, ``CensysProvider``, against the same unmodified
-contract — proving the framework scales to multiple providers without a
-redesign, exactly as ``providers/defaults.py`` added concrete TI providers
-after Phase 1.2's framework-only milestone.
+Phase 5.2 added the second, ``CensysProvider``. Phase 5.3 adds the third,
+``GreyNoiseProvider`` — reputation/context rather than scan-surface data,
+kept purely descriptive by reporting GreyNoise's own classification as a
+quoted third-party fact, never a ThreatLens-computed verdict — against the
+same unmodified contract, reconfirming the framework scales to N providers
+without a redesign, exactly as ``providers/defaults.py`` added concrete TI
+providers after Phase 1.2's framework-only milestone.
 """
 
 from __future__ import annotations
@@ -42,7 +46,7 @@ from .models import (
     ExposureSummary,
 )
 from .provider import ExposureProvider
-from .providers import CensysProvider, ShodanProvider
+from .providers import CensysProvider, GreyNoiseProvider, ShodanProvider
 from .registry import ExposureRegistry, build_default_registry
 from .service import EXPOSURE_FRAMEWORK_VERSION, ExposureService
 
@@ -69,6 +73,7 @@ __all__ = [
     "ExposureStatistics",
     "ExposureStatus",
     "ExposureSummary",
+    "GreyNoiseProvider",
     "InMemoryExposureCache",
     "ShodanProvider",
     "build_default_registry",

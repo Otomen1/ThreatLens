@@ -43,6 +43,14 @@ class ExposureCapability(StrEnum):
     BREACHES = "breaches"
     CREDENTIAL_EXPOSURE = "credential_exposure"
     PASTES = "pastes"
+    # Phase 5.3 (GreyNoise): is this IP known internet-scanning background
+    # noise, or a recognized common business service (RIOT)? None of the
+    # values above describe this — not a port/cert/hosting/breach fact — so
+    # this is a genuinely new capability, not a stretch-fit of an existing
+    # one. Still purely descriptive: names what GreyNoise itself asserts,
+    # never a ThreatLens-computed verdict (see
+    # docs/architecture/PHASE-5.3-GREYNOISE-PROVIDER.md).
+    INTERNET_NOISE = "internet_noise"
 
 
 class ExposureAuthType(StrEnum):

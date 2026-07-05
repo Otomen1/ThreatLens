@@ -12,6 +12,7 @@ from threatlens.exposure import (
     CensysProvider,
     ExposureRegistry,
     ExposureService,
+    GreyNoiseProvider,
     ShodanProvider,
 )
 
@@ -42,6 +43,7 @@ def _use_registry(monkeypatch, registry: ExposureRegistry) -> None:  # type: ign
 def _unconfigured_registry() -> ExposureRegistry:
     registry = ExposureRegistry()
     registry.register(CensysProvider(personal_access_token=None, api_id=None, api_secret=None))
+    registry.register(GreyNoiseProvider(api_key=None))
     registry.register(ShodanProvider(api_key=None))
     return registry
 
@@ -53,11 +55,11 @@ def test_returns_200_and_ready_status() -> None:
     assert body["status"] == "ready"
 
 
-def test_reports_shodan_and_censys_registered_by_default() -> None:
-    """Phase 5.1 registered Shodan; Phase 5.2 adds Censys — both by default."""
+def test_reports_shodan_censys_and_greynoise_registered_by_default() -> None:
+    """Phase 5.1 registered Shodan; Phase 5.2 added Censys; Phase 5.3 adds GreyNoise."""
     body = client.get("/api/v1/exposure").json()
-    assert body["providers_registered"] == 2
-    assert body["message"] == "2 provider(s) registered"
+    assert body["providers_registered"] == 3
+    assert body["message"] == "3 provider(s) registered"
 
 
 def test_reports_framework_version() -> None:
@@ -97,10 +99,11 @@ def test_never_invokes_the_investigation_path(monkeypatch) -> None:  # type: ign
     assert client.get("/api/v1/exposure").status_code == 200
 
 
-def test_reports_both_providers_health(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+def test_reports_all_three_providers_health(monkeypatch) -> None:  # type: ignore[no-untyped-def]
     """With no credentials configured: Censys reports disabled (PAT-migration
-    semantics — "not set up" vs. "configured but rejected"); Shodan still
-    reports degraded (unchanged). Neither crashes."""
+    semantics — "not set up" vs. "configured but rejected"); GreyNoise and
+    Shodan still report degraded (unchanged, Shodan's original convention).
+    Neither crashes."""
     _use_registry(monkeypatch, _unconfigured_registry())
 
     body = client.get("/api/v1/exposure").json()
@@ -111,6 +114,12 @@ def test_reports_both_providers_health(monkeypatch) -> None:  # type: ignore[no-
             "status": "disabled",
             "detail": "No credentials configured (CENSYS_PERSONAL_ACCESS_TOKEN or "
             "CENSYS_API_ID/CENSYS_API_SECRET)",
+        },
+        {
+            "name": "greynoise",
+            "display_name": "GreyNoise",
+            "status": "degraded",
+            "detail": "API key not configured",
         },
         {
             "name": "shodan",
@@ -131,9 +140,9 @@ def test_value_param_runs_a_real_lookup_and_returns_a_merged_summary(monkeypatch
     assert summary is not None
     assert summary["entity_type"] == "ipv4"
     assert summary["entity_value"] == "8.8.8.8"
-    # Both providers contribute a finding, in deterministic order — merged
-    # through the unmodified ExposureService/merge_findings code path.
-    assert [f["provider"] for f in summary["findings"]] == ["censys", "shodan"]
+    # All three providers contribute a finding, in deterministic order —
+    # merged through the unmodified ExposureService/merge_findings code path.
+    assert [f["provider"] for f in summary["findings"]] == ["censys", "greynoise", "shodan"]
     # No credentials configured: structured auth failures, never a crash or
     # a real request.
     assert all(f["status"] == "unauthorized" for f in summary["findings"])
