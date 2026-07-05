@@ -7,6 +7,12 @@ framework-validation milestone: proving the Phase 5.0 framework and Phase
 5.1's per-provider pattern both scale to multiple providers with **no
 architectural change**. Every other subsystem remains frozen and untouched.
 
+**Phase 5.2.1 (compatibility migration, same scope):** adds Personal Access
+Token (Bearer) authentication against Censys's current Platform API,
+preferred over the original legacy Basic-auth (API ID + Secret) mode, which
+remains fully supported for backward compatibility. See "Personal Access
+Token migration (5.2.1)" below.
+
 ## Purpose
 
 Adds [Censys](https://search.censys.io) as a second, independent source of
@@ -73,10 +79,48 @@ The only genuinely new code is `CensysProvider` itself (`lookup`/
 | Variable | Default | Purpose |
 |---|---|---|
 | `CENSYS_ENABLED` | `true` | Maps to `ExposureProviderMetadata.enabled`; `false` excludes Censys from routing. |
-| `CENSYS_API_ID` | unset | From https://search.censys.io/account/api. |
-| `CENSYS_API_SECRET` | unset | Paired with `CENSYS_API_ID`. Either missing → every lookup returns a structured `unauthorized` finding, never an exception. |
+| `CENSYS_PERSONAL_ACCESS_TOKEN` | unset | **Preferred.** From https://search.censys.io/account/api. When set, used as `Authorization: Bearer <token>` against the Platform API — takes precedence over the legacy pair below. |
+| `CENSYS_API_ID` | unset | Legacy. Used only when no PAT is set. |
+| `CENSYS_API_SECRET` | unset | Legacy, paired with `CENSYS_API_ID`. |
 | `CENSYS_TIMEOUT` | `15` (seconds) | Passed into the shared `HttpClient`. |
-| `CENSYS_BASE_URL` | `https://search.censys.io/api` | Override for testing/self-hosted proxies. |
+| `CENSYS_BASE_URL` | auth-mode-dependent | Override for testing/self-hosted proxies. Default is `https://api.platform.censys.io` when using a PAT, `https://search.censys.io/api` when using the legacy pair. |
+
+No credentials configured at all (neither PAT nor the legacy pair) → every
+lookup returns a structured `unauthorized` finding, never an exception.
+
+## Personal Access Token migration (5.2.1)
+
+Censys has moved to Personal Access Tokens (Bearer auth) against a unified
+Platform API, superseding the legacy API-ID/Secret Basic-auth model Phase
+5.2 originally shipped against. `CensysProvider` now supports both, resolved
+once at construction:
+
+1. `CENSYS_PERSONAL_ACCESS_TOKEN` set → Bearer auth, Platform API.
+2. Else `CENSYS_API_ID` + `CENSYS_API_SECRET` both set → Basic auth, legacy
+   Search API v2 — **unchanged from Phase 5.2**, kept for backward
+   compatibility.
+3. Else → not configured (`unauthorized` finding; `health()` → `DISABLED`).
+
+**Health semantics changed for this provider specifically:** missing
+credentials now reports `DISABLED` ("not set up") rather than `DEGRADED`
+("configured but rejected") — a deliberate distinction requested for this
+migration. `ShodanProvider` is intentionally left as-is (missing key →
+`DEGRADED`), so the two providers are no longer symmetric on this one point;
+this asymmetry is a known, accepted tradeoff of a provider-scoped migration,
+not an oversight.
+
+**Honesty note:** the Platform API endpoint (`/v3/global/asset/host/{ip}`)
+and health probe (`/v3/organizations`) are a best-effort mapping from
+Censys's documented Platform API conventions — this sandbox's egress policy
+blocks arbitrary third-party API hosts (the same wall hit earlier verifying
+the Shodan key), so nothing in this whole framework, including this new
+path, has been exercised against a live upstream. The response-unwrapping
+helper defensively accepts either the legacy flat `result` shape or a
+Platform-style `result.host` nesting, and every field access already
+tolerates absence (same as `ShodanProvider`) — a wrong guess about the exact
+Platform response shape degrades to a sparse "ok" finding, never a crash.
+Real-world verification against a live Platform account is recommended
+before depending on this path in production.
 
 ## Normalization strategy
 
@@ -98,10 +142,13 @@ provider — only canonical `ExposureFinding` objects do.
 
 ## Health strategy
 
-Identical state machine to Shodan, probed against Censys's own lightweight
-account endpoint (`/v2/account`) instead of a query-consuming search:
-`CENSYS_ENABLED=false` → `DISABLED`; missing credentials → `DEGRADED`;
-unreachable/timeout → `UNAVAILABLE`; 4xx/5xx → `DEGRADED`; 200 → `OPERATIONAL`.
+`CENSYS_ENABLED=false` → `DISABLED`; no credentials configured at all →
+`DISABLED`; unreachable/timeout → `UNAVAILABLE`; configured but rejected
+(4xx/5xx) → `DEGRADED`; 200 → `OPERATIONAL`. Probed against
+`/v3/organizations` (PAT mode) or `/v2/account` (legacy mode) — a
+lightweight endpoint, not a query-consuming search, in both cases. See
+"Personal Access Token migration" above for why missing-credentials differs
+from `ShodanProvider`'s `DEGRADED`.
 
 ## Caching strategy
 
@@ -111,32 +158,44 @@ retries on the next call rather than replaying a cached failure.
 
 ## Testing summary
 
-`backend/tests/exposure/test_censys_provider.py` — 32 tests, the same
-coverage shape as `test_shodan_provider.py`: metadata, IPv4/IPv6 success with
-full normalization, Basic-auth header construction, a no-data host (category
-`None`), private/invalid IP and unsupported-type short-circuits, missing/
-partial credentials, 401/403/404/429/5xx/timeout/network/malformed-JSON
-mapping, a missing `result` key, health across all four states, the
-`CENSYS_ENABLED` env var, `configuration()` never leaking credentials, and
-the cache (hit/TTL-expiry/non-caching-of-failures/`NOT_FOUND`-is-cached).
+`backend/tests/exposure/test_censys_provider.py` — 46 tests (32 from Phase
+5.2, 14 added for the PAT migration), covering both auth modes: metadata,
+IPv4/IPv6 success with full normalization (both the flat legacy shape and
+the nested `result.host` Platform shape), Bearer- and Basic-auth header
+construction, endpoint/base-URL selection per mode, PAT-takes-precedence
+when both are configured, a no-data host (category `None`), private/invalid
+IP and unsupported-type short-circuits, missing/partial legacy credentials
+and a missing PAT, 401/403/404/429/5xx/timeout/network/malformed-JSON
+mapping for both modes, a missing `result` key, health across all four
+states for both modes (including the `DISABLED`-not-`DEGRADED` change on
+missing credentials), the `CENSYS_ENABLED` env var, `configuration()`
+reporting `auth_mode` without ever leaking a token/secret, and the cache
+(hit/TTL-expiry/non-caching-of-failures/`NOT_FOUND`-is-cached, confirmed
+auth-mode-agnostic).
 
 `test_registry.py`, `test_service.py`, and `test_api.py` updated for two
 default providers, plus the explicit framework-validation test:
 `TestDefaultRegistry.test_ipv4_routes_to_both_shodan_and_censys` proves one
 IPv4 lookup through the **unmodified** `ExposureService` routes to and merges
-both providers, in deterministic order, with zero findings dropped.
+both providers, in deterministic order, with zero findings dropped. New
+`tests/exposure/conftest.py` clears `CENSYS_PERSONAL_ACCESS_TOKEN` (and the
+legacy pair) before every test alongside the vars it already cleared, so a
+real token in a local `.env` never leaks into test outcomes.
 
-New `tests/exposure/conftest.py` isolates the whole suite from local `.env`
-credential state (see "Architecture decisions" above).
+New `tests/exposure/conftest.py` now also isolates the suite from a local
+`.env`'s `CENSYS_PERSONAL_ACCESS_TOKEN`, alongside the vars it already
+cleared for Shodan and legacy Censys credentials.
 
-**Exposure suite: 141 tests** (was 105). **Full backend suite: 1,758 passed,
-1 skipped** (was 1,722). Ruff and mypy (strict) clean across 134 source
-files (was 133 — the one new `censys.py`). **Frontend: 98 tests, unchanged**
-— zero frontend files were modified this phase. Browser-verified
-end-to-end (Playwright, mocked two-provider API response): Provider Status
-shows both "Censys Status" and "Shodan Status"; the results section renders
-both finding cards side by side with their own assets/evidence/references —
-all through Phase 5.1's existing, unmodified components.
+**Exposure suite: 151 tests** (was 141 after Phase 5.2, 105 after Phase 5.0).
+**Full backend suite: 1,768 passed, 1 skipped** (was 1,758). Ruff and mypy
+(strict) clean across 134 source files (unchanged — no new files this
+migration). **Frontend: 98 tests, unchanged** — zero frontend files touched;
+the existing `disabled` status value and its rendering were already generic
+from Phase 5.1, so Censys's new `DISABLED`-on-no-credentials state renders
+correctly with no frontend code change. Phase 5.2's original browser
+verification (Provider Status showing both providers, results rendering
+side by side) remains valid and was not re-run, since nothing in the
+frontend or the API response shape changed.
 
 ## Performance summary
 
@@ -147,8 +206,10 @@ concurrently via the same `asyncio.gather` Phase 5.0 already used for one.
 
 ## Documentation summary
 
-New: this document. Updated: `README.md` (Roadmap, Exposure config table
-gains the five `CENSYS_*` variables, Health & Monitoring section),
+This document, extended in place with the "Personal Access Token migration
+(5.2.1)" section rather than a separate file (a compatibility migration, not
+a new phase). `README.md` (Exposure config table gains
+`CENSYS_PERSONAL_ACCESS_TOKEN`, notes the new default-base-URL behavior),
 `CHANGELOG.md` (`[Unreleased]` entry).
 
 ## Confirmations

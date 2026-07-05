@@ -41,7 +41,7 @@ def _use_registry(monkeypatch, registry: ExposureRegistry) -> None:  # type: ign
 
 def _unconfigured_registry() -> ExposureRegistry:
     registry = ExposureRegistry()
-    registry.register(CensysProvider(api_id=None, api_secret=None))
+    registry.register(CensysProvider(personal_access_token=None, api_id=None, api_secret=None))
     registry.register(ShodanProvider(api_key=None))
     return registry
 
@@ -98,7 +98,9 @@ def test_never_invokes_the_investigation_path(monkeypatch) -> None:  # type: ign
 
 
 def test_reports_both_providers_health(monkeypatch) -> None:  # type: ignore[no-untyped-def]
-    """With no credentials configured, both providers degrade — never crash."""
+    """With no credentials configured: Censys reports disabled (PAT-migration
+    semantics — "not set up" vs. "configured but rejected"); Shodan still
+    reports degraded (unchanged). Neither crashes."""
     _use_registry(monkeypatch, _unconfigured_registry())
 
     body = client.get("/api/v1/exposure").json()
@@ -106,8 +108,9 @@ def test_reports_both_providers_health(monkeypatch) -> None:  # type: ignore[no-
         {
             "name": "censys",
             "display_name": "Censys",
-            "status": "degraded",
-            "detail": "API credentials not configured",
+            "status": "disabled",
+            "detail": "No credentials configured (CENSYS_PERSONAL_ACCESS_TOKEN or "
+            "CENSYS_API_ID/CENSYS_API_SECRET)",
         },
         {
             "name": "shodan",

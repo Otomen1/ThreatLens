@@ -225,10 +225,13 @@ All variables are optional — with none set, ThreatLens runs fully offline (kno
 | Variable | Default | Purpose |
 |---|---|---|
 | `CENSYS_ENABLED` | `true` | Enables/disables the Censys provider; `false` excludes it from routing. |
-| `CENSYS_API_ID` | *(unset)* | From https://search.censys.io/account/api, paired with `CENSYS_API_SECRET` as HTTP Basic auth. Either missing → every lookup returns a structured `unauthorized` finding. |
+| `CENSYS_PERSONAL_ACCESS_TOKEN` | *(unset)* | **Preferred.** From https://search.censys.io/account/api. Sent as `Authorization: Bearer` against the current Platform API; takes precedence over the legacy pair below. |
+| `CENSYS_API_ID` | *(unset)* | Legacy — used only when no PAT is set. Paired with `CENSYS_API_SECRET` as HTTP Basic auth against the legacy Search API v2. |
 | `CENSYS_API_SECRET` | *(unset)* | Paired with `CENSYS_API_ID`. |
 | `CENSYS_TIMEOUT` | `15` | Per-request timeout (seconds). |
-| `CENSYS_BASE_URL` | `https://search.censys.io/api` | Override for testing or a self-hosted proxy. |
+| `CENSYS_BASE_URL` | auth-mode-dependent | Override for testing or a self-hosted proxy. Defaults to `https://api.platform.censys.io` with a PAT, `https://search.censys.io/api` with the legacy pair. |
+
+No credentials at all (neither PAT nor the legacy pair) → every lookup returns a structured `unauthorized` finding, never an exception.
 
 ### Frontend
 

@@ -119,6 +119,28 @@ GreyNoise, SecurityTrails, FOFA, LeakIX, BinaryEdge, CriminalIP, HIBP,
 IntelligenceX, domain/email exposure, and `InvestigationSummary` integration
 remain explicitly deferred to later, unstarted phases.
 
+### Changed — Phase 5.2.1: Censys Personal Access Token migration
+
+- **`CensysProvider` now supports Censys's current Platform API** via
+  `CENSYS_PERSONAL_ACCESS_TOKEN` (`Authorization: Bearer`), preferred over
+  the original legacy `CENSYS_API_ID`/`CENSYS_API_SECRET` Basic-auth pair,
+  which remains fully supported for backward compatibility. Auth mode is
+  resolved once at construction: PAT → legacy pair → not configured.
+- **Health semantics for Censys changed**: no credentials configured at all
+  now reports `DISABLED` ("not set up") instead of `DEGRADED` ("configured
+  but rejected"). `ShodanProvider` is unchanged (still `DEGRADED`) — a
+  deliberate, disclosed asymmetry scoped to this migration, not applied
+  project-wide.
+- Response parsing now defensively unwraps either the legacy flat `result`
+  shape or a Platform-style `result.host` nesting; the exact Platform API
+  endpoint/response shape is a best-effort mapping, not verified against a
+  live account (this sandbox's egress policy blocks third-party API hosts).
+- No new files; `tests/exposure/conftest.py` extended to also clear
+  `CENSYS_PERSONAL_ACCESS_TOKEN`. 14 new tests (46 in
+  `test_censys_provider.py`, 151 in the exposure suite, 1,768 backend
+  tests total). No frontend changes. No changes to any frozen v1.x
+  subsystem or to any file under `providers/`.
+
 ## [1.1.1] — 2026-07-04
 
 Patch release: operational tooling and frontend presentation refinements, no

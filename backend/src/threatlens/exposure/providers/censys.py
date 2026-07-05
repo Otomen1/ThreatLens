@@ -1,14 +1,33 @@
-"""Censys Exposure Intelligence provider (Phase 5.2 — second concrete provider).
+"""Censys Exposure Intelligence provider (Phase 5.2, PAT migration 5.2.1).
 
 Reports open ports, running services, TLS certificates, reverse-DNS
-hostnames, and hosting/ASN facts for IPv4/IPv6 entities via Censys Search's
-v2 Host view (``/v2/hosts/{ip}``) — purely descriptive, never a reputation
-score or malicious/benign verdict. Auth: an API ID + Secret pair from
-https://search.censys.io/account/api, sent as HTTP Basic auth. Missing
-credentials yield a structured ``UNAUTHORIZED`` finding rather than an
-exception; private/reserved/loopback IPs short-circuit to ``NOT_FOUND``
-without a request — the same pattern ``providers/abuseipdb.py`` and
-``exposure/providers/shodan.py`` already established.
+hostnames, and hosting/ASN facts for IPv4/IPv6 entities — purely
+descriptive, never a reputation score or malicious/benign verdict.
+
+Two auth modes, resolved once at construction, PAT preferred:
+
+1. ``CENSYS_PERSONAL_ACCESS_TOKEN`` set → ``Authorization: Bearer <token>``
+   against the current Censys Platform API (``api.platform.censys.io``).
+2. Else ``CENSYS_API_ID`` + ``CENSYS_API_SECRET`` both set → HTTP Basic auth
+   against the legacy Search API v2 (``search.censys.io/api``) — kept for
+   backward compatibility, unchanged from Phase 5.2.
+3. Else → every lookup returns a structured ``UNAUTHORIZED`` finding, never
+   an exception; ``health()`` reports ``DISABLED`` (not ``DEGRADED`` — no
+   credentials configured at all is treated as "not set up", distinct from
+   "configured but rejected").
+
+**Honesty note on the Platform API path:** the PAT-authenticated endpoint
+(``/v3/global/asset/host/{ip}``) and health probe (``/v3/organizations``) are
+a best-effort mapping from Censys's documented Platform API conventions, not
+verified against a live account — this sandbox's egress policy blocks
+arbitrary third-party API hosts the same way it already blocked a live
+Shodan check, so no endpoint in this whole framework has been exercised
+against a real upstream. The normalization path defensively unwraps either a
+flat ``result`` (legacy shape) or ``result.host`` (a plausible Platform
+asset-envelope shape) and tolerates missing fields throughout (same as
+``ShodanProvider``), so an imperfect endpoint guess degrades to a sparse
+"ok" finding rather than a crash — but real-world verification against a
+live Platform account is recommended before relying on this in production.
 
 Only IPv4/IPv6 are supported, mirroring ``ShodanProvider``'s scope decision
 for the same reason: Censys's host view is IP-keyed, and domain/hostname
@@ -55,12 +74,22 @@ _DISPLAY = "Censys"
 _SUPPORTED = frozenset({EntityType.IPV4, EntityType.IPV6})
 _HOST_REPORT_URL = "https://search.censys.io/hosts/{ip}"
 
+_PAT_ENV = "CENSYS_PERSONAL_ACCESS_TOKEN"
 _API_ID_ENV = "CENSYS_API_ID"
 _API_SECRET_ENV = "CENSYS_API_SECRET"
 _BASE_URL_ENV = "CENSYS_BASE_URL"
 _TIMEOUT_ENV = "CENSYS_TIMEOUT"
 _ENABLED_ENV = "CENSYS_ENABLED"
-_DEFAULT_BASE_URL = "https://search.censys.io/api"
+
+# Legacy Search API v2 (Basic auth) vs. current Platform API (Bearer PAT) —
+# different hosts, different endpoint shapes. See the module docstring's
+# "Honesty note" for how much of the Platform side is verified vs. best-effort.
+_DEFAULT_LEGACY_BASE_URL = "https://search.censys.io/api"
+_DEFAULT_PLATFORM_BASE_URL = "https://api.platform.censys.io"
+_LEGACY_HOST_PATH = "/v2/hosts/{ip}"
+_PLATFORM_HOST_PATH = "/v3/global/asset/host/{ip}"
+_LEGACY_HEALTH_PATH = "/v2/account"
+_PLATFORM_HEALTH_PATH = "/v3/organizations"
 _DEFAULT_TIMEOUT = 15.0
 
 # Same rationale as ShodanProvider: definitive answers are cached to respect
@@ -79,6 +108,7 @@ class CensysProvider(ExposureProvider):
     def __init__(
         self,
         *,
+        personal_access_token: str | None = None,
         api_id: str | None = None,
         api_secret: str | None = None,
         base_url: str | None = None,
@@ -87,10 +117,31 @@ class CensysProvider(ExposureProvider):
         enabled: bool | None = None,
         cache: ExposureCache[ExposureFinding] | None = None,
     ) -> None:
+        self._pat = (
+            personal_access_token if personal_access_token is not None else os.getenv(_PAT_ENV)
+        )
         self._api_id = api_id if api_id is not None else os.getenv(_API_ID_ENV)
         self._api_secret = api_secret if api_secret is not None else os.getenv(_API_SECRET_ENV)
+
+        # PAT takes precedence; legacy ID+Secret is the backward-compatible
+        # fallback; "none" means every lookup/health check short-circuits
+        # without a request.
+        if self._pat:
+            self._auth_mode = "pat"
+        elif self._api_id and self._api_secret:
+            self._auth_mode = "basic"
+        else:
+            self._auth_mode = "none"
+
         resolved_base_url = base_url if base_url is not None else os.getenv(_BASE_URL_ENV)
-        self._base_url = (resolved_base_url or _DEFAULT_BASE_URL).rstrip("/")
+        if resolved_base_url:
+            self._base_url = resolved_base_url.rstrip("/")
+        else:
+            default = (
+                _DEFAULT_PLATFORM_BASE_URL if self._auth_mode == "pat" else _DEFAULT_LEGACY_BASE_URL
+            )
+            self._base_url = default.rstrip("/")
+
         resolved_timeout = (
             timeout if timeout is not None else _env_float(_TIMEOUT_ENV, _DEFAULT_TIMEOUT)
         )
@@ -150,18 +201,19 @@ class CensysProvider(ExposureProvider):
             # Private/reserved/loopback/link-local: no public Censys exposure applies.
             return self._not_found(entity.type, entity.value)
 
-        if not self._api_id or not self._api_secret:
+        if self._auth_mode == "none":
             return self._fail(
                 entity,
                 ExposureStatus.UNAUTHORIZED,
-                "Censys API credentials not configured; set CENSYS_API_ID and "
-                "CENSYS_API_SECRET (create a free account at "
-                "https://search.censys.io/account/api)",
+                "Censys credentials not configured; set CENSYS_PERSONAL_ACCESS_TOKEN "
+                "(preferred; https://search.censys.io/account/api) or the legacy "
+                "CENSYS_API_ID + CENSYS_API_SECRET pair",
             )
 
+        host_path = _PLATFORM_HOST_PATH if self._auth_mode == "pat" else _LEGACY_HOST_PATH
         try:
             response = await self._http.get(
-                f"{self._base_url}/v2/hosts/{entity.value}",
+                f"{self._base_url}{host_path.format(ip=entity.value)}",
                 headers=self._auth_header(),
             )
         except ProviderTimeout as exc:
@@ -197,8 +249,8 @@ class CensysProvider(ExposureProvider):
                 entity, ExposureStatus.ERROR, "Censys returned an unexpected response"
             )
 
-        result = payload.get("result")
-        if not isinstance(result, Mapping):
+        result = _extract_host_result(payload)
+        if result is None:
             return self._fail(
                 entity, ExposureStatus.ERROR, "Censys returned an unexpected response"
             )
@@ -208,12 +260,13 @@ class CensysProvider(ExposureProvider):
     async def normalize(self, raw: Any) -> ExposureFinding:
         """Map a raw Censys host-lookup payload into a canonical finding.
 
-        Accepts either the full API envelope (``{"result": {...}}``) or a
-        bare result object; entity identity is derived from ``ip``.
+        Accepts the full API envelope (``{"result": {...}}``, either the
+        legacy flat shape or a Platform-style ``result.host`` nesting) or a
+        bare host object; entity identity is derived from ``ip``.
         """
         envelope: Any = raw
-        result = envelope.get("result") if isinstance(envelope, Mapping) else None
-        data: Mapping[str, Any] = result if isinstance(result, Mapping) else envelope
+        extracted = _extract_host_result(envelope) if isinstance(envelope, Mapping) else None
+        data: Mapping[str, Any] = extracted if extracted is not None else envelope
         ip_str = opt_str(data, "ip") or "unknown"
         try:
             entity_type = (
@@ -226,18 +279,24 @@ class CensysProvider(ExposureProvider):
         return self._build(entity_type, ip_str, data)
 
     async def health(self) -> ExposureProviderHealth:
-        """Verify configuration, reachability, and credential validity against ``/v2/account``."""
+        """Verify configuration, reachability, and credential validity.
+
+        No credentials configured at all → ``DISABLED`` (distinct from
+        "configured but rejected", which is ``DEGRADED``).
+        """
         if not self.metadata.enabled:
             return ExposureProviderHealth(name=self.name, status=ExposureProviderStatus.DISABLED)
-        if not self._api_id or not self._api_secret:
+        if self._auth_mode == "none":
             return ExposureProviderHealth(
                 name=self.name,
-                status=ExposureProviderStatus.DEGRADED,
-                detail="API credentials not configured",
+                status=ExposureProviderStatus.DISABLED,
+                detail="No credentials configured (CENSYS_PERSONAL_ACCESS_TOKEN or "
+                "CENSYS_API_ID/CENSYS_API_SECRET)",
             )
+        health_path = _PLATFORM_HEALTH_PATH if self._auth_mode == "pat" else _LEGACY_HEALTH_PATH
         try:
             response = await self._http.get(
-                f"{self._base_url}/v2/account", headers=self._auth_header()
+                f"{self._base_url}{health_path}", headers=self._auth_header()
             )
         except ProviderTimeout as exc:
             return ExposureProviderHealth(
@@ -268,7 +327,8 @@ class CensysProvider(ExposureProvider):
     async def configuration(self) -> dict[str, Any]:
         """Report configuration status — never the credential values themselves."""
         return {
-            "api_credentials_configured": bool(self._api_id and self._api_secret),
+            "auth_mode": self._auth_mode,
+            "api_credentials_configured": self._auth_mode != "none",
             "base_url": self._base_url,
             "timeout": self._timeout,
             "enabled": self.metadata.enabled,
@@ -277,6 +337,8 @@ class CensysProvider(ExposureProvider):
     # --- internals -------------------------------------------------------- #
 
     def _auth_header(self) -> dict[str, str]:
+        if self._auth_mode == "pat":
+            return {"Authorization": f"Bearer {self._pat}"}
         token = base64.b64encode(f"{self._api_id}:{self._api_secret}".encode()).decode()
         return {"Authorization": f"Basic {token}"}
 
@@ -287,7 +349,8 @@ class CensysProvider(ExposureProvider):
             return self._fail(
                 entity,
                 ExposureStatus.UNAUTHORIZED,
-                "Censys rejected the API credentials; check CENSYS_API_ID/CENSYS_API_SECRET",
+                "Censys rejected the credentials; check CENSYS_PERSONAL_ACCESS_TOKEN or "
+                "CENSYS_API_ID/CENSYS_API_SECRET",
             )
         if code == 429:
             return self._fail(
@@ -372,6 +435,26 @@ class CensysProvider(ExposureProvider):
             ],
             fetched_at=datetime.now(UTC),
         )
+
+
+def _extract_host_result(payload: Mapping[str, Any]) -> Mapping[str, Any] | None:
+    """Unwrap a host record from either API envelope shape.
+
+    Legacy Search API v2 puts host fields directly on ``result``. The
+    Platform API's asset envelopes are, per Censys's general REST
+    conventions, plausibly nested one level deeper (``result.host``) — this
+    is the one part of this provider not verified against a live account
+    (see the module docstring). Falling back to ``result`` itself if there
+    is no nested ``host`` (or if ``result`` already looks like a host record)
+    keeps the legacy path exactly as before.
+    """
+    result = payload.get("result")
+    if not isinstance(result, Mapping):
+        return None
+    nested = result.get("host")
+    if "ip" not in result and isinstance(nested, Mapping):
+        return nested
+    return result
 
 
 def _summary(result: Mapping[str, Any], service_count: int) -> str:

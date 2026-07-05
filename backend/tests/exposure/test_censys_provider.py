@@ -1,12 +1,13 @@
-"""Tests for CensysProvider (Phase 5.2 — second concrete exposure provider).
+"""Tests for CensysProvider (Phase 5.2 — Phase 5.2.1 adds PAT auth).
 
 Every external request is mocked with ``httpx.MockTransport`` — the live
-Censys service is never contacted and no test requires a real account or
-Internet access. Covers health, IPv4/IPv6 lookup success, non-global IP
-short-circuits, failure mapping (401/403/404/429/timeout/network/malformed
-JSON), normalization, the in-memory cache, and disabled-provider behavior —
-the same coverage shape as ``test_shodan_provider.py``, proving the
-framework's per-provider testing pattern also generalizes.
+Censys service is never contacted and no test requires a real account,
+personal access token, or Internet access. Covers health, IPv4/IPv6 lookup
+success, non-global IP short-circuits, failure mapping (401/403/404/429/
+timeout/network/malformed JSON), normalization, the in-memory cache, and
+disabled-provider behavior for both auth modes — Bearer-token (Personal
+Access Token, preferred) and legacy Basic auth (API ID + Secret, kept for
+backward compatibility).
 """
 
 from __future__ import annotations
@@ -73,8 +74,17 @@ def make_provider(
     api_secret: str | None = "secret",
     **kwargs: object,
 ) -> CensysProvider:
+    """Build a provider using legacy Basic-auth credentials (the default in these tests)."""
     client = HttpClient(transport=httpx.MockTransport(handler), max_retries=0)
     return CensysProvider(api_id=api_id, api_secret=api_secret, http_client=client, **kwargs)  # type: ignore[arg-type]
+
+
+def make_pat_provider(
+    handler: Handler, *, token: str | None = "censys_testtoken", **kwargs: object
+) -> CensysProvider:
+    """Build a provider using a Personal Access Token (no legacy credentials set)."""
+    client = HttpClient(transport=httpx.MockTransport(handler), max_retries=0)
+    return CensysProvider(personal_access_token=token, http_client=client, **kwargs)  # type: ignore[arg-type]
 
 
 def json_handler(payload: object, *, status: int = 200) -> Handler:
@@ -147,20 +157,85 @@ async def test_ipv6_lookup_preserves_entity_type() -> None:
     assert finding.entity_type is EntityType.IPV6
 
 
-async def test_request_uses_basic_auth() -> None:
+async def test_legacy_request_uses_basic_auth_and_search_api() -> None:
     captured: dict[str, str] = {}
 
     def handler(request: httpx.Request) -> httpx.Response:
         captured["method"] = request.method
         captured["authorization"] = request.headers.get("Authorization", "")
-        captured["path"] = request.url.path
+        captured["url"] = str(request.url)
         return httpx.Response(200, json=_envelope(_host_result()))
 
     await make_provider(handler, api_id="myid", api_secret="mysecret").lookup(ip_entity("8.8.8.8"))
     assert captured["method"] == "GET"
     expected = "Basic " + base64.b64encode(b"myid:mysecret").decode()
     assert captured["authorization"] == expected
-    assert captured["path"] == "/api/v2/hosts/8.8.8.8"
+    assert captured["url"] == "https://search.censys.io/api/v2/hosts/8.8.8.8"
+
+
+# --- PAT (Personal Access Token) authentication — preferred, Phase 5.2.1 ---
+
+
+async def test_pat_request_uses_bearer_auth_and_platform_api() -> None:
+    captured: dict[str, str] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["method"] = request.method
+        captured["authorization"] = request.headers.get("Authorization", "")
+        captured["url"] = str(request.url)
+        return httpx.Response(200, json={"result": {"host": _host_result()}})
+
+    await make_pat_provider(handler, token="censys_abc123").lookup(ip_entity("8.8.8.8"))
+    assert captured["method"] == "GET"
+    assert captured["authorization"] == "Bearer censys_abc123"
+    assert captured["url"] == "https://api.platform.censys.io/v3/global/asset/host/8.8.8.8"
+
+
+async def test_pat_lookup_success_with_nested_host_envelope() -> None:
+    """Platform API responses may nest the host under result.host."""
+    payload = {"result": {"host": _host_result()}}
+    result = await make_pat_provider(json_handler(payload)).lookup(ip_entity("8.8.8.8"))
+    assert result.status is ExposureStatus.OK
+    assert result.provider == "censys"
+    assert any(a.asset_type == "open_port" and a.value == "443" for a in result.assets)
+
+
+async def test_pat_takes_precedence_over_legacy_credentials() -> None:
+    captured: dict[str, str] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["authorization"] = request.headers.get("Authorization", "")
+        return httpx.Response(200, json={"result": {"host": _host_result()}})
+
+    client = HttpClient(transport=httpx.MockTransport(handler), max_retries=0)
+    provider = CensysProvider(
+        personal_access_token="censys_wins",
+        api_id="legacy-id",
+        api_secret="legacy-secret",
+        http_client=client,
+    )
+    await provider.lookup(ip_entity("8.8.8.8"))
+    assert captured["authorization"] == "Bearer censys_wins"
+    assert provider._auth_mode == "pat"  # noqa: SLF001
+
+
+async def test_pat_invalid_token_is_unauthorized() -> None:
+    result = await make_pat_provider(json_handler({"error": "invalid token"}, status=401)).lookup(
+        ip_entity("8.8.8.8")
+    )
+    assert result.status is ExposureStatus.UNAUTHORIZED
+
+
+async def test_pat_missing_token_is_unauthorized_without_request() -> None:
+    calls = {"n": 0}
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        calls["n"] += 1
+        return httpx.Response(200, json={"result": {"host": _host_result()}})
+
+    result = await make_pat_provider(handler, token=None).lookup(ip_entity("8.8.8.8"))
+    assert result.status is ExposureStatus.UNAUTHORIZED
+    assert calls["n"] == 0
 
 
 async def test_normalize_accepts_full_envelope() -> None:
@@ -335,16 +410,38 @@ async def test_health_operational_when_reachable_and_authorized() -> None:
     assert health.status is ExposureProviderStatus.OPERATIONAL
 
 
-async def test_health_degraded_when_no_credentials() -> None:
+async def test_health_disabled_when_no_credentials_at_all() -> None:
+    """No PAT and no legacy pair configured — DISABLED, not DEGRADED.
+
+    DISABLED means "not set up"; DEGRADED means "configured but rejected" —
+    a deliberate distinction introduced in the PAT migration.
+    """
     provider = make_provider(json_handler({}), api_id=None, api_secret=None)
     health = await provider.health()
-    assert health.status is ExposureProviderStatus.DEGRADED
-    assert health.detail == "API credentials not configured"
+    assert health.status is ExposureProviderStatus.DISABLED
+    assert health.detail is not None and "No credentials configured" in health.detail
 
 
 async def test_health_degraded_on_401() -> None:
     provider = make_provider(json_handler({"error": "Invalid credentials"}, status=401))
     health = await provider.health()
+    assert health.status is ExposureProviderStatus.DEGRADED
+
+
+async def test_pat_health_operational_via_platform_endpoint() -> None:
+    captured: dict[str, str] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["url"] = str(request.url)
+        return httpx.Response(200, json={"organizations": []})
+
+    health = await make_pat_provider(handler).health()
+    assert health.status is ExposureProviderStatus.OPERATIONAL
+    assert captured["url"] == "https://api.platform.censys.io/v3/organizations"
+
+
+async def test_pat_health_degraded_on_401() -> None:
+    health = await make_pat_provider(json_handler({"error": "invalid"}, status=401)).health()
     assert health.status is ExposureProviderStatus.DEGRADED
 
 
@@ -394,6 +491,7 @@ async def test_configuration_reports_status_without_leaking_credentials() -> Non
     )
     config = await provider.configuration()
     assert config == {
+        "auth_mode": "basic",
         "api_credentials_configured": True,
         "base_url": "https://example.test",
         "timeout": 5.0,
@@ -401,6 +499,21 @@ async def test_configuration_reports_status_without_leaking_credentials() -> Non
     }
     assert "super-secret" not in str(config)
     assert "my-id" not in str(config)
+
+
+async def test_configuration_reports_pat_auth_mode_without_leaking_token() -> None:
+    provider = CensysProvider(personal_access_token="censys_super_secret_token")
+    config = await provider.configuration()
+    assert config["auth_mode"] == "pat"
+    assert config["api_credentials_configured"] is True
+    assert "censys_super_secret_token" not in str(config)
+
+
+async def test_configuration_reports_none_auth_mode_when_unconfigured() -> None:
+    provider = CensysProvider(personal_access_token=None, api_id=None, api_secret=None)
+    config = await provider.configuration()
+    assert config["auth_mode"] == "none"
+    assert config["api_credentials_configured"] is False
 
 
 # --- cache ---
@@ -474,6 +587,21 @@ async def test_not_found_is_cached() -> None:
         return httpx.Response(404, json={"error": "not found"})
 
     provider = make_provider(handler)
+    entity = ip_entity("8.8.8.8")
+    await provider.lookup(entity)
+    await provider.lookup(entity)
+    assert calls["n"] == 1
+
+
+async def test_pat_repeat_lookup_is_served_from_cache() -> None:
+    """Caching is auth-mode-agnostic — same behavior for PAT as for legacy."""
+    calls = {"n": 0}
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        calls["n"] += 1
+        return httpx.Response(200, json={"result": {"host": _host_result()}})
+
+    provider = make_pat_provider(handler)
     entity = ip_entity("8.8.8.8")
     await provider.lookup(entity)
     await provider.lookup(entity)
