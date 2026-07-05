@@ -6,6 +6,47 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Added — Phase 5.0: Exposure Intelligence Framework (architecture only)
+
+- **New framework** (`threatlens.exposure`) — the first milestone of
+  ThreatLens v2.0. Answers "where is this entity exposed" (open ports,
+  certificates, passive DNS, hosting, subdomains, breaches, paste sites, …),
+  never "is this malicious" — a separate framework from Threat Intelligence
+  at every layer (no shared models, no shared registry, no import in either
+  direction). Mirrors the proven `providers/` framework shape: closed
+  vocabularies, frozen Pydantic models, an `ExposureProvider` ABC, a
+  registry that registers and routes, a pure `merge_findings` aggregation
+  function, and `ExposureService`.
+- **Zero concrete providers.** Every code path (registration, routing,
+  aggregation, the service) is real and tested against an empty registry —
+  `ExposureService.investigate()` naturally returns a well-formed, empty
+  `ExposureSummary` through the same aggregation path a future provider
+  will use unmodified. Cache (`ExposureCache` + an in-memory default) and
+  config (`ExposureConfig.from_env()`) are interfaces/settings only — no
+  Redis, no persistence, nothing wired in yet.
+- **`GET /api/v1/exposure`** — a pure readiness probe (`status`, `message`,
+  `framework_version`, `providers_registered`), not integrated into
+  `/investigate`. A new placeholder page at **`/exposure`** shows the same
+  three fields; the Investigation Workspace is unchanged.
+- **No changes to any frozen v1.x subsystem**: Core Platform (Threat
+  Intelligence, Knowledge Intelligence, Investigation Engine, Reasoning
+  Engine v1.0), Detection Engineering v1.0 (all generators + the Detection
+  Knowledge Library), or the Operational Platform (Operational Dashboard,
+  Investigation Workspace, Detection Workspace).
+- **Testing:** 66 new offline tests (`backend/tests/exposure/`) — models,
+  the provider ABC's stub/health/safe-lookup behavior, registry routing,
+  config, the in-memory cache (including TTL expiry), aggregation, the
+  service (empty registry + fake providers, including one that raises), and
+  the API endpoint. Backend suite: **1,683 passed, 1 skipped**. Ruff/mypy
+  clean.
+- **Docs:** `docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md` (framework
+  design, provider interface, registry design, summary model, dependency
+  direction, future provider roadmap).
+
+Providers (Shodan, Censys, GreyNoise, HIBP, SecurityTrails, IntelligenceX,
+BinaryEdge, FOFA, CriminalIP, LeakIX) and `InvestigationSummary` integration
+are explicitly deferred to a later, unstarted phase.
+
 ## [1.1.1] — 2026-07-04
 
 Patch release: operational tooling and frontend presentation refinements, no
