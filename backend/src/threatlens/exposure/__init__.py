@@ -1,21 +1,23 @@
-"""Exposure Intelligence Framework (Phase 5.0 — architecture only).
+"""Exposure Intelligence Framework (Phase 5.0 architecture + Phase 5.1 providers).
 
 Threat Intelligence (``providers/``) answers "is this IOC malicious?" —
 Exposure Intelligence answers "where is this entity exposed?" (open ports,
 certificates, passive DNS, hosting, subdomains, breaches, paste sites, …).
 It is purely descriptive: it never scores, never judges maliciousness, and
-never imports from ``providers/``, ``reference/``, ``reasoning/``,
-``detection/``, ``detection_library/``, ``ai/``, or ``system/`` — dependency
-flows one way, inward from this package to ``entities/`` only. Nothing in
-those frozen subsystems imports from here either.
+shares no models, registry, or provider logic with Threat Intelligence —
+dependency flows one way, inward from this package to ``entities/`` only.
+Nothing in the frozen v1.x subsystems imports from here. The one narrow,
+disclosed exception is a single provider (``providers/shodan.py``) reusing
+``providers/http.py``'s generic, dependency-free ``HttpClient`` transport
+rather than duplicating an HTTP layer — see
+``docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md``.
 
-Phase 5.0 ships the framework — models, provider interface, registry,
-config, cache, service — with **zero concrete providers**. Every code path
-(registration, routing, aggregation, the service) is real and tested; it
-simply has nothing registered yet. Providers arrive in Phase 5.1+ by
-registering against this unmodified contract, exactly as
-``providers/defaults.py`` added concrete TI providers after Phase 1.2's
-framework-only milestone.
+Phase 5.0 shipped the framework — models, provider interface, registry,
+config, cache, service — with zero concrete providers; every code path
+(registration, routing, aggregation, the service) was already real and
+tested. Phase 5.1 registers the first concrete provider, ``ShodanProvider``,
+against that unmodified contract, exactly as ``providers/defaults.py`` added
+concrete TI providers after Phase 1.2's framework-only milestone.
 """
 
 from __future__ import annotations
@@ -38,6 +40,7 @@ from .models import (
     ExposureSummary,
 )
 from .provider import ExposureProvider
+from .providers import ShodanProvider
 from .registry import ExposureRegistry, build_default_registry
 from .service import EXPOSURE_FRAMEWORK_VERSION, ExposureService
 
@@ -64,5 +67,6 @@ __all__ = [
     "ExposureStatus",
     "ExposureSummary",
     "InMemoryExposureCache",
+    "ShodanProvider",
     "build_default_registry",
 ]

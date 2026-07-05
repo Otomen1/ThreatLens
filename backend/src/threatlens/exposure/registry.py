@@ -3,11 +3,12 @@
 A small explicit container — the extension seam for adding exposure
 providers — mirroring ``providers/registry.py``. It also owns deterministic
 entity-to-provider routing (folded in here rather than a separate router
-module, since Phase 5.0 has no providers to route to yet): given a
-classified entity, returns the providers capable of reporting exposure for
-it, decided entirely from declared metadata, never hardcoded names. Routing
-is pure and synchronous — it makes no network calls. No global mutable
-state, so tests build isolated registries.
+module, per Phase 5.0's leaner file layout): given a classified entity,
+returns the providers capable of reporting exposure for it, decided entirely
+from declared metadata, never hardcoded names. Routing is pure and
+synchronous — it makes no network calls itself (a routed provider's own
+``lookup`` is the only network-touching step). No global mutable state, so
+tests build isolated registries.
 """
 
 from __future__ import annotations
@@ -17,6 +18,7 @@ from ..entities.types import EntityType
 from .exceptions import DuplicateExposureProviderError
 from .models import ExposureCapability
 from .provider import ExposureProvider
+from .providers.shodan import ShodanProvider
 
 
 class ExposureRegistry:
@@ -84,8 +86,13 @@ class ExposureRegistry:
 def build_default_registry() -> ExposureRegistry:
     """Build the default exposure-provider registry.
 
-    Phase 5.0 registers no providers — the framework, routing, and service
-    all work correctly over an empty registry, exercising the real code path
-    future providers will use unmodified.
+    Phase 5.1 registers the first concrete provider, :class:`ShodanProvider`
+    — exactly the integration point Phase 5.0 reserved (this function,
+    unmodified in shape). ``ShodanProvider`` is always registered; whether it
+    participates in routing is controlled by its own ``SHODAN_ENABLED``
+    setting via ``ExposureProviderMetadata.enabled``, the same mechanism
+    :meth:`ExposureRegistry.route` already filters on.
     """
-    return ExposureRegistry()
+    registry = ExposureRegistry()
+    registry.register(ShodanProvider())
+    return registry

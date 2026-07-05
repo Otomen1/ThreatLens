@@ -43,9 +43,46 @@ All notable changes to ThreatLens are documented here. The project follows
   design, provider interface, registry design, summary model, dependency
   direction, future provider roadmap).
 
-Providers (Shodan, Censys, GreyNoise, HIBP, SecurityTrails, IntelligenceX,
-BinaryEdge, FOFA, CriminalIP, LeakIX) and `InvestigationSummary` integration
-are explicitly deferred to a later, unstarted phase.
+### Added — Phase 5.1: Shodan Exposure Provider (first concrete provider)
+
+- **`ShodanProvider`** — the first concrete Exposure Intelligence provider,
+  reporting open ports, running services, TLS certificates, hostnames/
+  domains, and hosting/ASN facts for IPv4/IPv6 via Shodan's Host API. Purely
+  descriptive, never a score or verdict. Registered by default
+  (`SHODAN_ENABLED=true`); a missing `SHODAN_API_KEY` yields a structured
+  `unauthorized` finding, never an exception.
+- **Reuses `providers/http.py`'s `HttpClient`** — a disclosed, narrow
+  exception to Phase 5.0's provider/exposure import isolation (see
+  `docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md`); no file under
+  `providers/` was modified.
+- **`GET /api/v1/exposure`** gains an optional `?value=` query param that
+  runs a real lookup (detect → route → aggregate) and returns the merged
+  `ExposureSummary`, plus per-provider health (`providers: [...]`). With no
+  `value`, behavior is unchanged from Phase 5.0. A disabled or unconfigured
+  provider still returns `200` with a well-formed empty/failed summary.
+- **In-memory caching** of definitive (`ok`/`not_found`) Shodan lookups (one
+  hour TTL, Phase 5.0's `InMemoryExposureCache` — no Redis, no database);
+  transient failures and auth errors are never cached.
+- **`/exposure` page rebuilt**: Provider Status (framework version, provider
+  count, per-provider health) plus a search box; results render per-provider
+  with assets/evidence/references when configured, a friendly message when
+  disabled/unconfigured — never a crash. The Investigation Workspace is
+  unchanged.
+- **No changes to any frozen v1.x subsystem** (Core Platform, Detection
+  Engineering, Operational Platform) and no changes to any file under
+  `providers/`.
+- **Testing:** 39 new/updated offline tests (`test_shodan_provider.py` plus
+  registry/service/API updates for the now-non-empty default registry) — all
+  network mocked via `httpx.MockTransport`, zero real API key or Internet
+  access required. Exposure suite: **105 tests** (was 66). Backend suite:
+  **1,722 passed, 1 skipped** (was 1,683). Frontend: **98 tests** (was 92).
+  Ruff/mypy clean across 133 source files. Browser-verified end-to-end
+  (Playwright) for both the unconfigured and configured-with-results paths.
+- **Docs:** `docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md`.
+
+Censys, GreyNoise, HIBP, SecurityTrails, IntelligenceX, BinaryEdge, FOFA,
+CriminalIP, LeakIX, domain/email exposure, and `InvestigationSummary`
+integration remain explicitly deferred to later, unstarted phases.
 
 ## [1.1.1] — 2026-07-04
 

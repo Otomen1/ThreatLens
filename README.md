@@ -54,6 +54,7 @@ SOC analysts, incident responders, detection engineers, and threat-intel teams w
 | Recommendations | `docs/screenshots/recommendations.png` *(placeholder)* |
 | AI Explanation | `docs/screenshots/ai-explanation.png` *(placeholder)* |
 | Operational Dashboard | `docs/screenshots/operational-dashboard.png` *(placeholder)* |
+| Exposure Intelligence | `docs/screenshots/exposure-intelligence.png` *(placeholder)* |
 
 ---
 
@@ -201,14 +202,23 @@ All variables are optional — with none set, ThreatLens runs fully offline (kno
 | `THREATLENS_DKL_CACHE_DIR` | *(unset — bundled seed only)* | Optional directory for a synced community-detection cache. Unset means fully offline, seed-only. |
 | `THREATLENS_DKL_CACHE_TTL_SECONDS` | `604800` (7 days) | How long a synced cache is considered fresh before `sync_status` reports stale. |
 
-### Backend — Exposure Intelligence (Phase 5.0 — reserved, not yet read by any code path)
+### Backend — Exposure Intelligence (framework-level — reserved, not yet read by any code path)
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `EXPOSURE_ENABLED` | `false` | Master switch — reserved for Phase 5.1's first provider. |
-| `EXPOSURE_CACHE_ENABLED` | `true` | Reserved — no cache is wired into the service yet. |
+| `EXPOSURE_ENABLED` | `false` | Master switch — reserved; no code path reads it yet (each provider self-configures instead, see below). |
+| `EXPOSURE_CACHE_ENABLED` | `true` | Reserved — no cache is wired into `ExposureService` itself yet (providers may cache their own lookups, e.g. Shodan). |
 | `EXPOSURE_TIMEOUT` | `10` | Reserved per-lookup timeout (seconds). |
 | `EXPOSURE_RATE_LIMIT_PER_MINUTE` | *(unset)* | Reserved rate limit. |
+
+### Backend — Exposure Intelligence: Shodan (Phase 5.1)
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `SHODAN_ENABLED` | `true` | Enables/disables the Shodan provider (`ExposureProviderMetadata.enabled`); `false` excludes it from routing. |
+| `SHODAN_API_KEY` | *(unset)* | Free-tier-compatible key from https://account.shodan.io. Unset → every lookup returns a structured `unauthorized` finding, never an error. |
+| `SHODAN_TIMEOUT` | `15` | Per-request timeout (seconds). |
+| `SHODAN_BASE_URL` | `https://api.shodan.io` | Override for testing or a self-hosted proxy. |
 
 ### Frontend
 
@@ -278,9 +288,9 @@ A read-only page for administrators/developers at **`/dashboard`** (separate fro
 
 The dashboard is strictly downstream and isolated: it never calls a provider, runs an investigation, generates a detection, or invokes the AI layer — it only reads already-computed response objects and existing configuration checks. See [`docs/architecture/PHASE-OPERATIONAL-DASHBOARD-V1.md`](docs/architecture/PHASE-OPERATIONAL-DASHBOARD-V1.md) for the full design.
 
-### Exposure Intelligence (Phase 5.0 — framework only)
+### Exposure Intelligence (Phase 5.1 — Shodan is the first provider)
 
-`GET /api/v1/exposure` is a pure readiness probe for the new Exposure Intelligence framework — `{status, message, framework_version, providers_registered}`, never entity data. A placeholder page at **`/exposure`** shows the same three fields. Phase 5.0 ships zero providers, so `providers_registered` is always `0` today; see [`docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md`](docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md).
+`GET /api/v1/exposure` reports framework + per-provider status — `{status, message, framework_version, providers_registered, providers[], summary}` — and, given an optional `?value=` query param (an IP), also runs a real lookup and returns the merged `summary` (an `ExposureSummary`: findings, evidence, assets, references). The **`/exposure`** page shows Provider Status (framework version, provider count, each provider's health) plus a search box; results render per-provider with full evidence/asset detail when configured, or a friendly message when a provider is disabled or missing credentials — never a crash. Still not integrated into `/investigate`. See [`docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md`](docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md) and [`docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md`](docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md).
 
 ---
 
@@ -390,7 +400,7 @@ Everything runs offline: external TI providers are exercised against recorded/si
 | Phase | Capability |
 |---|---|
 | **Phase 4 — Detection Engineering** ✅ | Generate detections (Sigma/YARA/SIEM queries) from investigation findings; deterministic templating with validated output, citing the findings each rule derives from. Frozen at v1.0, plus a read-only **Detection Knowledge Library** recommending community detections alongside generated ones. |
-| **Phase 5 — Exposure Intelligence** 🚧 | Asset/exposure context: what is internet-facing, what is vulnerable, how findings map to your attack surface. Answers "where is this exposed", never "is this malicious" — a separate framework from Threat Intelligence. **Phase 5.0 (framework only, no providers) is complete** — see [`docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md`](docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md). Providers (Shodan, Censys, GreyNoise, HIBP, SecurityTrails, …) and `InvestigationSummary` integration are later, unstarted milestones. |
+| **Phase 5 — Exposure Intelligence** 🚧 | Asset/exposure context: what is internet-facing, what is vulnerable, how findings map to your attack surface. Answers "where is this exposed", never "is this malicious" — a separate framework from Threat Intelligence. **Phase 5.0 (framework)** and **Phase 5.1 (Shodan — open ports, certificates, hosting for IPv4/IPv6)** are complete — see [`docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md`](docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md) and [`docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md`](docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md). Further providers (Censys, GreyNoise, HIBP, SecurityTrails, …), domain/email exposure, and `InvestigationSummary` integration are later, unstarted milestones. |
 | **Phase 6 — Identity Intelligence** | Identity-centric investigation: accounts, credentials, and identity-driven attack paths. |
 
 All future phases consume the frozen `InvestigationSummary` — the reasoning core does not change to support them. Exposure Intelligence (Phase 5) is additionally isolated from Threat Intelligence, Knowledge Intelligence, Reasoning, Detection Engineering, the Detection Knowledge Library, and the Operational Dashboard — no shared models, no shared registry, dependency flows one way into `entities/` only.

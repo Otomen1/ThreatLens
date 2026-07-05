@@ -114,8 +114,8 @@ class TestRouting:
         assert registry.route(_entity()) == ()
 
 
-def test_build_default_registry_is_empty() -> None:
-    """Phase 5.0 ships zero providers; the default registry reflects that."""
+def test_build_default_registry_registers_shodan() -> None:
+    """Phase 5.1 registers the first concrete provider: Shodan."""
     registry = build_default_registry()
-    assert len(registry) == 0
-    assert registry.providers == ()
+    assert len(registry) == 1
+    assert [provider.name for provider in registry.providers] == ["shodan"]
