@@ -194,6 +194,47 @@ SecurityTrails, FOFA, LeakIX, BinaryEdge, CriminalIP, HIBP, IntelligenceX,
 domain/email exposure, and `InvestigationSummary` integration remain
 explicitly deferred to later, unstarted phases (Phase 5.4+).
 
+### Added — Phase 5.4: Exposure Engine v1.0 (validation & freeze)
+
+- **New validation/freeze suite** (`tests/exposure_validation/`), mirroring
+  the Reasoning (Phase 3.15) and Detection Engine (Phase 4.5) freezes: a
+  153-scenario corpus (12 realistic category labels × every provider-matrix
+  combination, plus 9 standalone edge cases) driven through the real,
+  unmodified `ExposureRegistry` + `ExposureService` via a controllable fake
+  provider — no network, no live account, no HTTP mocking.
+- **0 invariant violations** across all 153 scenarios: routing, concurrent
+  merge/ordering, statistics, no duplicate references/evidence/assets,
+  serialization round-trips, and the frontend/API key contract. A
+  representative subset additionally verified through the real
+  `GET /api/v1/exposure` HTTP endpoint.
+- **Determinism verified for all 153 scenarios** (content-level, excluding
+  `metadata.generated_at` — the one wall-clock field
+  `ExposureService.investigate()` produces with no injectable clock, the
+  same documented exclusion Reasoning/Detection already apply to their own
+  `generated_at`).
+- **Golden regression** (`tests/exposure_validation/golden.json`), CI-gated
+  in the same job as the reasoning/IOC/detection/knowledge-library goldens.
+- **Performance benchmarked**: `investigate()` scaling (1-100 lookups, no
+  bottleneck — per-lookup cost *improves* at scale as fixed event-loop
+  overhead amortizes), cache effectiveness (16.6× cold/warm speedup via the
+  real `InMemoryExposureCache`), and `merge_findings` scaling in isolation.
+  No optimization was performed (none is justified).
+- **Architecture reviewed**: provider/model/registry/cache/service
+  abstractions all confirmed sufficient — **zero redesign**, zero new
+  providers, zero new canonical models.
+- **Frozen**: `EXPOSURE_FRAMEWORK_VERSION` moves from `"0.1.0"` to `"1.0"` —
+  the only production-code change in this entire phase.
+- **Testing:** 322 new tests. Backend suite: **2,126 passed, 1 skipped**
+  (was 1,804). Frontend: **98 tests, unchanged** — no frontend file touched.
+  Ruff/mypy clean across 135 source files (unchanged count).
+- **Docs:** `docs/architecture/PHASE-5.4-EXPOSURE-ENGINE-V1.md`.
+
+**GO — Exposure Intelligence is frozen at v1.0.** Future provider additions
+follow the same contract as the Reasoning/Detection freezes: regenerate the
+golden, bump the version, document the change. Phase 5.5 and beyond
+(additional providers, domain/email exposure, `InvestigationSummary`
+integration) remain explicitly out of scope until separately started.
+
 ## [1.1.1] — 2026-07-04
 
 Patch release: operational tooling and frontend presentation refinements, no

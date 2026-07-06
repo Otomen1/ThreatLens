@@ -1,0 +1,6866 @@
+{
+  "cdn__all_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.12"
+    ],
+    "findings": [],
+    "references": [],
+    "statistics": {
+      "categories": [],
+      "providers_ok": 0,
+      "providers_queried": 0,
+      "total_assets": 0,
+      "total_findings": 0
+    }
+  },
+  "cdn__all_three_success": {
+    "entity": [
+      "ipv4",
+      "192.0.2.12"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 3,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 3
+    }
+  },
+  "cdn__censys_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.12"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "cdn__censys_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.12"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "cdn__greynoise_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.12"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "cdn__mixed_outcomes": {
+    "entity": [
+      "ipv4",
+      "192.0.2.12"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": null,
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "not_found"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise returned malformed JSON",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "error"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "cdn__one_auth_failure_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.12"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise rejected the API key",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "unauthorized"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "cdn__one_enabled_two_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.12"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "cdn__one_timeout_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.12"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": "censys request timed out",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "timeout"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "cdn__shodan_censys": {
+    "entity": [
+      "ipv4",
+      "192.0.2.12"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "cdn__shodan_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.12"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "cdn__shodan_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.12"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "cloud_provider__all_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.11"
+    ],
+    "findings": [],
+    "references": [],
+    "statistics": {
+      "categories": [],
+      "providers_ok": 0,
+      "providers_queried": 0,
+      "total_assets": 0,
+      "total_findings": 0
+    }
+  },
+  "cloud_provider__all_three_success": {
+    "entity": [
+      "ipv4",
+      "192.0.2.11"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 3,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 3
+    }
+  },
+  "cloud_provider__censys_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.11"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "cloud_provider__censys_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.11"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "cloud_provider__greynoise_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.11"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "cloud_provider__mixed_outcomes": {
+    "entity": [
+      "ipv4",
+      "192.0.2.11"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": null,
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "not_found"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise returned malformed JSON",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "error"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "cloud_provider__one_auth_failure_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.11"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise rejected the API key",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "unauthorized"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "cloud_provider__one_enabled_two_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.11"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "cloud_provider__one_timeout_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.11"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": "censys request timed out",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "timeout"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "cloud_provider__shodan_censys": {
+    "entity": [
+      "ipv4",
+      "192.0.2.11"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "cloud_provider__shodan_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.11"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "cloud_provider__shodan_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.11"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "enterprise__all_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.18"
+    ],
+    "findings": [],
+    "references": [],
+    "statistics": {
+      "categories": [],
+      "providers_ok": 0,
+      "providers_queried": 0,
+      "total_assets": 0,
+      "total_findings": 0
+    }
+  },
+  "enterprise__all_three_success": {
+    "entity": [
+      "ipv4",
+      "192.0.2.18"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 3,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 3
+    }
+  },
+  "enterprise__censys_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.18"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "enterprise__censys_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.18"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "enterprise__greynoise_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.18"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "enterprise__mixed_outcomes": {
+    "entity": [
+      "ipv4",
+      "192.0.2.18"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": null,
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "not_found"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise returned malformed JSON",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "error"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "enterprise__one_auth_failure_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.18"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise rejected the API key",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "unauthorized"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "enterprise__one_enabled_two_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.18"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "enterprise__one_timeout_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.18"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": "censys request timed out",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "timeout"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "enterprise__shodan_censys": {
+    "entity": [
+      "ipv4",
+      "192.0.2.18"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "enterprise__shodan_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.18"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "enterprise__shodan_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.18"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "government__all_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.19"
+    ],
+    "findings": [],
+    "references": [],
+    "statistics": {
+      "categories": [],
+      "providers_ok": 0,
+      "providers_queried": 0,
+      "total_assets": 0,
+      "total_findings": 0
+    }
+  },
+  "government__all_three_success": {
+    "entity": [
+      "ipv4",
+      "192.0.2.19"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 3,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 3
+    }
+  },
+  "government__censys_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.19"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "government__censys_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.19"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "government__greynoise_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.19"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "government__mixed_outcomes": {
+    "entity": [
+      "ipv4",
+      "192.0.2.19"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": null,
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "not_found"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise returned malformed JSON",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "error"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "government__one_auth_failure_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.19"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise rejected the API key",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "unauthorized"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "government__one_enabled_two_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.19"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "government__one_timeout_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.19"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": "censys request timed out",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "timeout"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "government__shodan_censys": {
+    "entity": [
+      "ipv4",
+      "192.0.2.19"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "government__shodan_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.19"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "government__shodan_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.19"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "hosting_provider__all_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.21"
+    ],
+    "findings": [],
+    "references": [],
+    "statistics": {
+      "categories": [],
+      "providers_ok": 0,
+      "providers_queried": 0,
+      "total_assets": 0,
+      "total_findings": 0
+    }
+  },
+  "hosting_provider__all_three_success": {
+    "entity": [
+      "ipv4",
+      "192.0.2.21"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 3,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 3
+    }
+  },
+  "hosting_provider__censys_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.21"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "hosting_provider__censys_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.21"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "hosting_provider__greynoise_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.21"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "hosting_provider__mixed_outcomes": {
+    "entity": [
+      "ipv4",
+      "192.0.2.21"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": null,
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "not_found"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise returned malformed JSON",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "error"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "hosting_provider__one_auth_failure_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.21"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise rejected the API key",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "unauthorized"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "hosting_provider__one_enabled_two_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.21"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "hosting_provider__one_timeout_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.21"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": "censys request timed out",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "timeout"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "hosting_provider__shodan_censys": {
+    "entity": [
+      "ipv4",
+      "192.0.2.21"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "hosting_provider__shodan_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.21"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "hosting_provider__shodan_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.21"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "internet_scanner__all_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.14"
+    ],
+    "findings": [],
+    "references": [],
+    "statistics": {
+      "categories": [],
+      "providers_ok": 0,
+      "providers_queried": 0,
+      "total_assets": 0,
+      "total_findings": 0
+    }
+  },
+  "internet_scanner__all_three_success": {
+    "entity": [
+      "ipv4",
+      "192.0.2.14"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 3,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 3
+    }
+  },
+  "internet_scanner__censys_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.14"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "internet_scanner__censys_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.14"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "internet_scanner__greynoise_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.14"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "internet_scanner__mixed_outcomes": {
+    "entity": [
+      "ipv4",
+      "192.0.2.14"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": null,
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "not_found"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise returned malformed JSON",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "error"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "internet_scanner__one_auth_failure_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.14"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise rejected the API key",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "unauthorized"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "internet_scanner__one_enabled_two_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.14"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "internet_scanner__one_timeout_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.14"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": "censys request timed out",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "timeout"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "internet_scanner__shodan_censys": {
+    "entity": [
+      "ipv4",
+      "192.0.2.14"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "internet_scanner__shodan_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.14"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "internet_scanner__shodan_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.14"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "known_benign__all_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.16"
+    ],
+    "findings": [],
+    "references": [],
+    "statistics": {
+      "categories": [],
+      "providers_ok": 0,
+      "providers_queried": 0,
+      "total_assets": 0,
+      "total_findings": 0
+    }
+  },
+  "known_benign__all_three_success": {
+    "entity": [
+      "ipv4",
+      "192.0.2.16"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 3,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 3
+    }
+  },
+  "known_benign__censys_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.16"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "known_benign__censys_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.16"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "known_benign__greynoise_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.16"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "known_benign__mixed_outcomes": {
+    "entity": [
+      "ipv4",
+      "192.0.2.16"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": null,
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "not_found"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise returned malformed JSON",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "error"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "known_benign__one_auth_failure_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.16"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise rejected the API key",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "unauthorized"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "known_benign__one_enabled_two_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.16"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "known_benign__one_timeout_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.16"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": "censys request timed out",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "timeout"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "known_benign__shodan_censys": {
+    "entity": [
+      "ipv4",
+      "192.0.2.16"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "known_benign__shodan_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.16"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "known_benign__shodan_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.16"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "known_malicious__all_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.15"
+    ],
+    "findings": [],
+    "references": [],
+    "statistics": {
+      "categories": [],
+      "providers_ok": 0,
+      "providers_queried": 0,
+      "total_assets": 0,
+      "total_findings": 0
+    }
+  },
+  "known_malicious__all_three_success": {
+    "entity": [
+      "ipv4",
+      "192.0.2.15"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 3,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 3
+    }
+  },
+  "known_malicious__censys_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.15"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "known_malicious__censys_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.15"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "known_malicious__greynoise_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.15"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "known_malicious__mixed_outcomes": {
+    "entity": [
+      "ipv4",
+      "192.0.2.15"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": null,
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "not_found"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise returned malformed JSON",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "error"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "known_malicious__one_auth_failure_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.15"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise rejected the API key",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "unauthorized"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "known_malicious__one_enabled_two_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.15"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "known_malicious__one_timeout_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.15"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": "censys request timed out",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "timeout"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "known_malicious__shodan_censys": {
+    "entity": [
+      "ipv4",
+      "192.0.2.15"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "known_malicious__shodan_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.15"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "known_malicious__shodan_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.15"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "public_infrastructure__all_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.10"
+    ],
+    "findings": [],
+    "references": [],
+    "statistics": {
+      "categories": [],
+      "providers_ok": 0,
+      "providers_queried": 0,
+      "total_assets": 0,
+      "total_findings": 0
+    }
+  },
+  "public_infrastructure__all_three_success": {
+    "entity": [
+      "ipv4",
+      "192.0.2.10"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 3,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 3
+    }
+  },
+  "public_infrastructure__censys_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.10"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "public_infrastructure__censys_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.10"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "public_infrastructure__greynoise_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.10"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "public_infrastructure__mixed_outcomes": {
+    "entity": [
+      "ipv4",
+      "192.0.2.10"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": null,
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "not_found"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise returned malformed JSON",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "error"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "public_infrastructure__one_auth_failure_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.10"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise rejected the API key",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "unauthorized"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "public_infrastructure__one_enabled_two_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.10"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "public_infrastructure__one_timeout_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.10"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": "censys request timed out",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "timeout"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "public_infrastructure__shodan_censys": {
+    "entity": [
+      "ipv4",
+      "192.0.2.10"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "public_infrastructure__shodan_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.10"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "public_infrastructure__shodan_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.10"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "residential__all_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.17"
+    ],
+    "findings": [],
+    "references": [],
+    "statistics": {
+      "categories": [],
+      "providers_ok": 0,
+      "providers_queried": 0,
+      "total_assets": 0,
+      "total_findings": 0
+    }
+  },
+  "residential__all_three_success": {
+    "entity": [
+      "ipv4",
+      "192.0.2.17"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 3,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 3
+    }
+  },
+  "residential__censys_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.17"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "residential__censys_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.17"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "residential__greynoise_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.17"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "residential__mixed_outcomes": {
+    "entity": [
+      "ipv4",
+      "192.0.2.17"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": null,
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "not_found"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise returned malformed JSON",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "error"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "residential__one_auth_failure_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.17"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise rejected the API key",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "unauthorized"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "residential__one_enabled_two_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.17"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "residential__one_timeout_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.17"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": "censys request timed out",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "timeout"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "residential__shodan_censys": {
+    "entity": [
+      "ipv4",
+      "192.0.2.17"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "residential__shodan_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.17"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "residential__shodan_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.17"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "special__all_not_found": {
+    "entity": [
+      "ipv4",
+      "192.0.2.102"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": null,
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "not_found"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": null,
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "not_found"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": null,
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "shodan",
+        "references": [],
+        "status": "not_found"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [],
+      "providers_ok": 0,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 0
+    }
+  },
+  "special__all_rate_limited": {
+    "entity": [
+      "ipv4",
+      "192.0.2.103"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": "censys rate limit reached",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "rate_limited"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise rate limit reached",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "rate_limited"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "shodan rate limit reached",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "shodan",
+        "references": [],
+        "status": "rate_limited"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [],
+      "providers_ok": 0,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 0
+    }
+  },
+  "special__duplicate_reference_dedup": {
+    "entity": [
+      "ipv4",
+      "192.0.2.104"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [
+          "https://intel.example.test/report/192.0.2.104"
+        ],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [
+          "https://intel.example.test/report/192.0.2.104"
+        ],
+        "status": "ok"
+      }
+    ],
+    "references": [
+      "https://intel.example.test/report/192.0.2.104"
+    ],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "special__empty_registry": {
+    "entity": [
+      "ipv4",
+      "192.0.2.100"
+    ],
+    "findings": [],
+    "references": [],
+    "statistics": {
+      "categories": [],
+      "providers_ok": 0,
+      "providers_queried": 0,
+      "total_assets": 0,
+      "total_findings": 0
+    }
+  },
+  "special__ipv6_excludes_greynoise": {
+    "entity": [
+      "ipv6",
+      "2001:db8::104"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "special__large_finding": {
+    "entity": [
+      "ipv4",
+      "192.0.2.105"
+    ],
+    "findings": [
+      {
+        "assets": [
+          [
+            "open_port",
+            "1000"
+          ],
+          [
+            "open_port",
+            "1001"
+          ],
+          [
+            "open_port",
+            "1002"
+          ],
+          [
+            "open_port",
+            "1003"
+          ],
+          [
+            "open_port",
+            "1004"
+          ],
+          [
+            "open_port",
+            "1005"
+          ],
+          [
+            "open_port",
+            "1006"
+          ],
+          [
+            "open_port",
+            "1007"
+          ],
+          [
+            "open_port",
+            "1008"
+          ],
+          [
+            "open_port",
+            "1009"
+          ],
+          [
+            "open_port",
+            "1010"
+          ],
+          [
+            "open_port",
+            "1011"
+          ],
+          [
+            "open_port",
+            "1012"
+          ],
+          [
+            "open_port",
+            "1013"
+          ],
+          [
+            "open_port",
+            "1014"
+          ]
+        ],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact_0",
+            "0"
+          ],
+          [
+            "fact_1",
+            "1"
+          ],
+          [
+            "fact_2",
+            "2"
+          ],
+          [
+            "fact_3",
+            "3"
+          ],
+          [
+            "fact_4",
+            "4"
+          ],
+          [
+            "fact_5",
+            "5"
+          ],
+          [
+            "fact_6",
+            "6"
+          ],
+          [
+            "fact_7",
+            "7"
+          ],
+          [
+            "fact_8",
+            "8"
+          ],
+          [
+            "fact_9",
+            "9"
+          ],
+          [
+            "fact_10",
+            "10"
+          ],
+          [
+            "fact_11",
+            "11"
+          ],
+          [
+            "fact_12",
+            "12"
+          ],
+          [
+            "fact_13",
+            "13"
+          ],
+          [
+            "fact_14",
+            "14"
+          ],
+          [
+            "fact_15",
+            "15"
+          ],
+          [
+            "fact_16",
+            "16"
+          ],
+          [
+            "fact_17",
+            "17"
+          ],
+          [
+            "fact_18",
+            "18"
+          ],
+          [
+            "fact_19",
+            "19"
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 15,
+      "total_findings": 1
+    }
+  },
+  "special__priority_overrides_name_order": {
+    "entity": [
+      "ipv4",
+      "192.0.2.106"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "special__provider_raises_exception": {
+    "entity": [
+      "ipv4",
+      "192.0.2.101"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": "Provider raised an unexpected error",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "error"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "special__unsupported_entity_type": {
+    "entity": [
+      "domain",
+      "evil.example.test"
+    ],
+    "findings": [],
+    "references": [],
+    "statistics": {
+      "categories": [],
+      "providers_ok": 0,
+      "providers_queried": 0,
+      "total_assets": 0,
+      "total_findings": 0
+    }
+  },
+  "university__all_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.20"
+    ],
+    "findings": [],
+    "references": [],
+    "statistics": {
+      "categories": [],
+      "providers_ok": 0,
+      "providers_queried": 0,
+      "total_assets": 0,
+      "total_findings": 0
+    }
+  },
+  "university__all_three_success": {
+    "entity": [
+      "ipv4",
+      "192.0.2.20"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 3,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 3
+    }
+  },
+  "university__censys_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.20"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "university__censys_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.20"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "university__greynoise_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.20"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "university__mixed_outcomes": {
+    "entity": [
+      "ipv4",
+      "192.0.2.20"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": null,
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "not_found"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise returned malformed JSON",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "error"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "university__one_auth_failure_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.20"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise rejected the API key",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "unauthorized"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "university__one_enabled_two_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.20"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "university__one_timeout_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.20"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": "censys request timed out",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "timeout"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "university__shodan_censys": {
+    "entity": [
+      "ipv4",
+      "192.0.2.20"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "university__shodan_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.20"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "university__shodan_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.20"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "vpn__all_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.13"
+    ],
+    "findings": [],
+    "references": [],
+    "statistics": {
+      "categories": [],
+      "providers_ok": 0,
+      "providers_queried": 0,
+      "total_assets": 0,
+      "total_findings": 0
+    }
+  },
+  "vpn__all_three_success": {
+    "entity": [
+      "ipv4",
+      "192.0.2.13"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 3,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 3
+    }
+  },
+  "vpn__censys_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.13"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "internet_noise"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "vpn__censys_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.13"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "vpn__greynoise_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.13"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "vpn__mixed_outcomes": {
+    "entity": [
+      "ipv4",
+      "192.0.2.13"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": null,
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "not_found"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise returned malformed JSON",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "error"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "vpn__one_auth_failure_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.13"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": null,
+        "error": "greynoise rejected the API key",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "greynoise",
+        "references": [],
+        "status": "unauthorized"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "vpn__one_enabled_two_disabled": {
+    "entity": [
+      "ipv4",
+      "192.0.2.13"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  },
+  "vpn__one_timeout_rest_ok": {
+    "entity": [
+      "ipv4",
+      "192.0.2.13"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": null,
+        "error": "censys request timed out",
+        "evidence": [],
+        "fetched_at": null,
+        "provider": "censys",
+        "references": [],
+        "status": "timeout"
+      },
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 3,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "vpn__shodan_censys": {
+    "entity": [
+      "ipv4",
+      "192.0.2.13"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "certificates",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "censys",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "certificates",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "vpn__shodan_greynoise": {
+    "entity": [
+      "ipv4",
+      "192.0.2.13"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "internet_noise",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "greynoise",
+        "references": [],
+        "status": "ok"
+      },
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "internet_noise",
+        "open_ports"
+      ],
+      "providers_ok": 2,
+      "providers_queried": 2,
+      "total_assets": 0,
+      "total_findings": 2
+    }
+  },
+  "vpn__shodan_only": {
+    "entity": [
+      "ipv4",
+      "192.0.2.13"
+    ],
+    "findings": [
+      {
+        "assets": [],
+        "category": "open_ports",
+        "error": null,
+        "evidence": [
+          [
+            "fact",
+            null
+          ]
+        ],
+        "fetched_at": "2024-01-01T00:00:00+00:00",
+        "provider": "shodan",
+        "references": [],
+        "status": "ok"
+      }
+    ],
+    "references": [],
+    "statistics": {
+      "categories": [
+        "open_ports"
+      ],
+      "providers_ok": 1,
+      "providers_queried": 1,
+      "total_assets": 0,
+      "total_findings": 1
+    }
+  }
+}

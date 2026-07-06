@@ -17,11 +17,15 @@ from .models import ExposureSummary
 from .registry import ExposureRegistry
 from .summary import merge_findings
 
-EXPOSURE_FRAMEWORK_VERSION = "0.1.0"
-"""Pre-1.0: the framework is complete but carries no providers yet (Phase
-5.0). Moves to "1.0" once real providers ship and are validated end-to-end —
-the same "frozen after validation" convention as the Reasoning and Detection
-Engines."""
+EXPOSURE_FRAMEWORK_VERSION = "1.0"
+"""Frozen at 1.0 (Phase 5.4): three independent providers (Shodan, Censys,
+GreyNoise) validated end-to-end against a 153-scenario corpus with zero
+invariant violations — the same "frozen after validation" convention as the
+Reasoning and Detection Engines. See
+``docs/architecture/PHASE-5.4-EXPOSURE-ENGINE-V1.md``. Future provider
+additions are additive only; a change to merge/routing/statistics semantics
+must regenerate ``tests/exposure_validation/golden.json`` and bump this
+version."""
 
 
 class ExposureService:
