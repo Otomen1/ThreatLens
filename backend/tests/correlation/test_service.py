@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from threatlens.correlation.engine import correlate
 from threatlens.correlation.registry import CorrelationRegistry, build_default_registry
+from threatlens.correlation.rules import SEED_RULES
 from threatlens.correlation.service import CorrelationService
 from threatlens.reasoning.models import FindingCategory as FC
 from threatlens.reasoning.models import InvestigationSummary
@@ -20,7 +21,7 @@ def _malicious_exposed() -> InvestigationSummary:
 class TestCorrelationService:
     def test_default_service_uses_the_seed_registry(self) -> None:
         service = CorrelationService()
-        assert len(service.registry) == 12
+        assert len(service.registry) == len(SEED_RULES)
 
     def test_correlate_matches_the_engine(self) -> None:
         service = CorrelationService()

@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from threatlens.correlation.engine import CORRELATION_FRAMEWORK_VERSION, correlate
+from threatlens.correlation.rules import SEED_RULES
 from threatlens.entities.types import EntityType
 from threatlens.reasoning.models import FindingCategory as FC
 from threatlens.reasoning.models import InvestigationSummary
@@ -24,7 +25,7 @@ class TestEmptyAndNoMatch:
         assert result.observations == ()
         assert result.statistics.total_observations == 0
         assert result.statistics.rules_matched == 0
-        assert result.statistics.rules_evaluated == 12
+        assert result.statistics.rules_evaluated == len(SEED_RULES)
         assert result.has_observations is False
 
     def test_single_finding_produces_no_observation(self) -> None:

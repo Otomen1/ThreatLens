@@ -32,8 +32,12 @@ from ..reasoning.models import FindingCategory
 class CorrelationCategory(StrEnum):
     """The kind of higher-level observation a correlation rule produces.
 
-    A closed vocabulary — each value corresponds to exactly one deterministic
-    seed rule (see ``rules.py``). Describes the *combination* two or more
+    A closed vocabulary. Phase 7.0 gave each of its 12 seed rules its own
+    category value 1:1. Phase 7.1 (rule library expansion) instead groups
+    rules that represent the *same kind* of higher-level pattern under one
+    shared category — e.g. every "+contested" disposition rule across every
+    domain emits ``FINDING_CONTESTED`` — so the vocabulary grows by kind of
+    pattern, not by rule count. Still describes the *combination* two or more
     findings jointly represent, never a new verdict.
     """
 
@@ -49,6 +53,50 @@ class CorrelationCategory(StrEnum):
     ACTOR_MALWARE_ASSOCIATION = "actor_malware_association"
     CAMPAIGN_INFRASTRUCTURE = "campaign_infrastructure"
     MALWARE_INFRASTRUCTURE_ASSOCIATION = "malware_infrastructure_association"
+
+    # --- Phase 7.1: rule library expansion (additive; nothing above changed) ---
+
+    # Cross-cutting disposition patterns (any domain category + a disposition
+    # tag from FindingCategory) — shared across every rules/*.py module.
+    FINDING_CONTESTED = "finding_contested"
+    FINDING_REQUIRES_ACTION = "finding_requires_action"
+    FINDING_LOW_ACTIONABILITY = "finding_low_actionability"
+    CORROBORATED_REPUTATION_SIGNAL = "corroborated_reputation_signal"
+
+    # rules/infrastructure.py + rules/vulnerability.py
+    MALICIOUS_INFRASTRUCTURE_WEAKNESS_LINK = "malicious_infrastructure_weakness_link"
+    MISCONFIGURATION_WEAKNESS_LINK = "misconfiguration_weakness_link"
+
+    # rules/malware.py
+    MALWARE_ASSET_ASSOCIATION = "malware_asset_association"
+    MALWARE_TECHNIQUE_COLOCATED = "malware_technique_colocated"
+    MALWARE_INFRASTRUCTURE_COLOCATED = "malware_infrastructure_colocated"
+    MALWARE_CAMPAIGN_LINK = "malware_campaign_link"
+
+    # rules/threat_actor.py
+    ACTOR_TECHNIQUE_COLOCATED = "actor_technique_colocated"
+    ACTOR_MALWARE_COLOCATED = "actor_malware_colocated"
+    ACTOR_INFRASTRUCTURE_LINK = "actor_infrastructure_link"
+    ACTOR_CAMPAIGN_LINK = "actor_campaign_link"
+    ACTOR_ASSET_ASSOCIATION = "actor_asset_association"
+
+    # rules/campaign.py
+    CAMPAIGN_INFRASTRUCTURE_COLOCATED = "campaign_infrastructure_colocated"
+    CAMPAIGN_TECHNIQUE_LINK = "campaign_technique_link"
+    CAMPAIGN_ASSET_ASSOCIATION = "campaign_asset_association"
+
+    # rules/mitre.py
+    TECHNIQUE_INFRASTRUCTURE_LINK = "technique_infrastructure_link"
+    TECHNIQUE_VULNERABILITY_LINK = "technique_vulnerability_link"
+
+    # rules/compound.py (three-signal escalations — strictly more specific
+    # than any one of their two-category subset rules)
+    MULTI_SIGNAL_MALICIOUS_EXPOSURE = "multi_signal_malicious_exposure"
+    MULTI_SIGNAL_VULNERABLE_EXPOSURE = "multi_signal_vulnerable_exposure"
+    CORROBORATED_MALICIOUS_EXPOSURE = "corroborated_malicious_exposure"
+    MULTI_SIGNAL_MISCONFIGURED_VULNERABLE = "multi_signal_misconfigured_vulnerable"
+    ACTOR_MALWARE_TECHNIQUE_CONVERGENCE = "actor_malware_technique_convergence"
+    CAMPAIGN_ACTOR_INFRASTRUCTURE_CONVERGENCE = "campaign_actor_infrastructure_convergence"
 
 
 class CorrelationRelationshipType(StrEnum):

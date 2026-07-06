@@ -6,6 +6,56 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Added — Phase 7.1: Correlation Rule Library Expansion
+
+- **Rule library expanded from 12 to 70 rules**
+  (`backend/src/threatlens/correlation/rules/`), organized into 7 domain
+  modules (`seed` — the unchanged Phase 7.0 set, `compound`,
+  `infrastructure`, `vulnerability`, `malware`, `threat_actor`, `campaign`,
+  `mitre`) replacing the single Phase 7.0 `rules.py` file. Every rule is
+  still declarative `CorrelationRule` data interpreted by the engine's one
+  generic evaluator — **zero changes to the engine, registry, service,
+  summary generation, output schemas, or the public API.**
+- **Coverage, not padding:** every malware/actor/campaign/technique pairing
+  that previously existed only cross-subject gets a same-subject variant (a
+  materially tighter binding), the previously-unused disposition categories
+  (`CONTESTED`, `ACTION_REQUIRED`, `INFORMATIONAL`) are combined with the
+  domain categories that benefit most, and 6 new three-signal *compound*
+  rules capture escalations (e.g. malicious + exposed + known-exploited)
+  that are strictly more specific than any one of their two-category subset
+  rules — additive, not competing: both the compound rule and its subset
+  rules can fire on the same investigation.
+- **Deliberately does not build tactic-specific rule modules**
+  (persistence/execution/discovery/collection/exfiltration/
+  command-and-control/lateral-movement/privilege-escalation/impact): the
+  Reasoning Engine's `FindingCategory` vocabulary carries one
+  tactic-agnostic `ATTACK_PATTERN` value, so per-tactic rules would differ
+  only in display text, not in what they match — exactly the semantic
+  duplication this expansion avoids. All technique-co-occurrence rules live
+  in one `mitre.py`; see the architecture doc's "Known Limitations."
+- **One disclosed, additive model touch:** 26 new `CorrelationCategory`
+  enum values (`models.py`) — the same purely-additive pattern as Phase
+  5.3's `ExposureCapability.INTERNET_NOISE`. Related rules share a category
+  when they represent the same *kind* of pattern (e.g. every "+contested"
+  rule across every domain emits `FINDING_CONTESTED`) rather than each
+  rule getting a bespoke value, so 38 categories back 70 rules.
+- **Verified non-duplication programmatically:** a new registry test
+  asserts no two of the 70 rules share an identical
+  `(required_categories, same_subject)` signature — the real invariant that
+  replaces Phase 7.0's incidental 1:1 rule-to-category test.
+- **New rule-count performance benchmark** (`perf.py::measure_rule_scaling`,
+  synthetic benchmark-only rules, never registered in the real registry):
+  25/50/100 registered rules scale linearly (1.73× per-rule spread) at a
+  fixed investigation size — independent of Phase 7.0's existing
+  observation-count benchmark (unchanged, still 1.09× linear).
+- **Testing:** golden corpus grew from 18 to 76 scenarios (one per new rule,
+  generated programmatically rather than hand-written, plus the 18
+  unchanged Phase 7.0 scenarios); `test_rules.py`'s parametrized fire/no-fire
+  tests automatically extended from 12 to 70 rules with no test-file change.
+  Backend suite: **2,399 passed, 1 skipped** (was 2,281). Ruff/mypy (strict)
+  clean across 171 source files (was 163). No frontend changes.
+- **Docs:** `docs/architecture/PHASE-7.1-CORRELATION-RULE-LIBRARY.md`.
+
 ### Changed — Phase 7.0.1: API composition-layer cleanup (no behavior change)
 
 - **`backend/src/threatlens/api/app.py`** is now a pure composition root.

@@ -57,7 +57,7 @@ class TestRegistration:
 class TestDefaultRegistry:
     def test_seeds_all_rules(self) -> None:
         registry = build_default_registry()
-        assert len(registry) == len(SEED_RULES) == 12
+        assert len(registry) == len(SEED_RULES)
 
     def test_rule_ids_are_unique(self) -> None:
         ids = [r.id for r in SEED_RULES]
@@ -68,7 +68,16 @@ class TestDefaultRegistry:
             r.id for r in build_default_registry().rules
         ]
 
-    def test_categories_are_distinct_per_rule(self) -> None:
-        # Each seed rule emits a distinct correlation category (1:1 mapping).
-        categories = [r.category for r in SEED_RULES]
-        assert len(categories) == len(set(categories))
+    def test_no_two_rules_share_the_same_matching_signature(self) -> None:
+        """No semantic duplication: no two rules fire on identical conditions.
+
+        Phase 7.0's 12 seed rules happened to have a 1:1 rule-to-category
+        mapping; Phase 7.1's expansion instead groups rules representing the
+        same *kind* of pattern under a shared category (see
+        ``CorrelationCategory``'s docstring), so categories are no longer
+        expected to be distinct per rule. The real non-duplication invariant
+        is that no two rules match on the exact same (required categories,
+        same_subject) combination — that would make one of them redundant.
+        """
+        signatures = [(frozenset(r.required_categories), r.same_subject) for r in SEED_RULES]
+        assert len(signatures) == len(set(signatures))

@@ -1,21 +1,23 @@
-"""The seed correlation rule set (Phase 7.0 — framework only).
+"""The Phase 7.0 seed correlation rule set (unchanged since Phase 7.0).
 
-A small, deterministic starter set of ~12 rules combining *existing* finding
+A small, deterministic starter set of 12 rules combining *existing* finding
 categories into higher-level observations. Each rule is declarative
 :class:`CorrelationRule` data interpreted by the engine's single generic
 evaluator — there is no per-rule code, so every rule is trivially explainable
-and drift-testable. Rule expansion is an explicit later phase (7.1); this set
-only demonstrates the engine end-to-end.
+and drift-testable.
 
 Every rule combines findings that already exist in the ``InvestigationSummary``
 and references them by id. No rule invents evidence, computes a score, or
-emits confidence/severity/priority.
+emits confidence/severity/priority. Phase 7.1 (rule library expansion) adds
+new rules in sibling modules (``infrastructure.py``, ``vulnerability.py``,
+``malware.py``, ``threat_actor.py``, ``campaign.py``, ``mitre.py``,
+``compound.py``) without touching this one.
 """
 
 from __future__ import annotations
 
-from ..reasoning.models import FindingCategory
-from .models import CorrelationCategory, CorrelationRelationshipType, CorrelationRule
+from ...reasoning.models import FindingCategory
+from ..models import CorrelationCategory, CorrelationRelationshipType, CorrelationRule
 
 # --------------------------------------------------------------------------- #
 # Same-subject rules — the combined findings must share one subject entity.
@@ -204,11 +206,5 @@ _CROSS_SUBJECT_RULES: tuple[CorrelationRule, ...] = (
     ),
 )
 
-
-SEED_RULES: tuple[CorrelationRule, ...] = _SAME_SUBJECT_RULES + _CROSS_SUBJECT_RULES
-"""The full Phase 7.0 seed rule set (12 rules)."""
-
-
-def default_rules() -> tuple[CorrelationRule, ...]:
-    """Return the default seed rule set (a stable, ordered tuple)."""
-    return SEED_RULES
+RULES: tuple[CorrelationRule, ...] = _SAME_SUBJECT_RULES + _CROSS_SUBJECT_RULES
+"""The Phase 7.0 seed rule set (12 rules), byte-for-byte unchanged."""
