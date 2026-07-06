@@ -6,6 +6,60 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Added — Phase 7.0: Investigation Correlation Engine Framework (framework + seed rules)
+
+- **New engine** (`threatlens.correlation`) — a pure, deterministic consumer of
+  a completed `InvestigationSummary` that combines its **existing** findings
+  into higher-level correlation *observations* (e.g. "malicious infrastructure
+  with exposed services", "known malware associated with an observed ATT&CK
+  technique"). It never invents evidence, never scores, and never produces
+  confidence/severity/priority — those remain the Reasoning Engine's job. Every
+  observation references the source findings it combines, so every correlation
+  is fully explainable. No AI, no ML, no probabilistic inference.
+- **Declarative rules + one generic evaluator.** A `CorrelationRule` is frozen
+  data (required finding categories, a same-subject/cross-subject flag, a
+  relationship, a category, a title, a priority); a single evaluator interprets
+  every rule, so there is no per-rule code. Ships a **12-rule seed set** so the
+  pipeline is exercised end-to-end — rule expansion is Phase 7.1.
+- **Content-addressed, timestamp-independent identity.** Observation and
+  summary ids hash only stable values (rule, category, subject, source finding
+  ids / entity, source engine version, observation ids) — never `generated_at`
+  — so re-running correlation on the same investigation yields identical ids.
+  Read-only: the input `InvestigationSummary` is never mutated. Deterministic
+  ordering throughout (rules by priority-then-id, observations by
+  category-subject-id, matches by rule id).
+- **Mirrors the Detection Engine.** Same shape as `detection/` (pure
+  `InvestigationSummary` consumer, content-addressed package, registry as the
+  extension seam) — `CorrelationRegistry`, `CorrelationService`,
+  `correlate(summary) -> CorrelationSummary`. Depends only on the frozen
+  `reasoning`/`entities` contracts; nothing else imports from it.
+- **`GET /api/v1/correlation`** — a pure readiness probe (`status`, `message`,
+  `framework_version`, `rules_registered`), never running a correlation and
+  never touching the network. A new placeholder page at **`/correlation`**
+  shows Engine Ready, registered-rule count, and architecture version. Framework
+  version starts at `0.1.0`; it moves to `1.0` after the rule set is expanded
+  and validated (the Reasoning/Detection/Exposure convention). Not integrated
+  into `/investigate`.
+- **No changes to any existing subsystem**: Threat/Knowledge Intelligence, the
+  Investigation Engine, the frozen Reasoning/Detection/Exposure Engines, the
+  Detection Knowledge Library, the Operational Dashboard, the AI layer, or the
+  Identity framework.
+- **Testing:** 79 new offline tests (`backend/tests/correlation/`) — models,
+  each of the 12 seed rules, registry ordering, engine determinism/identity/
+  read-only/edge cases, aggregation, the service, the API endpoint, an
+  18-scenario CI-gated golden snapshot, and a perf smoke. Correlation scales
+  **linearly** (per-observation cost varies 1.09× from 10 to 500 observations;
+  no optimization performed). Backend suite: **2,280 passed, 1 skipped** (was
+  2,201). Frontend: **104 tests** (was 101; +3 for the correlation client);
+  build clean with the new `/correlation` route. Ruff/mypy (strict) clean across
+  154 source files. The golden-regression CI job now also runs
+  `tests/correlation`.
+- **Docs:** `docs/architecture/PHASE-7.0-CORRELATION-FRAMEWORK.md`.
+
+Rule expansion (Phase 7.1), the Timeline Engine, the Graph Engine, Case
+Management, SOAR, playbooks, and a MITRE attack graph all remain explicitly
+deferred to later, unstarted phases.
+
 ### Added — Phase 6.0: Identity Intelligence Framework (architecture only)
 
 - **New framework** (`threatlens.identity`) — a fourth intelligence subsystem,

@@ -18,6 +18,8 @@ from fastapi import Depends, FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from ..ai import AIExplanation, AIExplanationService, build_ai_service
+from ..correlation import CORRELATION_FRAMEWORK_VERSION
+from ..correlation import build_default_registry as build_correlation_registry
 from ..detection import DetectionPackage
 from ..detection import build_default_registry as build_detection_registry
 from ..detection import generate as generate_detections
@@ -49,6 +51,7 @@ from ..system.record import (
 from .health import router as health_router
 from .schemas import (
     MAX_QUERY_LENGTH,
+    CorrelationFrameworkStatus,
     DetectRequest,
     DetectResponse,
     ExposureFrameworkStatus,
@@ -154,6 +157,14 @@ _exposure_service = ExposureService(_exposure_registry)
 # providers; a later phase registers the first (HIBP, Entra ID, …). See
 # docs/architecture/PHASE-6.0-IDENTITY-FRAMEWORK.md.
 _identity_registry = build_identity_registry()
+
+
+# Investigation Correlation Engine: a pure, deterministic engine that combines a
+# completed investigation's existing findings into higher-level correlation
+# observations (referencing source findings, never inventing evidence). Phase
+# 7.0 is framework-only — a small seed rule set, no /investigate integration.
+# See docs/architecture/PHASE-7.0-CORRELATION-FRAMEWORK.md.
+_correlation_registry = build_correlation_registry()
 
 
 # Operational-readiness endpoints. Mounted at the root (``/health``, ``/ready``,
@@ -349,6 +360,24 @@ def identity_framework_status() -> IdentityFrameworkStatus:
         message="No providers configured" if count == 0 else f"{count} provider(s) registered",
         framework_version=IDENTITY_FRAMEWORK_VERSION,
         providers_registered=count,
+    )
+
+
+@app.get("/api/v1/correlation", response_model=CorrelationFrameworkStatus)
+def correlation_framework_status() -> CorrelationFrameworkStatus:
+    """Report Investigation Correlation Engine status (Phase 7.0 — framework only).
+
+    A pure readiness probe: framework version and the count of registered
+    correlation rules. Never runs a correlation (that consumes an
+    ``InvestigationSummary``) and never touches the network — it only reads the
+    seeded rule registry's length. Not integrated into ``/investigate`` yet.
+    """
+    count = len(_correlation_registry)
+    return CorrelationFrameworkStatus(
+        status="ready",
+        message="No rules registered" if count == 0 else f"{count} correlation rule(s) registered",
+        framework_version=CORRELATION_FRAMEWORK_VERSION,
+        rules_registered=count,
     )
 
 
