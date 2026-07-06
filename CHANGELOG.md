@@ -6,6 +6,8 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-07-06
+
 ### Added — Phase 7.0: Investigation Correlation Engine Framework (framework + seed rules)
 
 - **New engine** (`threatlens.correlation`) — a pure, deterministic consumer of
