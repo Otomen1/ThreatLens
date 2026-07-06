@@ -930,3 +930,44 @@ export function exposureFrameworkStatus(
   const query = trimmed ? `?value=${encodeURIComponent(trimmed)}` : "";
   return get<ExposureFrameworkStatus>(`/exposure${query}`, signal);
 }
+
+// --- identity intelligence (Phase 6.0 — framework only, no providers yet) ---
+//
+// Answers "what is known about this identity" (breaches, credential exposure,
+// directory profile, …), never "is it malicious" or "where is it exposed"
+// (those remain Threat and Exposure Intelligence's questions — separate
+// frameworks). This is a pure readiness probe: no entity lookup, not
+// integrated into /investigate.
+
+export interface IdentityFrameworkStatus {
+  status: string;
+  message: string;
+  framework_version: string;
+  providers_registered: number;
+}
+
+/** Fetch Identity Intelligence Framework readiness (Phase 6.0 — no providers yet). */
+export function identityFrameworkStatus(signal?: AbortSignal): Promise<IdentityFrameworkStatus> {
+  return get<IdentityFrameworkStatus>("/identity", signal);
+}
+
+// --- investigation correlation (Phase 7.0 — framework only) ---
+//
+// A pure, deterministic engine that combines a completed investigation's
+// existing findings into higher-level correlation observations. It never
+// invents evidence and never scores. This is a pure readiness probe: no
+// correlation is run, not integrated into /investigate yet.
+
+export interface CorrelationFrameworkStatus {
+  status: string;
+  message: string;
+  framework_version: string;
+  rules_registered: number;
+}
+
+/** Fetch Investigation Correlation Engine readiness (Phase 7.0 — seed rules only). */
+export function correlationFrameworkStatus(
+  signal?: AbortSignal,
+): Promise<CorrelationFrameworkStatus> {
+  return get<CorrelationFrameworkStatus>("/correlation", signal);
+}

@@ -89,3 +89,34 @@ class ExposureFrameworkStatus(BaseModel):
     providers_registered: int
     providers: list[ExposureProviderStatusInfo] = Field(default_factory=list)
     summary: ExposureSummary | None = None
+
+
+class IdentityFrameworkStatus(BaseModel):
+    """Identity Intelligence Framework status (Phase 6.0 — framework only).
+
+    A pure readiness probe: framework version and registered-provider count.
+    Phase 6.0 ships zero providers, so ``providers_registered`` is 0 and no
+    entity lookup is ever performed. Not integrated into ``/investigate``.
+    Mirrors the Phase 5.0 exposure framework-status probe; a later phase adds
+    per-provider health and an optional lookup exactly as exposure did.
+    """
+
+    status: str
+    message: str
+    framework_version: str
+    providers_registered: int
+
+
+class CorrelationFrameworkStatus(BaseModel):
+    """Investigation Correlation Engine status (Phase 7.0 — framework only).
+
+    A pure readiness probe: framework version and the count of registered
+    correlation rules. Phase 7.0 ships a small seed rule set and performs no
+    correlation from this endpoint (it never touches an investigation). Not
+    integrated into ``/investigate`` yet.
+    """
+
+    status: str
+    message: str
+    framework_version: str
+    rules_registered: int

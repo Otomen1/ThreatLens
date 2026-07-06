@@ -3,11 +3,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   ApiError,
   aiHealth,
+  correlationFrameworkStatus,
   detect,
   explain,
   exposureFrameworkStatus,
   generateDetections,
   health,
+  identityFrameworkStatus,
   recommendCommunityDetections,
   searchCommunityDetections,
   type InvestigationSummary,
@@ -225,6 +227,76 @@ describe("exposureFrameworkStatus", () => {
     const controller = new AbortController();
 
     await exposureFrameworkStatus("8.8.8.8", controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("identityFrameworkStatus", () => {
+  const STATUS_PAYLOAD = {
+    status: "ready",
+    message: "No providers configured",
+    framework_version: "0.1.0",
+    providers_registered: 0,
+  };
+
+  it("GETs the identity endpoint and returns the framework status", async () => {
+    const fetchMock = stubFetch(200, STATUS_PAYLOAD);
+
+    const result = await identityFrameworkStatus();
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(/\/identity$/);
+    expect(init.method).toBe("GET");
+    expect(result).toEqual(STATUS_PAYLOAD);
+  });
+
+  it("throws ApiError on a non-2xx response", async () => {
+    stubFetch(500, { detail: "boom" });
+    await expect(identityFrameworkStatus()).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(200, STATUS_PAYLOAD);
+    const controller = new AbortController();
+
+    await identityFrameworkStatus(controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("correlationFrameworkStatus", () => {
+  const STATUS_PAYLOAD = {
+    status: "ready",
+    message: "12 correlation rule(s) registered",
+    framework_version: "0.1.0",
+    rules_registered: 12,
+  };
+
+  it("GETs the correlation endpoint and returns the framework status", async () => {
+    const fetchMock = stubFetch(200, STATUS_PAYLOAD);
+
+    const result = await correlationFrameworkStatus();
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(/\/correlation$/);
+    expect(init.method).toBe("GET");
+    expect(result).toEqual(STATUS_PAYLOAD);
+  });
+
+  it("throws ApiError on a non-2xx response", async () => {
+    stubFetch(500, { detail: "boom" });
+    await expect(correlationFrameworkStatus()).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(200, STATUS_PAYLOAD);
+    const controller = new AbortController();
+
+    await correlationFrameworkStatus(controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(init.signal).toBe(controller.signal);
