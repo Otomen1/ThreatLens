@@ -6,6 +6,42 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Changed — Phase 7.0.1: API composition-layer cleanup (no behavior change)
+
+- **`backend/src/threatlens/api/app.py`** is now a pure composition root.
+  Every subsystem's endpoints moved into their own router under the new
+  `api/routes/` package (`investigation.py` — `/detect` + `/investigate`;
+  `ai.py` — `/explain`; `detection.py` — `/detections`;
+  `detection_knowledge.py` — both `/detection-knowledge/*` routes;
+  `exposure.py`, `identity.py`, `correlation.py` — their framework-status
+  endpoints), mirroring the existing `system/router.py` pattern. `app.py`
+  now only builds the FastAPI app, configures CORS, and includes routers.
+  All endpoint URLs, request/response models, dependency-injection
+  overrides (`get_investigation_service`, `get_ai_service`,
+  `get_knowledge_service` — still importable from `threatlens.api.app`),
+  metrics recording, middleware, and OpenAPI output are unchanged.
+- **`backend/src/threatlens/api/timing.py`** (new) — a one-function
+  `elapsed_ms(start)` helper replacing the `_duration_ms = (time.perf_counter()
+  - _start) * 1000` line duplicated across five endpoints.
+- **`frontend/lib/api.ts`** (973 lines) split into `frontend/lib/api/`
+  (`client.ts`, `investigation.ts`, `ai.ts`, `detection.ts`,
+  `detectionKnowledge.ts`, `exposure.ts`, `identity.ts`, `correlation.ts`,
+  `system.ts`, plus an `index.ts` barrel). Every existing `from "@/lib/api"`
+  / `from "./api"` import continues to resolve unchanged; no exported name,
+  type, or function signature changed.
+- Two exposure test files (`tests/exposure/test_api.py`,
+  `tests/exposure_validation/test_exposure_freeze.py`) updated to
+  monkeypatch the exposure registry/service singleton in its new home
+  (`api.routes.exposure`) instead of `api.app` — the only test changes this
+  cleanup required.
+- Refreshed the `api/app.py` and `api/__init__.py` module docstrings, which
+  still described a single-endpoint Phase 1.1.5 API.
+- No new functionality, no API contract changes, no engine changes. Follows
+  from the Phase 6.0/7.0 Merge Readiness Review's High-severity findings on
+  `api/app.py` and `lib/api.ts` growth. Backend suite: **2,281 tests**
+  (2,280 passed, 1 skipped), unchanged. Frontend: **104 tests**, unchanged.
+  Ruff/mypy (strict) clean across 163 backend source files (was 154).
+
 ## [1.2.0] — 2026-07-06
 
 ### Added — Phase 7.0: Investigation Correlation Engine Framework (framework + seed rules)

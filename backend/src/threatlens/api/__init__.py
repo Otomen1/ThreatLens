@@ -1,10 +1,11 @@
-"""HTTP transport for the Universal Entity Detection Engine.
+"""HTTP transport for ThreatLens.
 
-Phase 1.1.5 exposes the deterministic engine over a single REST endpoint so the
-frontend can classify arbitrary input. The API is a thin layer: it validates
-input, delegates to :func:`threatlens.search.detect`, and returns the existing
-:class:`~threatlens.entities.models.Entity` contract verbatim. No threat
-intelligence, AI, source routing, persistence, caching, or auth lives here.
+:mod:`threatlens.api.app` is the composition root; each subsystem's endpoints
+are defined in their own router under :mod:`threatlens.api.routes` (plus the
+standalone ``health`` and ``system`` routers) and mounted there. Every route is
+a thin layer: it validates input and delegates to the corresponding engine or
+service, returning that subsystem's existing contract verbatim. No business
+logic, persistence, caching, or auth lives in the API layer itself.
 """
 
 from __future__ import annotations
