@@ -114,8 +114,14 @@ class TestRouting:
         assert registry.route(_entity()) == ()
 
 
-def test_build_default_registry_is_empty() -> None:
-    """Phase 5.0 ships zero providers; the default registry reflects that."""
+def test_build_default_registry_registers_shodan_censys_and_greynoise() -> None:
+    """Phase 5.1 registered Shodan; Phase 5.2 added Censys; Phase 5.3 adds GreyNoise."""
     registry = build_default_registry()
-    assert len(registry) == 0
-    assert registry.providers == ()
+    assert len(registry) == 3
+    # All default to priority=100, so the existing priority-then-name
+    # tiebreak (no new ordering logic) makes this deterministic.
+    assert [provider.name for provider in registry.providers] == [
+        "censys",
+        "greynoise",
+        "shodan",
+    ]

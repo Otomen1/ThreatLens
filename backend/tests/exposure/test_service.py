@@ -66,17 +66,34 @@ class _FakeFailingProvider(ExposureProvider):
 
 class TestEmptyRegistry:
     async def test_investigate_returns_well_formed_empty_summary(self) -> None:
-        service = ExposureService(build_default_registry())
+        service = ExposureService(ExposureRegistry())
         summary = await service.investigate(_entity())
         assert summary.findings == []
         assert summary.statistics.providers_queried == 0
         assert summary.metadata.framework_version == EXPOSURE_FRAMEWORK_VERSION
 
     async def test_entity_type_and_value_are_preserved(self) -> None:
-        service = ExposureService(build_default_registry())
+        service = ExposureService(ExposureRegistry())
         summary = await service.investigate(_entity(EntityType.DOMAIN, "evil.example.com"))
         assert summary.entity_type == EntityType.DOMAIN
         assert summary.entity_value == "evil.example.com"
+
+
+class TestDefaultRegistry:
+    """Phase 5.1 added Shodan; Phase 5.2 added Censys; Phase 5.3 adds GreyNoise."""
+
+    async def test_ipv4_routes_to_all_three_providers(self) -> None:
+        """Framework validation: three real providers merge with zero service.py changes."""
+        service = ExposureService(build_default_registry())
+        summary = await service.investigate(_entity())
+        assert summary.statistics.providers_queried == 3
+        assert [f.provider for f in summary.findings] == ["censys", "greynoise", "shodan"]
+
+    async def test_unsupported_entity_type_still_routes_to_nothing(self) -> None:
+        service = ExposureService(build_default_registry())
+        summary = await service.investigate(_entity(EntityType.DOMAIN, "evil.example.com"))
+        assert summary.statistics.providers_queried == 0
+        assert summary.entity_type == EntityType.DOMAIN
 
 
 class TestWithProviders:

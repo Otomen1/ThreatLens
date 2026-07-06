@@ -5,6 +5,7 @@ import {
   aiHealth,
   detect,
   explain,
+  exposureFrameworkStatus,
   generateDetections,
   health,
   recommendCommunityDetections,
@@ -161,6 +162,72 @@ describe("aiHealth", () => {
     expect(String(url)).toMatch(/\/health\/ai$/);
     expect(init.method).toBe("GET");
     expect(result.status).toBe("disabled");
+  });
+});
+
+describe("exposureFrameworkStatus", () => {
+  const STATUS_PAYLOAD = {
+    status: "ready",
+    message: "1 provider(s) registered",
+    framework_version: "0.1.0",
+    providers_registered: 1,
+    providers: [
+      { name: "shodan", display_name: "Shodan", status: "degraded", detail: "API key not configured" },
+    ],
+    summary: null,
+  };
+
+  it("GETs the exposure endpoint with no query string when no value is given", async () => {
+    const fetchMock = stubFetch(200, STATUS_PAYLOAD);
+
+    const result = await exposureFrameworkStatus();
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(/\/exposure$/);
+    expect(init.method).toBe("GET");
+    expect(result).toEqual(STATUS_PAYLOAD);
+  });
+
+  it("appends a URL-encoded value query param when a value is given", async () => {
+    const fetchMock = stubFetch(200, { ...STATUS_PAYLOAD, summary: { entity_value: "8.8.8.8" } });
+
+    await exposureFrameworkStatus("8.8.8.8");
+
+    const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(/\/exposure\?value=8\.8\.8\.8$/);
+  });
+
+  it("URL-encodes special characters in the value", async () => {
+    const fetchMock = stubFetch(200, STATUS_PAYLOAD);
+
+    await exposureFrameworkStatus("2001:4860:4860::8888");
+
+    const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toContain(encodeURIComponent("2001:4860:4860::8888"));
+  });
+
+  it("treats a blank/whitespace value as absent", async () => {
+    const fetchMock = stubFetch(200, STATUS_PAYLOAD);
+
+    await exposureFrameworkStatus("   ");
+
+    const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(/\/exposure$/);
+  });
+
+  it("throws ApiError on a non-2xx response", async () => {
+    stubFetch(500, { detail: "boom" });
+    await expect(exposureFrameworkStatus("8.8.8.8")).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(200, STATUS_PAYLOAD);
+    const controller = new AbortController();
+
+    await exposureFrameworkStatus("8.8.8.8", controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
   });
 });
 

@@ -43,9 +43,197 @@ All notable changes to ThreatLens are documented here. The project follows
   design, provider interface, registry design, summary model, dependency
   direction, future provider roadmap).
 
-Providers (Shodan, Censys, GreyNoise, HIBP, SecurityTrails, IntelligenceX,
-BinaryEdge, FOFA, CriminalIP, LeakIX) and `InvestigationSummary` integration
-are explicitly deferred to a later, unstarted phase.
+### Added — Phase 5.1: Shodan Exposure Provider (first concrete provider)
+
+- **`ShodanProvider`** — the first concrete Exposure Intelligence provider,
+  reporting open ports, running services, TLS certificates, hostnames/
+  domains, and hosting/ASN facts for IPv4/IPv6 via Shodan's Host API. Purely
+  descriptive, never a score or verdict. Registered by default
+  (`SHODAN_ENABLED=true`); a missing `SHODAN_API_KEY` yields a structured
+  `unauthorized` finding, never an exception.
+- **Reuses `providers/http.py`'s `HttpClient`** — a disclosed, narrow
+  exception to Phase 5.0's provider/exposure import isolation (see
+  `docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md`); no file under
+  `providers/` was modified.
+- **`GET /api/v1/exposure`** gains an optional `?value=` query param that
+  runs a real lookup (detect → route → aggregate) and returns the merged
+  `ExposureSummary`, plus per-provider health (`providers: [...]`). With no
+  `value`, behavior is unchanged from Phase 5.0. A disabled or unconfigured
+  provider still returns `200` with a well-formed empty/failed summary.
+- **In-memory caching** of definitive (`ok`/`not_found`) Shodan lookups (one
+  hour TTL, Phase 5.0's `InMemoryExposureCache` — no Redis, no database);
+  transient failures and auth errors are never cached.
+- **`/exposure` page rebuilt**: Provider Status (framework version, provider
+  count, per-provider health) plus a search box; results render per-provider
+  with assets/evidence/references when configured, a friendly message when
+  disabled/unconfigured — never a crash. The Investigation Workspace is
+  unchanged.
+- **No changes to any frozen v1.x subsystem** (Core Platform, Detection
+  Engineering, Operational Platform) and no changes to any file under
+  `providers/`.
+- **Testing:** 39 new/updated offline tests (`test_shodan_provider.py` plus
+  registry/service/API updates for the now-non-empty default registry) — all
+  network mocked via `httpx.MockTransport`, zero real API key or Internet
+  access required. Exposure suite: **105 tests** (was 66). Backend suite:
+  **1,722 passed, 1 skipped** (was 1,683). Frontend: **98 tests** (was 92).
+  Ruff/mypy clean across 133 source files. Browser-verified end-to-end
+  (Playwright) for both the unconfigured and configured-with-results paths.
+- **Docs:** `docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md`.
+
+Censys, GreyNoise, HIBP, SecurityTrails, IntelligenceX, BinaryEdge, FOFA,
+CriminalIP, LeakIX, domain/email exposure, and `InvestigationSummary`
+integration remain explicitly deferred to later, unstarted phases.
+
+### Added — Phase 5.2: Censys Exposure Provider (framework validation)
+
+- **`CensysProvider`** — the second concrete Exposure Intelligence provider,
+  reporting open ports, services, TLS certificates, reverse-DNS hostnames,
+  and hosting/ASN facts for IPv4/IPv6 via Censys Search's v2 Host view.
+  Authenticates with an API ID + Secret pair (`CENSYS_API_ID`/
+  `CENSYS_API_SECRET`) over HTTP Basic auth; missing/partial credentials
+  yield a structured `unauthorized` finding, never an exception.
+- **Validates the framework scales to multiple providers with zero
+  architectural change**: `build_default_registry()` gained one
+  `register()` line; `ExposureService`, `merge_findings()`, the
+  `GET /api/v1/exposure` endpoint, and the `/exposure` frontend page are all
+  byte-for-byte unmodified. A single IPv4 lookup now routes to and merges
+  both Shodan and Censys, in deterministic order (existing priority-then-
+  name tiebreak — no new ordering logic).
+- **Same provider-local in-memory caching** as Shodan (one hour TTL,
+  definitive results only).
+- **Test isolation fix** (`tests/exposure/conftest.py`, new): clears
+  provider-credential env vars before every exposure test, so the suite's
+  outcome never depends on what a local `backend/.env` happens to contain.
+- **No changes to any frozen v1.x subsystem**, no changes to any file under
+  `providers/`, and **no frontend file changes at all** — browser-verified
+  that the existing Phase 5.1 page/components already render a second
+  provider correctly.
+- **Testing:** 36 new/updated tests (32 in `test_censys_provider.py`, plus
+  registry/service/API updates and the new conftest). Exposure suite:
+  **141 tests** (was 105). Backend suite: **1,758 passed, 1 skipped** (was
+  1,722). Frontend: **98 tests, unchanged**. Ruff/mypy clean across 134
+  source files.
+- **Docs:** `docs/architecture/PHASE-5.2-CENSYS-PROVIDER.md`.
+
+GreyNoise, SecurityTrails, FOFA, LeakIX, BinaryEdge, CriminalIP, HIBP,
+IntelligenceX, domain/email exposure, and `InvestigationSummary` integration
+remain explicitly deferred to later, unstarted phases.
+
+### Changed — Phase 5.2.1: Censys Personal Access Token migration
+
+- **`CensysProvider` now supports Censys's current Platform API** via
+  `CENSYS_PERSONAL_ACCESS_TOKEN` (`Authorization: Bearer`), preferred over
+  the original legacy `CENSYS_API_ID`/`CENSYS_API_SECRET` Basic-auth pair,
+  which remains fully supported for backward compatibility. Auth mode is
+  resolved once at construction: PAT → legacy pair → not configured.
+- **Health semantics for Censys changed**: no credentials configured at all
+  now reports `DISABLED` ("not set up") instead of `DEGRADED` ("configured
+  but rejected"). `ShodanProvider` is unchanged (still `DEGRADED`) — a
+  deliberate, disclosed asymmetry scoped to this migration, not applied
+  project-wide.
+- Response parsing now defensively unwraps either the legacy flat `result`
+  shape or a Platform-style `result.host` nesting; the exact Platform API
+  endpoint/response shape is a best-effort mapping, not verified against a
+  live account (this sandbox's egress policy blocks third-party API hosts).
+- No new files; `tests/exposure/conftest.py` extended to also clear
+  `CENSYS_PERSONAL_ACCESS_TOKEN`. 14 new tests (46 in
+  `test_censys_provider.py`, 151 in the exposure suite, 1,768 backend
+  tests total). No frontend changes. No changes to any frozen v1.x
+  subsystem or to any file under `providers/`.
+
+### Added — Phase 5.3: GreyNoise Exposure Provider (framework re-validation)
+
+- **`GreyNoiseProvider`** — the third concrete Exposure Intelligence
+  provider, reporting internet-noise/business-service classification for
+  IPv4 (only) via GreyNoise's Context API. A genuinely different kind of
+  fact than Shodan/Censys's scan-surface data — reputation/context, not open
+  ports — but still purely descriptive: GreyNoise's own classification is
+  reported as a quoted, attributed third-party statement
+  (`"GreyNoise classification: malicious"`), never a ThreatLens-computed
+  verdict. Authenticates with a single API key (`GREYNOISE_API_KEY`) sent as
+  GreyNoise's own `key` header convention; a missing key yields a structured
+  `unauthorized` finding, never an exception. Contributes no assets (no
+  ports/certs/hostnames) — every finding is evidence-only, a shape the
+  canonical model already supported.
+- **New canonical vocabulary value**: `ExposureCapability.INTERNET_NOISE` —
+  the framework's first new model addition since Phase 5.0, added because no
+  existing capability describes "internet-scanning background noise or a
+  recognized business service." Purely additive; no existing value's meaning
+  changed.
+- **Re-validates the framework scales to N providers with zero architectural
+  change**: `build_default_registry()` gained one more `register()` line;
+  `ExposureService`, `merge_findings()`, the `GET /api/v1/exposure` endpoint,
+  and the `/exposure` frontend rendering are all byte-for-byte unmodified. A
+  single IPv4 lookup now routes to and merges all three providers, in
+  deterministic order (`censys` < `greynoise` < `shodan`, existing
+  priority-then-name tiebreak — no new ordering logic).
+- **Same provider-local in-memory caching** as Shodan/Censys (one hour TTL,
+  definitive results only).
+- **Health semantics follow Shodan's original convention, not Censys's PAT
+  migration**: a missing API key reports `DEGRADED`, not `DISABLED` — the
+  `DISABLED`-on-missing-credentials distinction stays scoped to the Censys
+  migration that explicitly requested it.
+- **Frontend**: one type-parity addition (`ExposureCapability` gains
+  `"internet_noise"` in `lib/api.ts`, mirroring the backend enum) and a
+  one-line copy fix to the exposure page's static provider-scope caption;
+  no rendering-logic change. Browser-verified with a mocked three-provider
+  response that the existing generic provider-status and finding-card
+  rendering (including GreyNoise's zero-assets, evidence-only shape) needs
+  no component changes.
+- **No changes to any frozen v1.x subsystem**, and no changes to any file
+  under `providers/` (only imports `providers/http.py`'s `HttpClient`, the
+  same disclosed exception Shodan/Censys already established).
+- **Testing:** 36 new tests (`test_greynoise_provider.py`), plus
+  registry/service/API updates for three default providers. Exposure suite:
+  **187 tests** (was 151). Backend suite: **1,804 passed, 1 skipped** (was
+  1,768). Frontend: **98 tests, unchanged**. Ruff/mypy clean across 135
+  source files.
+- **Docs:** `docs/architecture/PHASE-5.3-GREYNOISE-PROVIDER.md`.
+
+SecurityTrails, FOFA, LeakIX, BinaryEdge, CriminalIP, HIBP, IntelligenceX,
+domain/email exposure, and `InvestigationSummary` integration remain
+explicitly deferred to later, unstarted phases (Phase 5.4+).
+
+### Added — Phase 5.4: Exposure Engine v1.0 (validation & freeze)
+
+- **New validation/freeze suite** (`tests/exposure_validation/`), mirroring
+  the Reasoning (Phase 3.15) and Detection Engine (Phase 4.5) freezes: a
+  153-scenario corpus (12 realistic category labels × every provider-matrix
+  combination, plus 9 standalone edge cases) driven through the real,
+  unmodified `ExposureRegistry` + `ExposureService` via a controllable fake
+  provider — no network, no live account, no HTTP mocking.
+- **0 invariant violations** across all 153 scenarios: routing, concurrent
+  merge/ordering, statistics, no duplicate references/evidence/assets,
+  serialization round-trips, and the frontend/API key contract. A
+  representative subset additionally verified through the real
+  `GET /api/v1/exposure` HTTP endpoint.
+- **Determinism verified for all 153 scenarios** (content-level, excluding
+  `metadata.generated_at` — the one wall-clock field
+  `ExposureService.investigate()` produces with no injectable clock, the
+  same documented exclusion Reasoning/Detection already apply to their own
+  `generated_at`).
+- **Golden regression** (`tests/exposure_validation/golden.json`), CI-gated
+  in the same job as the reasoning/IOC/detection/knowledge-library goldens.
+- **Performance benchmarked**: `investigate()` scaling (1-100 lookups, no
+  bottleneck — per-lookup cost *improves* at scale as fixed event-loop
+  overhead amortizes), cache effectiveness (16.6× cold/warm speedup via the
+  real `InMemoryExposureCache`), and `merge_findings` scaling in isolation.
+  No optimization was performed (none is justified).
+- **Architecture reviewed**: provider/model/registry/cache/service
+  abstractions all confirmed sufficient — **zero redesign**, zero new
+  providers, zero new canonical models.
+- **Frozen**: `EXPOSURE_FRAMEWORK_VERSION` moves from `"0.1.0"` to `"1.0"` —
+  the only production-code change in this entire phase.
+- **Testing:** 322 new tests. Backend suite: **2,126 passed, 1 skipped**
+  (was 1,804). Frontend: **98 tests, unchanged** — no frontend file touched.
+  Ruff/mypy clean across 135 source files (unchanged count).
+- **Docs:** `docs/architecture/PHASE-5.4-EXPOSURE-ENGINE-V1.md`.
+
+**GO — Exposure Intelligence is frozen at v1.0.** Future provider additions
+follow the same contract as the Reasoning/Detection freezes: regenerate the
+golden, bump the version, document the change. Phase 5.5 and beyond
+(additional providers, domain/email exposure, `InvestigationSummary`
+integration) remain explicitly out of scope until separately started.
 
 ## [1.1.1] — 2026-07-04
 

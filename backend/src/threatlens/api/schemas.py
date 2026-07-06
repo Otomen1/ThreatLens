@@ -12,6 +12,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field, field_validator
 
 from ..entities.models import Entity
+from ..exposure import ExposureSummary
 from ..providers import AggregatedResult
 from ..reasoning import InvestigationSummary
 
@@ -63,15 +64,28 @@ class InvestigationResponse(BaseModel):
     investigation_summary: InvestigationSummary
 
 
-class ExposureFrameworkStatus(BaseModel):
-    """Readiness of the Exposure Intelligence Framework (Phase 5.0 — no providers yet).
+class ExposureProviderStatusInfo(BaseModel):
+    """A point-in-time health snapshot for one exposure provider, over the API."""
 
-    A pure status probe, not an entity lookup: it reports whether the
-    framework is present and how many providers are registered, never
-    exposure data. Not integrated into ``/investigate``.
+    name: str
+    display_name: str
+    status: str
+    detail: str | None = None
+
+
+class ExposureFrameworkStatus(BaseModel):
+    """Exposure Intelligence Framework status, and optionally a real lookup.
+
+    With no lookup requested, this is a pure status probe: framework
+    version, registered-provider count, and each provider's health — never
+    exposure data. When a ``value`` is supplied to the endpoint, ``summary``
+    additionally carries that entity's merged ``ExposureSummary`` from every
+    routed provider (Shodan today). Still not integrated into ``/investigate``.
     """
 
     status: str
     message: str
     framework_version: str
     providers_registered: int
+    providers: list[ExposureProviderStatusInfo] = Field(default_factory=list)
+    summary: ExposureSummary | None = None

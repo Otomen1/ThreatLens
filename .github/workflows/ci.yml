@@ -23,8 +23,8 @@ jobs:
         run: ruff check src tests
       - name: Mypy (strict)
         run: mypy src/threatlens
-      - name: Golden regression (reasoning · IOC validation · detection freeze · knowledge library)
-        run: pytest tests/benchmark tests/validation tests/detection tests/detection_library
+      - name: Golden regression (reasoning · IOC validation · detection freeze · knowledge library · exposure freeze)
+        run: pytest tests/benchmark tests/validation tests/detection tests/detection_library tests/exposure_validation
       - name: Pytest (full suite)
         run: pytest
 
