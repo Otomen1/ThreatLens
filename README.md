@@ -244,6 +244,18 @@ No credentials at all (neither PAT nor the legacy pair) → every lookup returns
 
 IPv4 only — GreyNoise's own API scope, not a ThreatLens choice. Reports internet-noise/business-service classification (reputation/context), not scan-surface data; still purely descriptive — GreyNoise's own classification is quoted as a third-party fact, never a ThreatLens-computed verdict.
 
+### Backend — Identity Intelligence (framework-level — reserved, not yet read by any code path)
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `IDENTITY_ENABLED` | `false` | Master switch — reserved; Phase 6.0 ships zero providers, so no code path reads it yet (each future provider self-configures). |
+| `IDENTITY_CACHE_ENABLED` | `true` | Reserved — no cache is wired into `IdentityService` itself yet (a future provider caches its own lookups). |
+| `IDENTITY_CACHE_TTL` | `3600` | Reserved cache TTL (seconds). |
+| `IDENTITY_TIMEOUT` | `10` | Reserved per-lookup timeout (seconds). |
+| `IDENTITY_RATE_LIMIT_PER_MINUTE` | *(unset)* | Reserved rate limit. |
+
+Phase 6.0 is framework only — no providers, no secrets. Provider credentials (Have I Been Pwned, Entra ID, Okta, …) belong to each provider's own settings in a later phase.
+
 ### Frontend
 
 | Variable | Default | Purpose |
@@ -315,6 +327,10 @@ The dashboard is strictly downstream and isolated: it never calls a provider, ru
 ### Exposure Intelligence — frozen at v1.0 (Phase 5.0-5.4)
 
 `GET /api/v1/exposure` reports framework + per-provider status — `{status, message, framework_version, providers_registered, providers[], summary}` — and, given an optional `?value=` query param (an IP), also runs a real lookup and returns the merged `summary` (an `ExposureSummary`: findings, evidence, assets, references) across every enabled provider. The **`/exposure`** page shows Provider Status (framework version, provider count, each provider's health) plus a search box; results render per-provider with full evidence/asset detail when configured, or a friendly message when a provider is disabled or missing credentials — never a crash. Three providers (Censys, GreyNoise, Shodan) merge into one summary through the same unmodified aggregation path Phase 5.0 shipped with zero providers. GreyNoise contributes reputation/context (internet-noise/business-service classification, IPv4 only) rather than scan-surface data, still reported purely descriptively. Phase 5.4 validated the whole framework against a 153-scenario corpus (zero invariant violations, byte-stable golden snapshot, benchmarked scaling/caching) and froze it at `EXPOSURE_FRAMEWORK_VERSION = "1.0"`. Still not integrated into `/investigate`. See [`docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md`](docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md), [`docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md`](docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md), [`docs/architecture/PHASE-5.2-CENSYS-PROVIDER.md`](docs/architecture/PHASE-5.2-CENSYS-PROVIDER.md), [`docs/architecture/PHASE-5.3-GREYNOISE-PROVIDER.md`](docs/architecture/PHASE-5.3-GREYNOISE-PROVIDER.md), and [`docs/architecture/PHASE-5.4-EXPOSURE-ENGINE-V1.md`](docs/architecture/PHASE-5.4-EXPOSURE-ENGINE-V1.md).
+
+### Identity Intelligence (Phase 6.0 — framework only)
+
+`GET /api/v1/identity` reports framework readiness — `{status, message, framework_version, providers_registered}` — a pure status probe that performs no entity lookup and never touches the network. The **`/identity`** page shows Framework Ready, provider count, and architecture version. Identity Intelligence is a fourth, separate framework answering "what is known about this identity" (breaches, credential exposure, paste history, linked accounts, directory profile, group membership, MFA state, sign-in activity, first-party risk signals) — never "is it malicious" or "where is it exposed" (Threat and Exposure Intelligence's questions). Purely descriptive: a provider's own risk signal is quoted as a third-party fact, never a ThreatLens verdict. Phase 6.0 ships the framework — models, provider interface, registry, config, cache, service — with **zero** providers, exactly as Exposure's Phase 5.0 did; every code path is real and tested against an empty registry. Provider integrations (Have I Been Pwned, Entra ID, Okta, …) arrive in a later phase. See [`docs/architecture/PHASE-6.0-IDENTITY-FRAMEWORK.md`](docs/architecture/PHASE-6.0-IDENTITY-FRAMEWORK.md).
 
 ---
 
@@ -425,9 +441,9 @@ Everything runs offline: external TI providers are exercised against recorded/si
 |---|---|
 | **Phase 4 — Detection Engineering** ✅ | Generate detections (Sigma/YARA/SIEM queries) from investigation findings; deterministic templating with validated output, citing the findings each rule derives from. Frozen at v1.0, plus a read-only **Detection Knowledge Library** recommending community detections alongside generated ones. |
 | **Phase 5 — Exposure Intelligence** ✅ **v1.0 frozen** | Asset/exposure context: what is internet-facing, what is vulnerable, how findings map to your attack surface. Answers "where is this exposed", never "is this malicious" — a separate framework from Threat Intelligence. **Phase 5.0 (framework)**, **Phase 5.1 (Shodan)**, **Phase 5.2 (Censys)**, **Phase 5.3 (GreyNoise)**, and **Phase 5.4 (validation & freeze)** are complete — three independent providers merge into one summary with zero framework changes, validated against a 153-scenario corpus with zero invariant violations and frozen at `EXPOSURE_FRAMEWORK_VERSION = "1.0"`. See [`docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md`](docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md), [`docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md`](docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md), [`docs/architecture/PHASE-5.2-CENSYS-PROVIDER.md`](docs/architecture/PHASE-5.2-CENSYS-PROVIDER.md), [`docs/architecture/PHASE-5.3-GREYNOISE-PROVIDER.md`](docs/architecture/PHASE-5.3-GREYNOISE-PROVIDER.md), and [`docs/architecture/PHASE-5.4-EXPOSURE-ENGINE-V1.md`](docs/architecture/PHASE-5.4-EXPOSURE-ENGINE-V1.md). Further providers (HIBP, SecurityTrails, …), domain/email exposure, and `InvestigationSummary` integration are later, unstarted milestones. |
-| **Phase 6 — Identity Intelligence** | Identity-centric investigation: accounts, credentials, and identity-driven attack paths. |
+| **Phase 6 — Identity Intelligence** 🚧 | Identity-centric investigation: accounts, credentials, breaches, directory profiles, and identity-driven attack paths. Answers "what is known about this identity", never "is this malicious" or "where is this exposed" — a fourth separate framework. **Phase 6.0 (framework)** is complete — models, provider interface, registry, config, cache, service, `GET /api/v1/identity`, and a `/identity` placeholder, with **zero** providers, exactly as Exposure's Phase 5.0 shipped. See [`docs/architecture/PHASE-6.0-IDENTITY-FRAMEWORK.md`](docs/architecture/PHASE-6.0-IDENTITY-FRAMEWORK.md). Concrete providers (Have I Been Pwned, Entra ID, Okta, …) and any `InvestigationSummary` integration are later, unstarted milestones. |
 
-All future phases consume the frozen `InvestigationSummary` — the reasoning core does not change to support them. Exposure Intelligence (Phase 5) is additionally isolated from Threat Intelligence, Knowledge Intelligence, Reasoning, Detection Engineering, the Detection Knowledge Library, and the Operational Dashboard — no shared models, no shared registry, dependency flows one way into `entities/` only.
+All future phases consume the frozen `InvestigationSummary` — the reasoning core does not change to support them. Exposure Intelligence (Phase 5) and Identity Intelligence (Phase 6) are additionally isolated from Threat Intelligence, Knowledge Intelligence, Reasoning, Detection Engineering, the Detection Knowledge Library, and the Operational Dashboard — no shared models, no shared registry, dependency flows one way into `entities/` only.
 
 ---
 

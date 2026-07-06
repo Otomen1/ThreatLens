@@ -6,6 +6,61 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Added — Phase 6.0: Identity Intelligence Framework (architecture only)
+
+- **New framework** (`threatlens.identity`) — a fourth intelligence subsystem,
+  opened exactly as Exposure Intelligence's Phase 5.0 was. Threat Intelligence
+  answers "is this IOC malicious?", Exposure Intelligence "where is this entity
+  exposed?"; Identity Intelligence answers **"what is known about this
+  identity?"** (breaches, credential exposure, paste history, linked accounts,
+  directory profile, group membership, role assignments, MFA state, sign-in
+  activity, first-party risk signals). Purely descriptive — no score, no
+  compromised/safe verdict; a provider's own risk signal is quoted as a
+  third-party fact, never a ThreatLens verdict. A separate framework at every
+  layer: no shared models, no shared registry, no import in either direction
+  with any other subsystem (only the shared `entities/` contract).
+- **Zero concrete providers.** Every code path (registration, routing,
+  aggregation, the service) is real and tested against an empty registry —
+  `IdentityService.investigate()` returns a well-formed, empty
+  `IdentitySummary` through the same aggregation path a future provider will
+  use unmodified. Mirrors the proven `exposure/` shape: closed-vocabulary
+  enums (`IdentityCapability`, `IdentityStatus`, …), frozen Pydantic models
+  (`IdentityFinding`, `IdentityAsset`, `IdentityEvidence`, `IdentitySummary`,
+  …), an `IdentityProvider` ABC, a registry that registers and routes, a pure
+  `merge_findings` aggregation, and `IdentityService`. Cache
+  (`IdentityCache` + an in-memory default) and config
+  (`IdentityConfig.from_env()` — `IDENTITY_ENABLED`, `IDENTITY_CACHE_ENABLED`,
+  `IDENTITY_CACHE_TTL`, `IDENTITY_TIMEOUT`, `IDENTITY_RATE_LIMIT_PER_MINUTE`)
+  are interfaces/settings only — no Redis, no persistence, no secrets, nothing
+  wired in yet.
+- **`GET /api/v1/identity`** — a pure readiness probe (`status`, `message`,
+  `framework_version`, `providers_registered`), not integrated into
+  `/investigate` and never touching the network. A new placeholder page at
+  **`/identity`** shows Framework Ready, provider count, and architecture
+  version. Framework version starts at `0.1.0`; it moves to `1.0` only after
+  Phase 6.1+ providers ship and the subsystem is validated end-to-end (the
+  same convention the Reasoning, Detection, and Exposure Engines followed).
+- **No changes to any existing subsystem**: Core Platform (Threat
+  Intelligence, Knowledge Intelligence, Investigation, Reasoning Engine v1.0),
+  Detection Engineering v1.0 + the Detection Knowledge Library, the
+  Operational Dashboard, the AI layer, or the frozen Exposure Engine v1.0.
+- **Testing:** 75 new offline tests (`backend/tests/identity/`) — models,
+  the provider ABC's stub/health/safe-lookup behavior, registry routing,
+  config, the in-memory cache (including TTL expiry), aggregation, the service
+  (empty registry + fake providers, including one that raises, plus a
+  determinism check), and the API endpoint. Backend suite: **2,201 passed, 1
+  skipped** (was 2,126). Frontend: **101 tests** (was 98; +3 for the identity
+  client); build clean with the new `/identity` route. Ruff/mypy (strict)
+  clean across 146 source files.
+- **Docs:** `docs/architecture/PHASE-6.0-IDENTITY-FRAMEWORK.md` (framework
+  design, provider interface, registry design, canonical models, dependency
+  direction, known limitations, future provider roadmap).
+
+Have I Been Pwned, Microsoft Entra ID / Azure AD, Okta, JumpCloud, Google
+Workspace, Active Directory, Microsoft Defender for Identity, CrowdStrike
+Identity, any OAuth2/LDAP integration, and `InvestigationSummary` integration
+all remain explicitly deferred to later, unstarted phases (Phase 6.1+).
+
 ### Added — Phase 5.0: Exposure Intelligence Framework (architecture only)
 
 - **New framework** (`threatlens.exposure`) — the first milestone of
