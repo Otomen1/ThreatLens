@@ -55,14 +55,14 @@ All notable changes to ThreatLens are documented here. The project follows
 - **Testing**: 91 new backend tests (`backend/tests/graph/`) — models,
   engine (canonicalization, deduplication, correlation integration,
   self-loop omission, identity, ordering, read-only behavior), service, API
-  contract, a dedicated no-regression suite, and a 14-scenario golden corpus
+  contract, a dedicated no-regression suite, and a 15-scenario golden corpus
   (`THREATLENS_UPDATE_GOLDEN=1` to regenerate). 5 new frontend tests
   (`lib/api.test.ts`); the new UI verified with a real, scripted browser
   session against a live backend using a hand-built investigation with a
   correlation observation, confirming correct node/edge counts, relationship
   labels, and no self-loop artifact. Backend suite: **2,668 passed, 1
-  skipped** (was 2,577). Ruff/mypy (strict) clean across 196 source files
-  (was 192). Frontend: 132 Vitest tests passed (was 127).
+  skipped** (was 2,577). Ruff/mypy (strict) clean across 192 source files
+  (was 188). Frontend: 132 Vitest tests passed (was 127).
 - **Docs:** `docs/architecture/PHASE-8.2-EVIDENCE-RELATIONSHIP-GRAPH.md`.
 
 ### Added — Phase 8.1: Investigation Timeline Framework

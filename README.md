@@ -444,7 +444,7 @@ curl http://localhost:11434/api/tags     # is the Ollama server reachable?
 | Detection Knowledge Library | 74 tests | Community normalization, search, similarity, matching, licensing, versioning, offline cache, and golden regression (`backend/tests/detection_library/`). |
 | Investigation Workspace suite | 95 tests | Models, local-file storage, service (CRUD + filtering), API contract, and a dedicated no-regression suite proving every pre-Phase-8.0 route/engine-version/CORS behavior is unchanged (`backend/tests/workspace/`). |
 | Investigation Timeline suite | 81 tests / 10-scenario golden corpus | Timestamp policy (missing/naive/valid), deduplication, content-addressed identity, deterministic ordering, API contract, and a no-regression suite (`backend/tests/timeline/`). |
-| Evidence Relationship Graph suite | 91 tests / 14-scenario golden corpus | Canonicalization (vocabulary alignment), deduplication, content-addressed node/edge identity, same-subject self-loop omission, deterministic ordering, API contract, and a no-regression suite (`backend/tests/graph/`). |
+| Evidence Relationship Graph suite | 91 tests / 15-scenario golden corpus | Canonicalization (vocabulary alignment), deduplication, content-addressed node/edge identity, same-subject self-loop omission, deterministic ordering, API contract, and a no-regression suite (`backend/tests/graph/`). |
 | Golden regression | pinned snapshots | Byte-level snapshots of reasoning summaries, all nine generators' output, **and** community normalization + matching; any drift fails CI and requires an explicit `THREATLENS_UPDATE_GOLDEN=1` regeneration plus review. |
 
 ```bash
