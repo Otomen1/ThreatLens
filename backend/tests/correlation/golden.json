@@ -1,4 +1,320 @@
 {
+  "actor_attribution_contested": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_f3e55787992fdc64",
+    "matches": [
+      [
+        "actor_attribution_contested",
+        [
+          "cor_ff414832cd5bf3c4"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "finding_contested",
+        "evidence": [
+          [
+            "actor_attribution_contested_0",
+            "contested"
+          ],
+          [
+            "actor_attribution_contested_1",
+            "threat_actor"
+          ]
+        ],
+        "id": "cor_ff414832cd5bf3c4",
+        "relationships": [
+          [
+            "co_occurs_with",
+            "actor_attribution_contested_0",
+            "actor_attribution_contested_1"
+          ]
+        ],
+        "rule_id": "actor_attribution_contested",
+        "source_finding_ids": [
+          "actor_attribution_contested_0",
+          "actor_attribution_contested_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "finding_contested"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "actor_campaign": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_46117b7152a2ef91",
+    "matches": [
+      [
+        "actor_campaign",
+        [
+          "cor_6d49244582170321"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "actor_campaign_link",
+        "evidence": [
+          [
+            "actor_campaign_0",
+            "campaign"
+          ],
+          [
+            "actor_campaign_1",
+            "threat_actor"
+          ]
+        ],
+        "id": "cor_6d49244582170321",
+        "relationships": [
+          [
+            "attributed_to",
+            "actor_campaign_0",
+            "actor_campaign_1"
+          ]
+        ],
+        "rule_id": "actor_campaign",
+        "source_finding_ids": [
+          "actor_campaign_0",
+          "actor_campaign_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "actor_campaign_link"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "actor_exposure": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_fd48349b8237d8bc",
+    "matches": [
+      [
+        "actor_exposure",
+        [
+          "cor_aa7e72801ecf4ac6"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "actor_asset_association",
+        "evidence": [
+          [
+            "actor_exposure_0",
+            "exposure"
+          ],
+          [
+            "actor_exposure_1",
+            "threat_actor"
+          ]
+        ],
+        "id": "cor_aa7e72801ecf4ac6",
+        "relationships": [
+          [
+            "associated_with",
+            "actor_exposure_0",
+            "actor_exposure_1"
+          ]
+        ],
+        "rule_id": "actor_exposure",
+        "source_finding_ids": [
+          "actor_exposure_0",
+          "actor_exposure_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "actor_asset_association"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "actor_malicious_infrastructure": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_77b55f456ec47a9b",
+    "matches": [
+      [
+        "actor_malicious_infrastructure",
+        [
+          "cor_7e092e02251d1fa6"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "actor_infrastructure_link",
+        "evidence": [
+          [
+            "actor_malicious_infrastructure_0",
+            "malicious_infrastructure"
+          ],
+          [
+            "actor_malicious_infrastructure_1",
+            "threat_actor"
+          ]
+        ],
+        "id": "cor_7e092e02251d1fa6",
+        "relationships": [
+          [
+            "associated_with",
+            "actor_malicious_infrastructure_0",
+            "actor_malicious_infrastructure_1"
+          ]
+        ],
+        "rule_id": "actor_malicious_infrastructure",
+        "source_finding_ids": [
+          "actor_malicious_infrastructure_0",
+          "actor_malicious_infrastructure_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "actor_infrastructure_link"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "actor_malicious_infrastructure_colocated": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_5eefe756227abec3",
+    "matches": [
+      [
+        "actor_malicious_infrastructure",
+        [
+          "cor_1bcfe2d01d53f813"
+        ]
+      ],
+      [
+        "actor_malicious_infrastructure_colocated",
+        [
+          "cor_e4d9d786a8ce70ef"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "actor_infrastructure_link",
+        "evidence": [
+          [
+            "actor_malicious_infrastructure_colocated_0",
+            "malicious_infrastructure"
+          ],
+          [
+            "actor_malicious_infrastructure_colocated_1",
+            "threat_actor"
+          ]
+        ],
+        "id": "cor_1bcfe2d01d53f813",
+        "relationships": [
+          [
+            "associated_with",
+            "actor_malicious_infrastructure_colocated_0",
+            "actor_malicious_infrastructure_colocated_1"
+          ]
+        ],
+        "rule_id": "actor_malicious_infrastructure",
+        "source_finding_ids": [
+          "actor_malicious_infrastructure_colocated_0",
+          "actor_malicious_infrastructure_colocated_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "actor_infrastructure_link",
+        "evidence": [
+          [
+            "actor_malicious_infrastructure_colocated_0",
+            "malicious_infrastructure"
+          ],
+          [
+            "actor_malicious_infrastructure_colocated_1",
+            "threat_actor"
+          ]
+        ],
+        "id": "cor_e4d9d786a8ce70ef",
+        "relationships": [
+          [
+            "attributed_to",
+            "actor_malicious_infrastructure_colocated_0",
+            "actor_malicious_infrastructure_colocated_1"
+          ]
+        ],
+        "rule_id": "actor_malicious_infrastructure_colocated",
+        "source_finding_ids": [
+          "actor_malicious_infrastructure_colocated_0",
+          "actor_malicious_infrastructure_colocated_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "actor_infrastructure_link"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 2,
+      "source_finding_count": 2,
+      "total_observations": 2
+    }
+  },
   "actor_malware_association": {
     "entity": [
       "ipv4",
@@ -49,10 +365,424 @@
       "categories": [
         "actor_malware_association"
       ],
-      "rules_evaluated": 12,
+      "rules_evaluated": 70,
       "rules_matched": 1,
       "source_finding_count": 2,
       "total_observations": 1
+    }
+  },
+  "actor_malware_colocated": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_7c251abb61809989",
+    "matches": [
+      [
+        "actor_malware_association",
+        [
+          "cor_baf684267573e86a"
+        ]
+      ],
+      [
+        "actor_malware_colocated",
+        [
+          "cor_486f0b3b700deaf3"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "actor_malware_association",
+        "evidence": [
+          [
+            "actor_malware_colocated_0",
+            "malware"
+          ],
+          [
+            "actor_malware_colocated_1",
+            "threat_actor"
+          ]
+        ],
+        "id": "cor_baf684267573e86a",
+        "relationships": [
+          [
+            "attributed_to",
+            "actor_malware_colocated_0",
+            "actor_malware_colocated_1"
+          ]
+        ],
+        "rule_id": "actor_malware_association",
+        "source_finding_ids": [
+          "actor_malware_colocated_0",
+          "actor_malware_colocated_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "actor_malware_colocated",
+        "evidence": [
+          [
+            "actor_malware_colocated_0",
+            "malware"
+          ],
+          [
+            "actor_malware_colocated_1",
+            "threat_actor"
+          ]
+        ],
+        "id": "cor_486f0b3b700deaf3",
+        "relationships": [
+          [
+            "attributed_to",
+            "actor_malware_colocated_0",
+            "actor_malware_colocated_1"
+          ]
+        ],
+        "rule_id": "actor_malware_colocated",
+        "source_finding_ids": [
+          "actor_malware_colocated_0",
+          "actor_malware_colocated_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "actor_malware_association",
+        "actor_malware_colocated"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 2,
+      "source_finding_count": 2,
+      "total_observations": 2
+    }
+  },
+  "actor_malware_technique_convergence": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_19736fa756ecb469",
+    "matches": [
+      [
+        "actor_malware_association",
+        [
+          "cor_a5a9e185c03c3977"
+        ]
+      ],
+      [
+        "actor_malware_technique_convergence",
+        [
+          "cor_f9272cba7061ba0e"
+        ]
+      ],
+      [
+        "actor_technique_mapping",
+        [
+          "cor_7795158222c2116a"
+        ]
+      ],
+      [
+        "malware_technique_association",
+        [
+          "cor_91763a4081564eea"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "actor_malware_association",
+        "evidence": [
+          [
+            "actor_malware_technique_convergence_1",
+            "malware"
+          ],
+          [
+            "actor_malware_technique_convergence_2",
+            "threat_actor"
+          ]
+        ],
+        "id": "cor_a5a9e185c03c3977",
+        "relationships": [
+          [
+            "attributed_to",
+            "actor_malware_technique_convergence_1",
+            "actor_malware_technique_convergence_2"
+          ]
+        ],
+        "rule_id": "actor_malware_association",
+        "source_finding_ids": [
+          "actor_malware_technique_convergence_1",
+          "actor_malware_technique_convergence_2"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "actor_malware_technique_convergence",
+        "evidence": [
+          [
+            "actor_malware_technique_convergence_0",
+            "attack_pattern"
+          ],
+          [
+            "actor_malware_technique_convergence_1",
+            "malware"
+          ],
+          [
+            "actor_malware_technique_convergence_2",
+            "threat_actor"
+          ]
+        ],
+        "id": "cor_f9272cba7061ba0e",
+        "relationships": [
+          [
+            "attributed_to",
+            "actor_malware_technique_convergence_0",
+            "actor_malware_technique_convergence_1"
+          ]
+        ],
+        "rule_id": "actor_malware_technique_convergence",
+        "source_finding_ids": [
+          "actor_malware_technique_convergence_0",
+          "actor_malware_technique_convergence_1",
+          "actor_malware_technique_convergence_2"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "actor_technique_mapping",
+        "evidence": [
+          [
+            "actor_malware_technique_convergence_0",
+            "attack_pattern"
+          ],
+          [
+            "actor_malware_technique_convergence_2",
+            "threat_actor"
+          ]
+        ],
+        "id": "cor_7795158222c2116a",
+        "relationships": [
+          [
+            "mapped_to",
+            "actor_malware_technique_convergence_0",
+            "actor_malware_technique_convergence_2"
+          ]
+        ],
+        "rule_id": "actor_technique_mapping",
+        "source_finding_ids": [
+          "actor_malware_technique_convergence_0",
+          "actor_malware_technique_convergence_2"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "malware_technique_association",
+        "evidence": [
+          [
+            "actor_malware_technique_convergence_0",
+            "attack_pattern"
+          ],
+          [
+            "actor_malware_technique_convergence_1",
+            "malware"
+          ]
+        ],
+        "id": "cor_91763a4081564eea",
+        "relationships": [
+          [
+            "associated_with",
+            "actor_malware_technique_convergence_0",
+            "actor_malware_technique_convergence_1"
+          ]
+        ],
+        "rule_id": "malware_technique_association",
+        "source_finding_ids": [
+          "actor_malware_technique_convergence_0",
+          "actor_malware_technique_convergence_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "actor_malware_association",
+        "actor_malware_technique_convergence",
+        "actor_technique_mapping",
+        "malware_technique_association"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 4,
+      "source_finding_count": 3,
+      "total_observations": 4
+    }
+  },
+  "actor_reputation": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_a0c63fd685d510ff",
+    "matches": [
+      [
+        "actor_reputation",
+        [
+          "cor_731d38c0a4582eac"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "corroborated_reputation_signal",
+        "evidence": [
+          [
+            "actor_reputation_0",
+            "reputation"
+          ],
+          [
+            "actor_reputation_1",
+            "threat_actor"
+          ]
+        ],
+        "id": "cor_731d38c0a4582eac",
+        "relationships": [
+          [
+            "associated_with",
+            "actor_reputation_0",
+            "actor_reputation_1"
+          ]
+        ],
+        "rule_id": "actor_reputation",
+        "source_finding_ids": [
+          "actor_reputation_0",
+          "actor_reputation_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "corroborated_reputation_signal"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "actor_technique_colocated": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_deb06f03814c6ceb",
+    "matches": [
+      [
+        "actor_technique_colocated",
+        [
+          "cor_0a500749169d6afb"
+        ]
+      ],
+      [
+        "actor_technique_mapping",
+        [
+          "cor_05641978af9dc0b2"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "actor_technique_colocated",
+        "evidence": [
+          [
+            "actor_technique_colocated_0",
+            "attack_pattern"
+          ],
+          [
+            "actor_technique_colocated_1",
+            "threat_actor"
+          ]
+        ],
+        "id": "cor_0a500749169d6afb",
+        "relationships": [
+          [
+            "mapped_to",
+            "actor_technique_colocated_0",
+            "actor_technique_colocated_1"
+          ]
+        ],
+        "rule_id": "actor_technique_colocated",
+        "source_finding_ids": [
+          "actor_technique_colocated_0",
+          "actor_technique_colocated_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "actor_technique_mapping",
+        "evidence": [
+          [
+            "actor_technique_colocated_0",
+            "attack_pattern"
+          ],
+          [
+            "actor_technique_colocated_1",
+            "threat_actor"
+          ]
+        ],
+        "id": "cor_05641978af9dc0b2",
+        "relationships": [
+          [
+            "mapped_to",
+            "actor_technique_colocated_0",
+            "actor_technique_colocated_1"
+          ]
+        ],
+        "rule_id": "actor_technique_mapping",
+        "source_finding_ids": [
+          "actor_technique_colocated_0",
+          "actor_technique_colocated_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "actor_technique_colocated",
+        "actor_technique_mapping"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 2,
+      "source_finding_count": 2,
+      "total_observations": 2
     }
   },
   "actor_technique_mapping": {
@@ -105,7 +835,907 @@
       "categories": [
         "actor_technique_mapping"
       ],
-      "rules_evaluated": 12,
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "actor_vulnerability": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_c06ed015a3429ed1",
+    "matches": [
+      [
+        "actor_vulnerability",
+        [
+          "cor_31616580e7d9dbba"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "actor_asset_association",
+        "evidence": [
+          [
+            "actor_vulnerability_0",
+            "threat_actor"
+          ],
+          [
+            "actor_vulnerability_1",
+            "vulnerability"
+          ]
+        ],
+        "id": "cor_31616580e7d9dbba",
+        "relationships": [
+          [
+            "associated_with",
+            "actor_vulnerability_0",
+            "actor_vulnerability_1"
+          ]
+        ],
+        "rule_id": "actor_vulnerability",
+        "source_finding_ids": [
+          "actor_vulnerability_0",
+          "actor_vulnerability_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "actor_asset_association"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "attack_pattern_action_required": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_8294434d9b4d0f38",
+    "matches": [
+      [
+        "attack_pattern_action_required",
+        [
+          "cor_50ad20cb98448135"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "finding_requires_action",
+        "evidence": [
+          [
+            "attack_pattern_action_required_0",
+            "action_required"
+          ],
+          [
+            "attack_pattern_action_required_1",
+            "attack_pattern"
+          ]
+        ],
+        "id": "cor_50ad20cb98448135",
+        "relationships": [
+          [
+            "co_occurs_with",
+            "attack_pattern_action_required_0",
+            "attack_pattern_action_required_1"
+          ]
+        ],
+        "rule_id": "attack_pattern_action_required",
+        "source_finding_ids": [
+          "attack_pattern_action_required_0",
+          "attack_pattern_action_required_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "finding_requires_action"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "attack_pattern_contested": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_f7297a53efffb1d5",
+    "matches": [
+      [
+        "attack_pattern_contested",
+        [
+          "cor_587403653d21bfce"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "finding_contested",
+        "evidence": [
+          [
+            "attack_pattern_contested_0",
+            "attack_pattern"
+          ],
+          [
+            "attack_pattern_contested_1",
+            "contested"
+          ]
+        ],
+        "id": "cor_587403653d21bfce",
+        "relationships": [
+          [
+            "co_occurs_with",
+            "attack_pattern_contested_0",
+            "attack_pattern_contested_1"
+          ]
+        ],
+        "rule_id": "attack_pattern_contested",
+        "source_finding_ids": [
+          "attack_pattern_contested_0",
+          "attack_pattern_contested_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "finding_contested"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "attack_pattern_exposure": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_6f4e03b83fd1de0d",
+    "matches": [
+      [
+        "attack_pattern_exposure",
+        [
+          "cor_44d8261c3bd5eac6"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "technique_infrastructure_link",
+        "evidence": [
+          [
+            "attack_pattern_exposure_0",
+            "attack_pattern"
+          ],
+          [
+            "attack_pattern_exposure_1",
+            "exposure"
+          ]
+        ],
+        "id": "cor_44d8261c3bd5eac6",
+        "relationships": [
+          [
+            "mapped_to",
+            "attack_pattern_exposure_0",
+            "attack_pattern_exposure_1"
+          ]
+        ],
+        "rule_id": "attack_pattern_exposure",
+        "source_finding_ids": [
+          "attack_pattern_exposure_0",
+          "attack_pattern_exposure_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "technique_infrastructure_link"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "attack_pattern_known_exploited": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_9c144b1e8d26f674",
+    "matches": [
+      [
+        "attack_pattern_known_exploited",
+        [
+          "cor_a72c9d19eaddda75"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "technique_vulnerability_link",
+        "evidence": [
+          [
+            "attack_pattern_known_exploited_0",
+            "attack_pattern"
+          ],
+          [
+            "attack_pattern_known_exploited_1",
+            "known_exploited"
+          ]
+        ],
+        "id": "cor_a72c9d19eaddda75",
+        "relationships": [
+          [
+            "exploits",
+            "attack_pattern_known_exploited_0",
+            "attack_pattern_known_exploited_1"
+          ]
+        ],
+        "rule_id": "attack_pattern_known_exploited",
+        "source_finding_ids": [
+          "attack_pattern_known_exploited_0",
+          "attack_pattern_known_exploited_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "technique_vulnerability_link"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "attack_pattern_malicious_infrastructure": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_cadc34be1c090311",
+    "matches": [
+      [
+        "attack_pattern_malicious_infrastructure",
+        [
+          "cor_70234bdb17e37c0d"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "technique_infrastructure_link",
+        "evidence": [
+          [
+            "attack_pattern_malicious_infrastructure_0",
+            "attack_pattern"
+          ],
+          [
+            "attack_pattern_malicious_infrastructure_1",
+            "malicious_infrastructure"
+          ]
+        ],
+        "id": "cor_70234bdb17e37c0d",
+        "relationships": [
+          [
+            "mapped_to",
+            "attack_pattern_malicious_infrastructure_0",
+            "attack_pattern_malicious_infrastructure_1"
+          ]
+        ],
+        "rule_id": "attack_pattern_malicious_infrastructure",
+        "source_finding_ids": [
+          "attack_pattern_malicious_infrastructure_0",
+          "attack_pattern_malicious_infrastructure_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "technique_infrastructure_link"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "attack_pattern_misconfiguration": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_00d3ae4f73c04502",
+    "matches": [
+      [
+        "attack_pattern_misconfiguration",
+        [
+          "cor_ac3cf88d0ea129dc"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "technique_infrastructure_link",
+        "evidence": [
+          [
+            "attack_pattern_misconfiguration_0",
+            "attack_pattern"
+          ],
+          [
+            "attack_pattern_misconfiguration_1",
+            "misconfiguration"
+          ]
+        ],
+        "id": "cor_ac3cf88d0ea129dc",
+        "relationships": [
+          [
+            "mapped_to",
+            "attack_pattern_misconfiguration_0",
+            "attack_pattern_misconfiguration_1"
+          ]
+        ],
+        "rule_id": "attack_pattern_misconfiguration",
+        "source_finding_ids": [
+          "attack_pattern_misconfiguration_0",
+          "attack_pattern_misconfiguration_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "technique_infrastructure_link"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "attack_pattern_reputation": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_1c54b28ea36a4ab9",
+    "matches": [
+      [
+        "attack_pattern_reputation",
+        [
+          "cor_bbd29fca149b2b9f"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "corroborated_reputation_signal",
+        "evidence": [
+          [
+            "attack_pattern_reputation_0",
+            "attack_pattern"
+          ],
+          [
+            "attack_pattern_reputation_1",
+            "reputation"
+          ]
+        ],
+        "id": "cor_bbd29fca149b2b9f",
+        "relationships": [
+          [
+            "associated_with",
+            "attack_pattern_reputation_0",
+            "attack_pattern_reputation_1"
+          ]
+        ],
+        "rule_id": "attack_pattern_reputation",
+        "source_finding_ids": [
+          "attack_pattern_reputation_0",
+          "attack_pattern_reputation_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "corroborated_reputation_signal"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "attack_pattern_vulnerability": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_e9cec589a90c6adc",
+    "matches": [
+      [
+        "attack_pattern_vulnerability",
+        [
+          "cor_1b81948331ce710e"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "technique_vulnerability_link",
+        "evidence": [
+          [
+            "attack_pattern_vulnerability_0",
+            "attack_pattern"
+          ],
+          [
+            "attack_pattern_vulnerability_1",
+            "vulnerability"
+          ]
+        ],
+        "id": "cor_1b81948331ce710e",
+        "relationships": [
+          [
+            "exploits",
+            "attack_pattern_vulnerability_0",
+            "attack_pattern_vulnerability_1"
+          ]
+        ],
+        "rule_id": "attack_pattern_vulnerability",
+        "source_finding_ids": [
+          "attack_pattern_vulnerability_0",
+          "attack_pattern_vulnerability_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "technique_vulnerability_link"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "attack_pattern_weakness": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_0489ff416bf41cc0",
+    "matches": [
+      [
+        "attack_pattern_weakness",
+        [
+          "cor_9da4e9095b26bacb"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "technique_vulnerability_link",
+        "evidence": [
+          [
+            "attack_pattern_weakness_0",
+            "attack_pattern"
+          ],
+          [
+            "attack_pattern_weakness_1",
+            "weakness"
+          ]
+        ],
+        "id": "cor_9da4e9095b26bacb",
+        "relationships": [
+          [
+            "associated_with",
+            "attack_pattern_weakness_0",
+            "attack_pattern_weakness_1"
+          ]
+        ],
+        "rule_id": "attack_pattern_weakness",
+        "source_finding_ids": [
+          "attack_pattern_weakness_0",
+          "attack_pattern_weakness_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "technique_vulnerability_link"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "campaign_action_required": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_70ebded0acdf18e2",
+    "matches": [
+      [
+        "campaign_action_required",
+        [
+          "cor_4864ef5df7a9a2bb"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "finding_requires_action",
+        "evidence": [
+          [
+            "campaign_action_required_0",
+            "action_required"
+          ],
+          [
+            "campaign_action_required_1",
+            "campaign"
+          ]
+        ],
+        "id": "cor_4864ef5df7a9a2bb",
+        "relationships": [
+          [
+            "co_occurs_with",
+            "campaign_action_required_0",
+            "campaign_action_required_1"
+          ]
+        ],
+        "rule_id": "campaign_action_required",
+        "source_finding_ids": [
+          "campaign_action_required_0",
+          "campaign_action_required_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "finding_requires_action"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "campaign_actor_infrastructure_convergence": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_bef2a1576de70a3f",
+    "matches": [
+      [
+        "actor_campaign",
+        [
+          "cor_319babc67e2fb781"
+        ]
+      ],
+      [
+        "actor_malicious_infrastructure",
+        [
+          "cor_824037250c1a1ab9"
+        ]
+      ],
+      [
+        "campaign_actor_infrastructure_convergence",
+        [
+          "cor_b80dbb0853d2fdb4"
+        ]
+      ],
+      [
+        "campaign_infrastructure",
+        [
+          "cor_5f9754fb7facc963"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "actor_campaign_link",
+        "evidence": [
+          [
+            "campaign_actor_infrastructure_convergence_0",
+            "campaign"
+          ],
+          [
+            "campaign_actor_infrastructure_convergence_2",
+            "threat_actor"
+          ]
+        ],
+        "id": "cor_319babc67e2fb781",
+        "relationships": [
+          [
+            "attributed_to",
+            "campaign_actor_infrastructure_convergence_0",
+            "campaign_actor_infrastructure_convergence_2"
+          ]
+        ],
+        "rule_id": "actor_campaign",
+        "source_finding_ids": [
+          "campaign_actor_infrastructure_convergence_0",
+          "campaign_actor_infrastructure_convergence_2"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "actor_infrastructure_link",
+        "evidence": [
+          [
+            "campaign_actor_infrastructure_convergence_1",
+            "malicious_infrastructure"
+          ],
+          [
+            "campaign_actor_infrastructure_convergence_2",
+            "threat_actor"
+          ]
+        ],
+        "id": "cor_824037250c1a1ab9",
+        "relationships": [
+          [
+            "associated_with",
+            "campaign_actor_infrastructure_convergence_1",
+            "campaign_actor_infrastructure_convergence_2"
+          ]
+        ],
+        "rule_id": "actor_malicious_infrastructure",
+        "source_finding_ids": [
+          "campaign_actor_infrastructure_convergence_1",
+          "campaign_actor_infrastructure_convergence_2"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "campaign_actor_infrastructure_convergence",
+        "evidence": [
+          [
+            "campaign_actor_infrastructure_convergence_0",
+            "campaign"
+          ],
+          [
+            "campaign_actor_infrastructure_convergence_1",
+            "malicious_infrastructure"
+          ],
+          [
+            "campaign_actor_infrastructure_convergence_2",
+            "threat_actor"
+          ]
+        ],
+        "id": "cor_b80dbb0853d2fdb4",
+        "relationships": [
+          [
+            "attributed_to",
+            "campaign_actor_infrastructure_convergence_0",
+            "campaign_actor_infrastructure_convergence_1"
+          ]
+        ],
+        "rule_id": "campaign_actor_infrastructure_convergence",
+        "source_finding_ids": [
+          "campaign_actor_infrastructure_convergence_0",
+          "campaign_actor_infrastructure_convergence_1",
+          "campaign_actor_infrastructure_convergence_2"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "campaign_infrastructure",
+        "evidence": [
+          [
+            "campaign_actor_infrastructure_convergence_0",
+            "campaign"
+          ],
+          [
+            "campaign_actor_infrastructure_convergence_1",
+            "malicious_infrastructure"
+          ]
+        ],
+        "id": "cor_5f9754fb7facc963",
+        "relationships": [
+          [
+            "associated_with",
+            "campaign_actor_infrastructure_convergence_0",
+            "campaign_actor_infrastructure_convergence_1"
+          ]
+        ],
+        "rule_id": "campaign_infrastructure",
+        "source_finding_ids": [
+          "campaign_actor_infrastructure_convergence_0",
+          "campaign_actor_infrastructure_convergence_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "actor_campaign_link",
+        "actor_infrastructure_link",
+        "campaign_actor_infrastructure_convergence",
+        "campaign_infrastructure"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 4,
+      "source_finding_count": 3,
+      "total_observations": 4
+    }
+  },
+  "campaign_attack_pattern": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_2b037aa3d336ad4b",
+    "matches": [
+      [
+        "campaign_attack_pattern",
+        [
+          "cor_f0ee50761b77f2c3"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "campaign_technique_link",
+        "evidence": [
+          [
+            "campaign_attack_pattern_0",
+            "attack_pattern"
+          ],
+          [
+            "campaign_attack_pattern_1",
+            "campaign"
+          ]
+        ],
+        "id": "cor_f0ee50761b77f2c3",
+        "relationships": [
+          [
+            "mapped_to",
+            "campaign_attack_pattern_0",
+            "campaign_attack_pattern_1"
+          ]
+        ],
+        "rule_id": "campaign_attack_pattern",
+        "source_finding_ids": [
+          "campaign_attack_pattern_0",
+          "campaign_attack_pattern_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "campaign_technique_link"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "campaign_exposure": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_5d70aefe6940bb5d",
+    "matches": [
+      [
+        "campaign_exposure",
+        [
+          "cor_be53e93618a25bb3"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "campaign_asset_association",
+        "evidence": [
+          [
+            "campaign_exposure_0",
+            "campaign"
+          ],
+          [
+            "campaign_exposure_1",
+            "exposure"
+          ]
+        ],
+        "id": "cor_be53e93618a25bb3",
+        "relationships": [
+          [
+            "associated_with",
+            "campaign_exposure_0",
+            "campaign_exposure_1"
+          ]
+        ],
+        "rule_id": "campaign_exposure",
+        "source_finding_ids": [
+          "campaign_exposure_0",
+          "campaign_exposure_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "campaign_asset_association"
+      ],
+      "rules_evaluated": 70,
       "rules_matched": 1,
       "source_finding_count": 2,
       "total_observations": 1
@@ -161,10 +1791,443 @@
       "categories": [
         "campaign_infrastructure"
       ],
-      "rules_evaluated": 12,
+      "rules_evaluated": 70,
       "rules_matched": 1,
       "source_finding_count": 2,
       "total_observations": 1
+    }
+  },
+  "campaign_infrastructure_colocated": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_b92b8d4fa6913b16",
+    "matches": [
+      [
+        "campaign_infrastructure",
+        [
+          "cor_17417e308d46f84e"
+        ]
+      ],
+      [
+        "campaign_infrastructure_colocated",
+        [
+          "cor_201a7ea66c243af1"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "campaign_infrastructure",
+        "evidence": [
+          [
+            "campaign_infrastructure_colocated_0",
+            "campaign"
+          ],
+          [
+            "campaign_infrastructure_colocated_1",
+            "malicious_infrastructure"
+          ]
+        ],
+        "id": "cor_17417e308d46f84e",
+        "relationships": [
+          [
+            "associated_with",
+            "campaign_infrastructure_colocated_0",
+            "campaign_infrastructure_colocated_1"
+          ]
+        ],
+        "rule_id": "campaign_infrastructure",
+        "source_finding_ids": [
+          "campaign_infrastructure_colocated_0",
+          "campaign_infrastructure_colocated_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "campaign_infrastructure_colocated",
+        "evidence": [
+          [
+            "campaign_infrastructure_colocated_0",
+            "campaign"
+          ],
+          [
+            "campaign_infrastructure_colocated_1",
+            "malicious_infrastructure"
+          ]
+        ],
+        "id": "cor_201a7ea66c243af1",
+        "relationships": [
+          [
+            "associated_with",
+            "campaign_infrastructure_colocated_0",
+            "campaign_infrastructure_colocated_1"
+          ]
+        ],
+        "rule_id": "campaign_infrastructure_colocated",
+        "source_finding_ids": [
+          "campaign_infrastructure_colocated_0",
+          "campaign_infrastructure_colocated_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "campaign_infrastructure",
+        "campaign_infrastructure_colocated"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 2,
+      "source_finding_count": 2,
+      "total_observations": 2
+    }
+  },
+  "campaign_known_exploited": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_f17705a35223c6c7",
+    "matches": [
+      [
+        "campaign_known_exploited",
+        [
+          "cor_b8db22e6ae529063"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "campaign_asset_association",
+        "evidence": [
+          [
+            "campaign_known_exploited_0",
+            "campaign"
+          ],
+          [
+            "campaign_known_exploited_1",
+            "known_exploited"
+          ]
+        ],
+        "id": "cor_b8db22e6ae529063",
+        "relationships": [
+          [
+            "exploits",
+            "campaign_known_exploited_0",
+            "campaign_known_exploited_1"
+          ]
+        ],
+        "rule_id": "campaign_known_exploited",
+        "source_finding_ids": [
+          "campaign_known_exploited_0",
+          "campaign_known_exploited_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "campaign_asset_association"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "campaign_malware": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_e2f7809e2a2d024e",
+    "matches": [
+      [
+        "campaign_malware",
+        [
+          "cor_0b655ef3a1d42ac5"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "malware_campaign_link",
+        "evidence": [
+          [
+            "campaign_malware_0",
+            "campaign"
+          ],
+          [
+            "campaign_malware_1",
+            "malware"
+          ]
+        ],
+        "id": "cor_0b655ef3a1d42ac5",
+        "relationships": [
+          [
+            "associated_with",
+            "campaign_malware_0",
+            "campaign_malware_1"
+          ]
+        ],
+        "rule_id": "campaign_malware",
+        "source_finding_ids": [
+          "campaign_malware_0",
+          "campaign_malware_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "malware_campaign_link"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "campaign_vulnerability": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_e68d350519fdb4a8",
+    "matches": [
+      [
+        "campaign_vulnerability",
+        [
+          "cor_aee733d01a62cf9d"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "campaign_asset_association",
+        "evidence": [
+          [
+            "campaign_vulnerability_0",
+            "campaign"
+          ],
+          [
+            "campaign_vulnerability_1",
+            "vulnerability"
+          ]
+        ],
+        "id": "cor_aee733d01a62cf9d",
+        "relationships": [
+          [
+            "associated_with",
+            "campaign_vulnerability_0",
+            "campaign_vulnerability_1"
+          ]
+        ],
+        "rule_id": "campaign_vulnerability",
+        "source_finding_ids": [
+          "campaign_vulnerability_0",
+          "campaign_vulnerability_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "campaign_asset_association"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "corroborated_malicious_exposed_infrastructure": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_fc3c95174ff4f6a5",
+    "matches": [
+      [
+        "corroborated_malicious_exposed_infrastructure",
+        [
+          "cor_4d38e01c82c5bc31"
+        ]
+      ],
+      [
+        "malicious_exposed_infrastructure",
+        [
+          "cor_0b84f43e055b4774"
+        ]
+      ],
+      [
+        "reputation_confirmed_infrastructure",
+        [
+          "cor_df395e64312600ee"
+        ]
+      ],
+      [
+        "reputation_exposed_service",
+        [
+          "cor_92e25bdf60ab5fdf"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "corroborated_malicious_exposure",
+        "evidence": [
+          [
+            "corroborated_malicious_exposed_infrastructure_0",
+            "exposure"
+          ],
+          [
+            "corroborated_malicious_exposed_infrastructure_1",
+            "malicious_infrastructure"
+          ],
+          [
+            "corroborated_malicious_exposed_infrastructure_2",
+            "reputation"
+          ]
+        ],
+        "id": "cor_4d38e01c82c5bc31",
+        "relationships": [
+          [
+            "associated_with",
+            "corroborated_malicious_exposed_infrastructure_0",
+            "corroborated_malicious_exposed_infrastructure_1"
+          ]
+        ],
+        "rule_id": "corroborated_malicious_exposed_infrastructure",
+        "source_finding_ids": [
+          "corroborated_malicious_exposed_infrastructure_0",
+          "corroborated_malicious_exposed_infrastructure_1",
+          "corroborated_malicious_exposed_infrastructure_2"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "corroborated_reputation_signal",
+        "evidence": [
+          [
+            "corroborated_malicious_exposed_infrastructure_0",
+            "exposure"
+          ],
+          [
+            "corroborated_malicious_exposed_infrastructure_2",
+            "reputation"
+          ]
+        ],
+        "id": "cor_92e25bdf60ab5fdf",
+        "relationships": [
+          [
+            "associated_with",
+            "corroborated_malicious_exposed_infrastructure_0",
+            "corroborated_malicious_exposed_infrastructure_2"
+          ]
+        ],
+        "rule_id": "reputation_exposed_service",
+        "source_finding_ids": [
+          "corroborated_malicious_exposed_infrastructure_0",
+          "corroborated_malicious_exposed_infrastructure_2"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "malicious_exposed_infrastructure",
+        "evidence": [
+          [
+            "corroborated_malicious_exposed_infrastructure_0",
+            "exposure"
+          ],
+          [
+            "corroborated_malicious_exposed_infrastructure_1",
+            "malicious_infrastructure"
+          ]
+        ],
+        "id": "cor_0b84f43e055b4774",
+        "relationships": [
+          [
+            "exposes",
+            "corroborated_malicious_exposed_infrastructure_0",
+            "corroborated_malicious_exposed_infrastructure_1"
+          ]
+        ],
+        "rule_id": "malicious_exposed_infrastructure",
+        "source_finding_ids": [
+          "corroborated_malicious_exposed_infrastructure_0",
+          "corroborated_malicious_exposed_infrastructure_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "reputation_confirmed_infrastructure",
+        "evidence": [
+          [
+            "corroborated_malicious_exposed_infrastructure_1",
+            "malicious_infrastructure"
+          ],
+          [
+            "corroborated_malicious_exposed_infrastructure_2",
+            "reputation"
+          ]
+        ],
+        "id": "cor_df395e64312600ee",
+        "relationships": [
+          [
+            "associated_with",
+            "corroborated_malicious_exposed_infrastructure_1",
+            "corroborated_malicious_exposed_infrastructure_2"
+          ]
+        ],
+        "rule_id": "reputation_confirmed_infrastructure",
+        "source_finding_ids": [
+          "corroborated_malicious_exposed_infrastructure_1",
+          "corroborated_malicious_exposed_infrastructure_2"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "corroborated_malicious_exposure",
+        "corroborated_reputation_signal",
+        "malicious_exposed_infrastructure",
+        "reputation_confirmed_infrastructure"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 4,
+      "source_finding_count": 3,
+      "total_observations": 4
     }
   },
   "duplicate_findings": {
@@ -222,7 +2285,7 @@
       "categories": [
         "malicious_exposed_infrastructure"
       ],
-      "rules_evaluated": 12,
+      "rules_evaluated": 70,
       "rules_matched": 1,
       "source_finding_count": 3,
       "total_observations": 1
@@ -238,10 +2301,122 @@
     "observations": [],
     "statistics": {
       "categories": [],
-      "rules_evaluated": 12,
+      "rules_evaluated": 70,
       "rules_matched": 0,
       "source_finding_count": 0,
       "total_observations": 0
+    }
+  },
+  "exposure_contested": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_322d4247811c9763",
+    "matches": [
+      [
+        "exposure_contested",
+        [
+          "cor_719a1f116daaa970"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "finding_contested",
+        "evidence": [
+          [
+            "exposure_contested_0",
+            "contested"
+          ],
+          [
+            "exposure_contested_1",
+            "exposure"
+          ]
+        ],
+        "id": "cor_719a1f116daaa970",
+        "relationships": [
+          [
+            "co_occurs_with",
+            "exposure_contested_0",
+            "exposure_contested_1"
+          ]
+        ],
+        "rule_id": "exposure_contested",
+        "source_finding_ids": [
+          "exposure_contested_0",
+          "exposure_contested_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "finding_contested"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "known_exploited_action_required": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_afc5f49810350b8a",
+    "matches": [
+      [
+        "known_exploited_action_required",
+        [
+          "cor_50803f6ea9bdfadc"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "finding_requires_action",
+        "evidence": [
+          [
+            "known_exploited_action_required_0",
+            "action_required"
+          ],
+          [
+            "known_exploited_action_required_1",
+            "known_exploited"
+          ]
+        ],
+        "id": "cor_50803f6ea9bdfadc",
+        "relationships": [
+          [
+            "co_occurs_with",
+            "known_exploited_action_required_0",
+            "known_exploited_action_required_1"
+          ]
+        ],
+        "rule_id": "known_exploited_action_required",
+        "source_finding_ids": [
+          "known_exploited_action_required_0",
+          "known_exploited_action_required_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "finding_requires_action"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
     }
   },
   "known_exploited_exposure": {
@@ -294,7 +2469,7 @@
       "categories": [
         "known_exploited_exposure"
       ],
-      "rules_evaluated": 12,
+      "rules_evaluated": 70,
       "rules_matched": 1,
       "source_finding_count": 2,
       "total_observations": 1
@@ -350,7 +2525,7 @@
       "categories": [
         "known_exploited_vulnerability"
       ],
-      "rules_evaluated": 12,
+      "rules_evaluated": 70,
       "rules_matched": 1,
       "source_finding_count": 2,
       "total_observations": 1
@@ -406,7 +2581,775 @@
       "categories": [
         "malicious_exposed_infrastructure"
       ],
-      "rules_evaluated": 12,
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "malicious_exposed_known_exploited": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_af338f349f579367",
+    "matches": [
+      [
+        "known_exploited_exposure",
+        [
+          "cor_e4aed90f4932dea3"
+        ]
+      ],
+      [
+        "malicious_exposed_infrastructure",
+        [
+          "cor_1c438e5c1edb0160"
+        ]
+      ],
+      [
+        "malicious_exposed_known_exploited",
+        [
+          "cor_734d17d4419563d0"
+        ]
+      ],
+      [
+        "malicious_infrastructure_known_exploited",
+        [
+          "cor_4eea68a16ad53327"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "known_exploited_exposure",
+        "evidence": [
+          [
+            "malicious_exposed_known_exploited_0",
+            "exposure"
+          ],
+          [
+            "malicious_exposed_known_exploited_1",
+            "known_exploited"
+          ]
+        ],
+        "id": "cor_e4aed90f4932dea3",
+        "relationships": [
+          [
+            "exposes",
+            "malicious_exposed_known_exploited_0",
+            "malicious_exposed_known_exploited_1"
+          ]
+        ],
+        "rule_id": "known_exploited_exposure",
+        "source_finding_ids": [
+          "malicious_exposed_known_exploited_0",
+          "malicious_exposed_known_exploited_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "malicious_exposed_infrastructure",
+        "evidence": [
+          [
+            "malicious_exposed_known_exploited_0",
+            "exposure"
+          ],
+          [
+            "malicious_exposed_known_exploited_2",
+            "malicious_infrastructure"
+          ]
+        ],
+        "id": "cor_1c438e5c1edb0160",
+        "relationships": [
+          [
+            "exposes",
+            "malicious_exposed_known_exploited_0",
+            "malicious_exposed_known_exploited_2"
+          ]
+        ],
+        "rule_id": "malicious_exposed_infrastructure",
+        "source_finding_ids": [
+          "malicious_exposed_known_exploited_0",
+          "malicious_exposed_known_exploited_2"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "malicious_infrastructure_weakness_link",
+        "evidence": [
+          [
+            "malicious_exposed_known_exploited_1",
+            "known_exploited"
+          ],
+          [
+            "malicious_exposed_known_exploited_2",
+            "malicious_infrastructure"
+          ]
+        ],
+        "id": "cor_4eea68a16ad53327",
+        "relationships": [
+          [
+            "exploits",
+            "malicious_exposed_known_exploited_1",
+            "malicious_exposed_known_exploited_2"
+          ]
+        ],
+        "rule_id": "malicious_infrastructure_known_exploited",
+        "source_finding_ids": [
+          "malicious_exposed_known_exploited_1",
+          "malicious_exposed_known_exploited_2"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "multi_signal_malicious_exposure",
+        "evidence": [
+          [
+            "malicious_exposed_known_exploited_0",
+            "exposure"
+          ],
+          [
+            "malicious_exposed_known_exploited_1",
+            "known_exploited"
+          ],
+          [
+            "malicious_exposed_known_exploited_2",
+            "malicious_infrastructure"
+          ]
+        ],
+        "id": "cor_734d17d4419563d0",
+        "relationships": [
+          [
+            "exposes",
+            "malicious_exposed_known_exploited_0",
+            "malicious_exposed_known_exploited_1"
+          ]
+        ],
+        "rule_id": "malicious_exposed_known_exploited",
+        "source_finding_ids": [
+          "malicious_exposed_known_exploited_0",
+          "malicious_exposed_known_exploited_1",
+          "malicious_exposed_known_exploited_2"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "known_exploited_exposure",
+        "malicious_exposed_infrastructure",
+        "malicious_infrastructure_weakness_link",
+        "multi_signal_malicious_exposure"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 4,
+      "source_finding_count": 3,
+      "total_observations": 4
+    }
+  },
+  "malicious_infrastructure_action_required": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_4c959d7271c9c4c5",
+    "matches": [
+      [
+        "malicious_infrastructure_action_required",
+        [
+          "cor_dd8f3bf410d37893"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "finding_requires_action",
+        "evidence": [
+          [
+            "malicious_infrastructure_action_required_0",
+            "action_required"
+          ],
+          [
+            "malicious_infrastructure_action_required_1",
+            "malicious_infrastructure"
+          ]
+        ],
+        "id": "cor_dd8f3bf410d37893",
+        "relationships": [
+          [
+            "co_occurs_with",
+            "malicious_infrastructure_action_required_0",
+            "malicious_infrastructure_action_required_1"
+          ]
+        ],
+        "rule_id": "malicious_infrastructure_action_required",
+        "source_finding_ids": [
+          "malicious_infrastructure_action_required_0",
+          "malicious_infrastructure_action_required_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "finding_requires_action"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "malicious_infrastructure_contested": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_aeb52934b069f961",
+    "matches": [
+      [
+        "malicious_infrastructure_contested",
+        [
+          "cor_2e0d8835a36e4588"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "finding_contested",
+        "evidence": [
+          [
+            "malicious_infrastructure_contested_0",
+            "contested"
+          ],
+          [
+            "malicious_infrastructure_contested_1",
+            "malicious_infrastructure"
+          ]
+        ],
+        "id": "cor_2e0d8835a36e4588",
+        "relationships": [
+          [
+            "co_occurs_with",
+            "malicious_infrastructure_contested_0",
+            "malicious_infrastructure_contested_1"
+          ]
+        ],
+        "rule_id": "malicious_infrastructure_contested",
+        "source_finding_ids": [
+          "malicious_infrastructure_contested_0",
+          "malicious_infrastructure_contested_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "finding_contested"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "malicious_infrastructure_informational": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_5ac4c2cf0201b03d",
+    "matches": [
+      [
+        "malicious_infrastructure_informational",
+        [
+          "cor_abdfc11b2da83f0f"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "finding_low_actionability",
+        "evidence": [
+          [
+            "malicious_infrastructure_informational_0",
+            "informational"
+          ],
+          [
+            "malicious_infrastructure_informational_1",
+            "malicious_infrastructure"
+          ]
+        ],
+        "id": "cor_abdfc11b2da83f0f",
+        "relationships": [
+          [
+            "co_occurs_with",
+            "malicious_infrastructure_informational_0",
+            "malicious_infrastructure_informational_1"
+          ]
+        ],
+        "rule_id": "malicious_infrastructure_informational",
+        "source_finding_ids": [
+          "malicious_infrastructure_informational_0",
+          "malicious_infrastructure_informational_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "finding_low_actionability"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "malicious_infrastructure_known_exploited": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_a7cf4fecc97cd374",
+    "matches": [
+      [
+        "malicious_infrastructure_known_exploited",
+        [
+          "cor_3522372902eb9b10"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "malicious_infrastructure_weakness_link",
+        "evidence": [
+          [
+            "malicious_infrastructure_known_exploited_0",
+            "known_exploited"
+          ],
+          [
+            "malicious_infrastructure_known_exploited_1",
+            "malicious_infrastructure"
+          ]
+        ],
+        "id": "cor_3522372902eb9b10",
+        "relationships": [
+          [
+            "exploits",
+            "malicious_infrastructure_known_exploited_0",
+            "malicious_infrastructure_known_exploited_1"
+          ]
+        ],
+        "rule_id": "malicious_infrastructure_known_exploited",
+        "source_finding_ids": [
+          "malicious_infrastructure_known_exploited_0",
+          "malicious_infrastructure_known_exploited_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "malicious_infrastructure_weakness_link"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "malicious_infrastructure_misconfiguration": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_f860bc9a427302aa",
+    "matches": [
+      [
+        "malicious_infrastructure_misconfiguration",
+        [
+          "cor_bcaf3d81a7f753f3"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "malicious_infrastructure_weakness_link",
+        "evidence": [
+          [
+            "malicious_infrastructure_misconfiguration_0",
+            "malicious_infrastructure"
+          ],
+          [
+            "malicious_infrastructure_misconfiguration_1",
+            "misconfiguration"
+          ]
+        ],
+        "id": "cor_bcaf3d81a7f753f3",
+        "relationships": [
+          [
+            "associated_with",
+            "malicious_infrastructure_misconfiguration_0",
+            "malicious_infrastructure_misconfiguration_1"
+          ]
+        ],
+        "rule_id": "malicious_infrastructure_misconfiguration",
+        "source_finding_ids": [
+          "malicious_infrastructure_misconfiguration_0",
+          "malicious_infrastructure_misconfiguration_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "malicious_infrastructure_weakness_link"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "malicious_infrastructure_vulnerability": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_06290d378931879d",
+    "matches": [
+      [
+        "malicious_infrastructure_vulnerability",
+        [
+          "cor_92395aebb3685d6d"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "malicious_infrastructure_weakness_link",
+        "evidence": [
+          [
+            "malicious_infrastructure_vulnerability_0",
+            "malicious_infrastructure"
+          ],
+          [
+            "malicious_infrastructure_vulnerability_1",
+            "vulnerability"
+          ]
+        ],
+        "id": "cor_92395aebb3685d6d",
+        "relationships": [
+          [
+            "exploits",
+            "malicious_infrastructure_vulnerability_0",
+            "malicious_infrastructure_vulnerability_1"
+          ]
+        ],
+        "rule_id": "malicious_infrastructure_vulnerability",
+        "source_finding_ids": [
+          "malicious_infrastructure_vulnerability_0",
+          "malicious_infrastructure_vulnerability_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "malicious_infrastructure_weakness_link"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "malicious_infrastructure_weakness": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_322f349a940063e3",
+    "matches": [
+      [
+        "malicious_infrastructure_weakness",
+        [
+          "cor_4bc199067cc3a72a"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "malicious_infrastructure_weakness_link",
+        "evidence": [
+          [
+            "malicious_infrastructure_weakness_0",
+            "malicious_infrastructure"
+          ],
+          [
+            "malicious_infrastructure_weakness_1",
+            "weakness"
+          ]
+        ],
+        "id": "cor_4bc199067cc3a72a",
+        "relationships": [
+          [
+            "associated_with",
+            "malicious_infrastructure_weakness_0",
+            "malicious_infrastructure_weakness_1"
+          ]
+        ],
+        "rule_id": "malicious_infrastructure_weakness",
+        "source_finding_ids": [
+          "malicious_infrastructure_weakness_0",
+          "malicious_infrastructure_weakness_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "malicious_infrastructure_weakness_link"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "malware_action_required": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_b870e2e78a8e1a02",
+    "matches": [
+      [
+        "malware_action_required",
+        [
+          "cor_bbd77538f586c94a"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "finding_requires_action",
+        "evidence": [
+          [
+            "malware_action_required_0",
+            "action_required"
+          ],
+          [
+            "malware_action_required_1",
+            "malware"
+          ]
+        ],
+        "id": "cor_bbd77538f586c94a",
+        "relationships": [
+          [
+            "co_occurs_with",
+            "malware_action_required_0",
+            "malware_action_required_1"
+          ]
+        ],
+        "rule_id": "malware_action_required",
+        "source_finding_ids": [
+          "malware_action_required_0",
+          "malware_action_required_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "finding_requires_action"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "malware_campaign_colocated": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_c4f765cc50b06c83",
+    "matches": [
+      [
+        "campaign_malware",
+        [
+          "cor_73c139a72636646c"
+        ]
+      ],
+      [
+        "malware_campaign_colocated",
+        [
+          "cor_370e924277598609"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "malware_campaign_link",
+        "evidence": [
+          [
+            "malware_campaign_colocated_0",
+            "campaign"
+          ],
+          [
+            "malware_campaign_colocated_1",
+            "malware"
+          ]
+        ],
+        "id": "cor_370e924277598609",
+        "relationships": [
+          [
+            "associated_with",
+            "malware_campaign_colocated_0",
+            "malware_campaign_colocated_1"
+          ]
+        ],
+        "rule_id": "malware_campaign_colocated",
+        "source_finding_ids": [
+          "malware_campaign_colocated_0",
+          "malware_campaign_colocated_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "malware_campaign_link",
+        "evidence": [
+          [
+            "malware_campaign_colocated_0",
+            "campaign"
+          ],
+          [
+            "malware_campaign_colocated_1",
+            "malware"
+          ]
+        ],
+        "id": "cor_73c139a72636646c",
+        "relationships": [
+          [
+            "associated_with",
+            "malware_campaign_colocated_0",
+            "malware_campaign_colocated_1"
+          ]
+        ],
+        "rule_id": "campaign_malware",
+        "source_finding_ids": [
+          "malware_campaign_colocated_0",
+          "malware_campaign_colocated_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "malware_campaign_link"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 2,
+      "source_finding_count": 2,
+      "total_observations": 2
+    }
+  },
+  "malware_exposure": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_b62a7453eb8a978b",
+    "matches": [
+      [
+        "malware_exposure",
+        [
+          "cor_77409679f07c3788"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "malware_asset_association",
+        "evidence": [
+          [
+            "malware_exposure_0",
+            "exposure"
+          ],
+          [
+            "malware_exposure_1",
+            "malware"
+          ]
+        ],
+        "id": "cor_77409679f07c3788",
+        "relationships": [
+          [
+            "associated_with",
+            "malware_exposure_0",
+            "malware_exposure_1"
+          ]
+        ],
+        "rule_id": "malware_exposure",
+        "source_finding_ids": [
+          "malware_exposure_0",
+          "malware_exposure_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "malware_asset_association"
+      ],
+      "rules_evaluated": 70,
       "rules_matched": 1,
       "source_finding_count": 2,
       "total_observations": 1
@@ -462,7 +3405,212 @@
       "categories": [
         "malware_infrastructure_association"
       ],
-      "rules_evaluated": 12,
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "malware_infrastructure_colocated": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_4c7268ee51490746",
+    "matches": [
+      [
+        "malware_infrastructure_association",
+        [
+          "cor_3bfba4e4b8d43482"
+        ]
+      ],
+      [
+        "malware_infrastructure_colocated",
+        [
+          "cor_d3556b7fdc8ada3b"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "malware_infrastructure_association",
+        "evidence": [
+          [
+            "malware_infrastructure_colocated_0",
+            "malicious_infrastructure"
+          ],
+          [
+            "malware_infrastructure_colocated_1",
+            "malware"
+          ]
+        ],
+        "id": "cor_3bfba4e4b8d43482",
+        "relationships": [
+          [
+            "associated_with",
+            "malware_infrastructure_colocated_0",
+            "malware_infrastructure_colocated_1"
+          ]
+        ],
+        "rule_id": "malware_infrastructure_association",
+        "source_finding_ids": [
+          "malware_infrastructure_colocated_0",
+          "malware_infrastructure_colocated_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "malware_infrastructure_colocated",
+        "evidence": [
+          [
+            "malware_infrastructure_colocated_0",
+            "malicious_infrastructure"
+          ],
+          [
+            "malware_infrastructure_colocated_1",
+            "malware"
+          ]
+        ],
+        "id": "cor_d3556b7fdc8ada3b",
+        "relationships": [
+          [
+            "associated_with",
+            "malware_infrastructure_colocated_0",
+            "malware_infrastructure_colocated_1"
+          ]
+        ],
+        "rule_id": "malware_infrastructure_colocated",
+        "source_finding_ids": [
+          "malware_infrastructure_colocated_0",
+          "malware_infrastructure_colocated_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "malware_infrastructure_association",
+        "malware_infrastructure_colocated"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 2,
+      "source_finding_count": 2,
+      "total_observations": 2
+    }
+  },
+  "malware_known_exploited": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_7d91f329740e67b6",
+    "matches": [
+      [
+        "malware_known_exploited",
+        [
+          "cor_f8c572531536099e"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "malware_asset_association",
+        "evidence": [
+          [
+            "malware_known_exploited_0",
+            "known_exploited"
+          ],
+          [
+            "malware_known_exploited_1",
+            "malware"
+          ]
+        ],
+        "id": "cor_f8c572531536099e",
+        "relationships": [
+          [
+            "exploits",
+            "malware_known_exploited_0",
+            "malware_known_exploited_1"
+          ]
+        ],
+        "rule_id": "malware_known_exploited",
+        "source_finding_ids": [
+          "malware_known_exploited_0",
+          "malware_known_exploited_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "malware_asset_association"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "malware_reputation": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_14b45b79513e7048",
+    "matches": [
+      [
+        "malware_reputation",
+        [
+          "cor_594b092282bb96b3"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "malware_asset_association",
+        "evidence": [
+          [
+            "malware_reputation_0",
+            "malware"
+          ],
+          [
+            "malware_reputation_1",
+            "reputation"
+          ]
+        ],
+        "id": "cor_594b092282bb96b3",
+        "relationships": [
+          [
+            "associated_with",
+            "malware_reputation_0",
+            "malware_reputation_1"
+          ]
+        ],
+        "rule_id": "malware_reputation",
+        "source_finding_ids": [
+          "malware_reputation_0",
+          "malware_reputation_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "malware_asset_association"
+      ],
+      "rules_evaluated": 70,
       "rules_matched": 1,
       "source_finding_count": 2,
       "total_observations": 1
@@ -518,7 +3666,436 @@
       "categories": [
         "malware_technique_association"
       ],
-      "rules_evaluated": 12,
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "malware_technique_colocated": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_eb4560a9a051463f",
+    "matches": [
+      [
+        "malware_technique_association",
+        [
+          "cor_dadb5d1054f66719"
+        ]
+      ],
+      [
+        "malware_technique_colocated",
+        [
+          "cor_32479b3f85dcfa79"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "malware_technique_association",
+        "evidence": [
+          [
+            "malware_technique_colocated_0",
+            "attack_pattern"
+          ],
+          [
+            "malware_technique_colocated_1",
+            "malware"
+          ]
+        ],
+        "id": "cor_dadb5d1054f66719",
+        "relationships": [
+          [
+            "associated_with",
+            "malware_technique_colocated_0",
+            "malware_technique_colocated_1"
+          ]
+        ],
+        "rule_id": "malware_technique_association",
+        "source_finding_ids": [
+          "malware_technique_colocated_0",
+          "malware_technique_colocated_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "malware_technique_colocated",
+        "evidence": [
+          [
+            "malware_technique_colocated_0",
+            "attack_pattern"
+          ],
+          [
+            "malware_technique_colocated_1",
+            "malware"
+          ]
+        ],
+        "id": "cor_32479b3f85dcfa79",
+        "relationships": [
+          [
+            "associated_with",
+            "malware_technique_colocated_0",
+            "malware_technique_colocated_1"
+          ]
+        ],
+        "rule_id": "malware_technique_colocated",
+        "source_finding_ids": [
+          "malware_technique_colocated_0",
+          "malware_technique_colocated_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "malware_technique_association",
+        "malware_technique_colocated"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 2,
+      "source_finding_count": 2,
+      "total_observations": 2
+    }
+  },
+  "malware_vulnerability": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_d18acd8c64212dbc",
+    "matches": [
+      [
+        "malware_vulnerability",
+        [
+          "cor_b5bfc3c1c29ab52d"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "malware_asset_association",
+        "evidence": [
+          [
+            "malware_vulnerability_0",
+            "malware"
+          ],
+          [
+            "malware_vulnerability_1",
+            "vulnerability"
+          ]
+        ],
+        "id": "cor_b5bfc3c1c29ab52d",
+        "relationships": [
+          [
+            "associated_with",
+            "malware_vulnerability_0",
+            "malware_vulnerability_1"
+          ]
+        ],
+        "rule_id": "malware_vulnerability",
+        "source_finding_ids": [
+          "malware_vulnerability_0",
+          "malware_vulnerability_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "malware_asset_association"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "malware_weakness": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_52c8587f94a80808",
+    "matches": [
+      [
+        "malware_weakness",
+        [
+          "cor_1c24e42a67af4f21"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "malware_asset_association",
+        "evidence": [
+          [
+            "malware_weakness_0",
+            "malware"
+          ],
+          [
+            "malware_weakness_1",
+            "weakness"
+          ]
+        ],
+        "id": "cor_1c24e42a67af4f21",
+        "relationships": [
+          [
+            "associated_with",
+            "malware_weakness_0",
+            "malware_weakness_1"
+          ]
+        ],
+        "rule_id": "malware_weakness",
+        "source_finding_ids": [
+          "malware_weakness_0",
+          "malware_weakness_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "malware_asset_association"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "misconfiguration_action_required": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_e8ac7c168f78acc7",
+    "matches": [
+      [
+        "misconfiguration_action_required",
+        [
+          "cor_ef07d3f72f5aebd5"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "finding_requires_action",
+        "evidence": [
+          [
+            "misconfiguration_action_required_0",
+            "action_required"
+          ],
+          [
+            "misconfiguration_action_required_1",
+            "misconfiguration"
+          ]
+        ],
+        "id": "cor_ef07d3f72f5aebd5",
+        "relationships": [
+          [
+            "co_occurs_with",
+            "misconfiguration_action_required_0",
+            "misconfiguration_action_required_1"
+          ]
+        ],
+        "rule_id": "misconfiguration_action_required",
+        "source_finding_ids": [
+          "misconfiguration_action_required_0",
+          "misconfiguration_action_required_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "finding_requires_action"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "misconfiguration_known_exploited": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_4d1131826c8cb99a",
+    "matches": [
+      [
+        "misconfiguration_known_exploited",
+        [
+          "cor_e3d42cf3368363da"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "misconfiguration_weakness_link",
+        "evidence": [
+          [
+            "misconfiguration_known_exploited_0",
+            "known_exploited"
+          ],
+          [
+            "misconfiguration_known_exploited_1",
+            "misconfiguration"
+          ]
+        ],
+        "id": "cor_e3d42cf3368363da",
+        "relationships": [
+          [
+            "exploits",
+            "misconfiguration_known_exploited_0",
+            "misconfiguration_known_exploited_1"
+          ]
+        ],
+        "rule_id": "misconfiguration_known_exploited",
+        "source_finding_ids": [
+          "misconfiguration_known_exploited_0",
+          "misconfiguration_known_exploited_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "misconfiguration_weakness_link"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "misconfiguration_vulnerability": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_a07e8fe9271630d4",
+    "matches": [
+      [
+        "misconfiguration_vulnerability",
+        [
+          "cor_c2e235f96e30b3e0"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "misconfiguration_weakness_link",
+        "evidence": [
+          [
+            "misconfiguration_vulnerability_0",
+            "misconfiguration"
+          ],
+          [
+            "misconfiguration_vulnerability_1",
+            "vulnerability"
+          ]
+        ],
+        "id": "cor_c2e235f96e30b3e0",
+        "relationships": [
+          [
+            "exposes",
+            "misconfiguration_vulnerability_0",
+            "misconfiguration_vulnerability_1"
+          ]
+        ],
+        "rule_id": "misconfiguration_vulnerability",
+        "source_finding_ids": [
+          "misconfiguration_vulnerability_0",
+          "misconfiguration_vulnerability_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "misconfiguration_weakness_link"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "misconfiguration_weakness": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_72a24564ccd6244c",
+    "matches": [
+      [
+        "misconfiguration_weakness",
+        [
+          "cor_36db4b45d9bc53b5"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "misconfiguration_weakness_link",
+        "evidence": [
+          [
+            "misconfiguration_weakness_0",
+            "misconfiguration"
+          ],
+          [
+            "misconfiguration_weakness_1",
+            "weakness"
+          ]
+        ],
+        "id": "cor_36db4b45d9bc53b5",
+        "relationships": [
+          [
+            "associated_with",
+            "misconfiguration_weakness_0",
+            "misconfiguration_weakness_1"
+          ]
+        ],
+        "rule_id": "misconfiguration_weakness",
+        "source_finding_ids": [
+          "misconfiguration_weakness_0",
+          "misconfiguration_weakness_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "misconfiguration_weakness_link"
+      ],
+      "rules_evaluated": 70,
       "rules_matched": 1,
       "source_finding_count": 2,
       "total_observations": 1
@@ -574,10 +4151,182 @@
       "categories": [
         "misconfigured_exposed_service"
       ],
-      "rules_evaluated": 12,
+      "rules_evaluated": 70,
       "rules_matched": 1,
       "source_finding_count": 2,
       "total_observations": 1
+    }
+  },
+  "misconfigured_vulnerable_exposure": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_2f59771b6395aea2",
+    "matches": [
+      [
+        "misconfiguration_vulnerability",
+        [
+          "cor_7d963d61c7cea44b"
+        ]
+      ],
+      [
+        "misconfigured_exposed_service",
+        [
+          "cor_f3e77187d5ebd753"
+        ]
+      ],
+      [
+        "misconfigured_vulnerable_exposure",
+        [
+          "cor_77473eec9d566fe2"
+        ]
+      ],
+      [
+        "vulnerable_exposed_service",
+        [
+          "cor_c3d98bf494fa95cb"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "misconfiguration_weakness_link",
+        "evidence": [
+          [
+            "misconfigured_vulnerable_exposure_1",
+            "misconfiguration"
+          ],
+          [
+            "misconfigured_vulnerable_exposure_2",
+            "vulnerability"
+          ]
+        ],
+        "id": "cor_7d963d61c7cea44b",
+        "relationships": [
+          [
+            "exposes",
+            "misconfigured_vulnerable_exposure_1",
+            "misconfigured_vulnerable_exposure_2"
+          ]
+        ],
+        "rule_id": "misconfiguration_vulnerability",
+        "source_finding_ids": [
+          "misconfigured_vulnerable_exposure_1",
+          "misconfigured_vulnerable_exposure_2"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "misconfigured_exposed_service",
+        "evidence": [
+          [
+            "misconfigured_vulnerable_exposure_0",
+            "exposure"
+          ],
+          [
+            "misconfigured_vulnerable_exposure_1",
+            "misconfiguration"
+          ]
+        ],
+        "id": "cor_f3e77187d5ebd753",
+        "relationships": [
+          [
+            "exposes",
+            "misconfigured_vulnerable_exposure_0",
+            "misconfigured_vulnerable_exposure_1"
+          ]
+        ],
+        "rule_id": "misconfigured_exposed_service",
+        "source_finding_ids": [
+          "misconfigured_vulnerable_exposure_0",
+          "misconfigured_vulnerable_exposure_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "multi_signal_misconfigured_vulnerable",
+        "evidence": [
+          [
+            "misconfigured_vulnerable_exposure_0",
+            "exposure"
+          ],
+          [
+            "misconfigured_vulnerable_exposure_1",
+            "misconfiguration"
+          ],
+          [
+            "misconfigured_vulnerable_exposure_2",
+            "vulnerability"
+          ]
+        ],
+        "id": "cor_77473eec9d566fe2",
+        "relationships": [
+          [
+            "exposes",
+            "misconfigured_vulnerable_exposure_0",
+            "misconfigured_vulnerable_exposure_1"
+          ]
+        ],
+        "rule_id": "misconfigured_vulnerable_exposure",
+        "source_finding_ids": [
+          "misconfigured_vulnerable_exposure_0",
+          "misconfigured_vulnerable_exposure_1",
+          "misconfigured_vulnerable_exposure_2"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "vulnerable_exposed_service",
+        "evidence": [
+          [
+            "misconfigured_vulnerable_exposure_0",
+            "exposure"
+          ],
+          [
+            "misconfigured_vulnerable_exposure_2",
+            "vulnerability"
+          ]
+        ],
+        "id": "cor_c3d98bf494fa95cb",
+        "relationships": [
+          [
+            "exposes",
+            "misconfigured_vulnerable_exposure_0",
+            "misconfigured_vulnerable_exposure_2"
+          ]
+        ],
+        "rule_id": "vulnerable_exposed_service",
+        "source_finding_ids": [
+          "misconfigured_vulnerable_exposure_0",
+          "misconfigured_vulnerable_exposure_2"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "misconfiguration_weakness_link",
+        "misconfigured_exposed_service",
+        "multi_signal_misconfigured_vulnerable",
+        "vulnerable_exposed_service"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 4,
+      "source_finding_count": 3,
+      "total_observations": 4
     }
   },
   "multi_subject_same_rule": {
@@ -661,7 +4410,7 @@
       "categories": [
         "malicious_exposed_infrastructure"
       ],
-      "rules_evaluated": 12,
+      "rules_evaluated": 70,
       "rules_matched": 1,
       "source_finding_count": 4,
       "total_observations": 2
@@ -717,7 +4466,231 @@
       "categories": [
         "reputation_confirmed_infrastructure"
       ],
-      "rules_evaluated": 12,
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "reputation_contested": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_2b20181b13a04a3e",
+    "matches": [
+      [
+        "reputation_contested",
+        [
+          "cor_8632fdd675a7533b"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "finding_contested",
+        "evidence": [
+          [
+            "reputation_contested_0",
+            "contested"
+          ],
+          [
+            "reputation_contested_1",
+            "reputation"
+          ]
+        ],
+        "id": "cor_8632fdd675a7533b",
+        "relationships": [
+          [
+            "co_occurs_with",
+            "reputation_contested_0",
+            "reputation_contested_1"
+          ]
+        ],
+        "rule_id": "reputation_contested",
+        "source_finding_ids": [
+          "reputation_contested_0",
+          "reputation_contested_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "finding_contested"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "reputation_exposed_service": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_7e040c395d7516e5",
+    "matches": [
+      [
+        "reputation_exposed_service",
+        [
+          "cor_a412e9ceddc51602"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "corroborated_reputation_signal",
+        "evidence": [
+          [
+            "reputation_exposed_service_0",
+            "exposure"
+          ],
+          [
+            "reputation_exposed_service_1",
+            "reputation"
+          ]
+        ],
+        "id": "cor_a412e9ceddc51602",
+        "relationships": [
+          [
+            "associated_with",
+            "reputation_exposed_service_0",
+            "reputation_exposed_service_1"
+          ]
+        ],
+        "rule_id": "reputation_exposed_service",
+        "source_finding_ids": [
+          "reputation_exposed_service_0",
+          "reputation_exposed_service_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "corroborated_reputation_signal"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "reputation_misconfigured_service": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_679ccf36d9e4203a",
+    "matches": [
+      [
+        "reputation_misconfigured_service",
+        [
+          "cor_5cafc31ceabaadd5"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "corroborated_reputation_signal",
+        "evidence": [
+          [
+            "reputation_misconfigured_service_0",
+            "misconfiguration"
+          ],
+          [
+            "reputation_misconfigured_service_1",
+            "reputation"
+          ]
+        ],
+        "id": "cor_5cafc31ceabaadd5",
+        "relationships": [
+          [
+            "associated_with",
+            "reputation_misconfigured_service_0",
+            "reputation_misconfigured_service_1"
+          ]
+        ],
+        "rule_id": "reputation_misconfigured_service",
+        "source_finding_ids": [
+          "reputation_misconfigured_service_0",
+          "reputation_misconfigured_service_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "corroborated_reputation_signal"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
+      "total_observations": 1
+    }
+  },
+  "reputation_vulnerability": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_1ed72847a4ad320f",
+    "matches": [
+      [
+        "reputation_vulnerability",
+        [
+          "cor_679f66674c20a153"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "corroborated_reputation_signal",
+        "evidence": [
+          [
+            "reputation_vulnerability_0",
+            "reputation"
+          ],
+          [
+            "reputation_vulnerability_1",
+            "vulnerability"
+          ]
+        ],
+        "id": "cor_679f66674c20a153",
+        "relationships": [
+          [
+            "associated_with",
+            "reputation_vulnerability_0",
+            "reputation_vulnerability_1"
+          ]
+        ],
+        "rule_id": "reputation_vulnerability",
+        "source_finding_ids": [
+          "reputation_vulnerability_0",
+          "reputation_vulnerability_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "corroborated_reputation_signal"
+      ],
+      "rules_evaluated": 70,
       "rules_matched": 1,
       "source_finding_count": 2,
       "total_observations": 1
@@ -728,8 +4701,14 @@
       "ipv4",
       "8.8.8.8"
     ],
-    "id": "cors_d0104b9240a0459a",
+    "id": "cors_bd5ed6a157ba9d2f",
     "matches": [
+      [
+        "corroborated_malicious_exposed_infrastructure",
+        [
+          "cor_5da4abb9f37cadd7"
+        ]
+      ],
       [
         "known_exploited_exposure",
         [
@@ -746,6 +4725,24 @@
         "malicious_exposed_infrastructure",
         [
           "cor_0758cf3c24ac639a"
+        ]
+      ],
+      [
+        "malicious_exposed_known_exploited",
+        [
+          "cor_31fc0490b4c1eb58"
+        ]
+      ],
+      [
+        "malicious_infrastructure_known_exploited",
+        [
+          "cor_ffce43d3c75f4386"
+        ]
+      ],
+      [
+        "malicious_infrastructure_vulnerability",
+        [
+          "cor_d35c57d4348bd53c"
         ]
       ],
       [
@@ -767,6 +4764,24 @@
         ]
       ],
       [
+        "reputation_exposed_service",
+        [
+          "cor_2dfeb6a4da3cb666"
+        ]
+      ],
+      [
+        "reputation_vulnerability",
+        [
+          "cor_859dd946b2c6d7b4"
+        ]
+      ],
+      [
+        "vulnerable_exposed_known_exploited",
+        [
+          "cor_d65721b7b4e40d4a"
+        ]
+      ],
+      [
         "vulnerable_exposed_service",
         [
           "cor_af854ba26ff05129"
@@ -774,6 +4789,101 @@
       ]
     ],
     "observations": [
+      {
+        "category": "corroborated_malicious_exposure",
+        "evidence": [
+          [
+            "fnd_2",
+            "exposure"
+          ],
+          [
+            "fnd_1",
+            "malicious_infrastructure"
+          ],
+          [
+            "fnd_5",
+            "reputation"
+          ]
+        ],
+        "id": "cor_5da4abb9f37cadd7",
+        "relationships": [
+          [
+            "associated_with",
+            "fnd_2",
+            "fnd_1"
+          ]
+        ],
+        "rule_id": "corroborated_malicious_exposed_infrastructure",
+        "source_finding_ids": [
+          "fnd_1",
+          "fnd_2",
+          "fnd_5"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "corroborated_reputation_signal",
+        "evidence": [
+          [
+            "fnd_2",
+            "exposure"
+          ],
+          [
+            "fnd_5",
+            "reputation"
+          ]
+        ],
+        "id": "cor_2dfeb6a4da3cb666",
+        "relationships": [
+          [
+            "associated_with",
+            "fnd_2",
+            "fnd_5"
+          ]
+        ],
+        "rule_id": "reputation_exposed_service",
+        "source_finding_ids": [
+          "fnd_2",
+          "fnd_5"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "corroborated_reputation_signal",
+        "evidence": [
+          [
+            "fnd_5",
+            "reputation"
+          ],
+          [
+            "fnd_3",
+            "vulnerability"
+          ]
+        ],
+        "id": "cor_859dd946b2c6d7b4",
+        "relationships": [
+          [
+            "associated_with",
+            "fnd_5",
+            "fnd_3"
+          ]
+        ],
+        "rule_id": "reputation_vulnerability",
+        "source_finding_ids": [
+          "fnd_3",
+          "fnd_5"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
       {
         "category": "known_exploited_exposure",
         "evidence": [
@@ -865,6 +4975,66 @@
         ]
       },
       {
+        "category": "malicious_infrastructure_weakness_link",
+        "evidence": [
+          [
+            "fnd_1",
+            "malicious_infrastructure"
+          ],
+          [
+            "fnd_3",
+            "vulnerability"
+          ]
+        ],
+        "id": "cor_d35c57d4348bd53c",
+        "relationships": [
+          [
+            "exploits",
+            "fnd_1",
+            "fnd_3"
+          ]
+        ],
+        "rule_id": "malicious_infrastructure_vulnerability",
+        "source_finding_ids": [
+          "fnd_1",
+          "fnd_3"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "malicious_infrastructure_weakness_link",
+        "evidence": [
+          [
+            "fnd_4",
+            "known_exploited"
+          ],
+          [
+            "fnd_1",
+            "malicious_infrastructure"
+          ]
+        ],
+        "id": "cor_ffce43d3c75f4386",
+        "relationships": [
+          [
+            "exploits",
+            "fnd_4",
+            "fnd_1"
+          ]
+        ],
+        "rule_id": "malicious_infrastructure_known_exploited",
+        "source_finding_ids": [
+          "fnd_1",
+          "fnd_4"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
         "category": "malware_infrastructure_association",
         "evidence": [
           [
@@ -918,6 +5088,76 @@
         "source_finding_ids": [
           "fnd_6",
           "fnd_7"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "multi_signal_malicious_exposure",
+        "evidence": [
+          [
+            "fnd_2",
+            "exposure"
+          ],
+          [
+            "fnd_4",
+            "known_exploited"
+          ],
+          [
+            "fnd_1",
+            "malicious_infrastructure"
+          ]
+        ],
+        "id": "cor_31fc0490b4c1eb58",
+        "relationships": [
+          [
+            "exposes",
+            "fnd_2",
+            "fnd_4"
+          ]
+        ],
+        "rule_id": "malicious_exposed_known_exploited",
+        "source_finding_ids": [
+          "fnd_1",
+          "fnd_2",
+          "fnd_4"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "multi_signal_vulnerable_exposure",
+        "evidence": [
+          [
+            "fnd_2",
+            "exposure"
+          ],
+          [
+            "fnd_4",
+            "known_exploited"
+          ],
+          [
+            "fnd_3",
+            "vulnerability"
+          ]
+        ],
+        "id": "cor_d65721b7b4e40d4a",
+        "relationships": [
+          [
+            "exploits",
+            "fnd_2",
+            "fnd_4"
+          ]
+        ],
+        "rule_id": "vulnerable_exposed_known_exploited",
+        "source_finding_ids": [
+          "fnd_2",
+          "fnd_3",
+          "fnd_4"
         ],
         "subject": [
           "ipv4",
@@ -987,18 +5227,23 @@
     ],
     "statistics": {
       "categories": [
+        "corroborated_malicious_exposure",
+        "corroborated_reputation_signal",
         "known_exploited_exposure",
         "known_exploited_vulnerability",
         "malicious_exposed_infrastructure",
+        "malicious_infrastructure_weakness_link",
         "malware_infrastructure_association",
         "malware_technique_association",
+        "multi_signal_malicious_exposure",
+        "multi_signal_vulnerable_exposure",
         "reputation_confirmed_infrastructure",
         "vulnerable_exposed_service"
       ],
-      "rules_evaluated": 12,
-      "rules_matched": 7,
+      "rules_evaluated": 70,
+      "rules_matched": 14,
       "source_finding_count": 7,
-      "total_observations": 7
+      "total_observations": 14
     }
   },
   "single_finding_no_match": {
@@ -1011,7 +5256,7 @@
     "observations": [],
     "statistics": {
       "categories": [],
-      "rules_evaluated": 12,
+      "rules_evaluated": 70,
       "rules_matched": 0,
       "source_finding_count": 1,
       "total_observations": 0
@@ -1060,9 +5305,65 @@
       "categories": [
         "malicious_exposed_infrastructure"
       ],
-      "rules_evaluated": 12,
+      "rules_evaluated": 70,
       "rules_matched": 1,
       "source_finding_count": 1,
+      "total_observations": 1
+    }
+  },
+  "vulnerability_contested": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_c133d6bbf1559c3a",
+    "matches": [
+      [
+        "vulnerability_contested",
+        [
+          "cor_71d33a76f4a50107"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "finding_contested",
+        "evidence": [
+          [
+            "vulnerability_contested_0",
+            "contested"
+          ],
+          [
+            "vulnerability_contested_1",
+            "vulnerability"
+          ]
+        ],
+        "id": "cor_71d33a76f4a50107",
+        "relationships": [
+          [
+            "co_occurs_with",
+            "vulnerability_contested_0",
+            "vulnerability_contested_1"
+          ]
+        ],
+        "rule_id": "vulnerability_contested",
+        "source_finding_ids": [
+          "vulnerability_contested_0",
+          "vulnerability_contested_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "finding_contested"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 1,
+      "source_finding_count": 2,
       "total_observations": 1
     }
   },
@@ -1116,10 +5417,182 @@
       "categories": [
         "vulnerability_weakness_link"
       ],
-      "rules_evaluated": 12,
+      "rules_evaluated": 70,
       "rules_matched": 1,
       "source_finding_count": 2,
       "total_observations": 1
+    }
+  },
+  "vulnerable_exposed_known_exploited": {
+    "entity": [
+      "ipv4",
+      "8.8.8.8"
+    ],
+    "id": "cors_431f7d3c85fd4ea4",
+    "matches": [
+      [
+        "known_exploited_exposure",
+        [
+          "cor_93c3d6279afa25dc"
+        ]
+      ],
+      [
+        "known_exploited_vulnerability",
+        [
+          "cor_b81aed5685e8ad2d"
+        ]
+      ],
+      [
+        "vulnerable_exposed_known_exploited",
+        [
+          "cor_355814c5d166a18e"
+        ]
+      ],
+      [
+        "vulnerable_exposed_service",
+        [
+          "cor_54d2791a867fd411"
+        ]
+      ]
+    ],
+    "observations": [
+      {
+        "category": "known_exploited_exposure",
+        "evidence": [
+          [
+            "vulnerable_exposed_known_exploited_0",
+            "exposure"
+          ],
+          [
+            "vulnerable_exposed_known_exploited_1",
+            "known_exploited"
+          ]
+        ],
+        "id": "cor_93c3d6279afa25dc",
+        "relationships": [
+          [
+            "exposes",
+            "vulnerable_exposed_known_exploited_0",
+            "vulnerable_exposed_known_exploited_1"
+          ]
+        ],
+        "rule_id": "known_exploited_exposure",
+        "source_finding_ids": [
+          "vulnerable_exposed_known_exploited_0",
+          "vulnerable_exposed_known_exploited_1"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "known_exploited_vulnerability",
+        "evidence": [
+          [
+            "vulnerable_exposed_known_exploited_1",
+            "known_exploited"
+          ],
+          [
+            "vulnerable_exposed_known_exploited_2",
+            "vulnerability"
+          ]
+        ],
+        "id": "cor_b81aed5685e8ad2d",
+        "relationships": [
+          [
+            "exploits",
+            "vulnerable_exposed_known_exploited_1",
+            "vulnerable_exposed_known_exploited_2"
+          ]
+        ],
+        "rule_id": "known_exploited_vulnerability",
+        "source_finding_ids": [
+          "vulnerable_exposed_known_exploited_1",
+          "vulnerable_exposed_known_exploited_2"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "multi_signal_vulnerable_exposure",
+        "evidence": [
+          [
+            "vulnerable_exposed_known_exploited_0",
+            "exposure"
+          ],
+          [
+            "vulnerable_exposed_known_exploited_1",
+            "known_exploited"
+          ],
+          [
+            "vulnerable_exposed_known_exploited_2",
+            "vulnerability"
+          ]
+        ],
+        "id": "cor_355814c5d166a18e",
+        "relationships": [
+          [
+            "exploits",
+            "vulnerable_exposed_known_exploited_0",
+            "vulnerable_exposed_known_exploited_1"
+          ]
+        ],
+        "rule_id": "vulnerable_exposed_known_exploited",
+        "source_finding_ids": [
+          "vulnerable_exposed_known_exploited_0",
+          "vulnerable_exposed_known_exploited_1",
+          "vulnerable_exposed_known_exploited_2"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      },
+      {
+        "category": "vulnerable_exposed_service",
+        "evidence": [
+          [
+            "vulnerable_exposed_known_exploited_0",
+            "exposure"
+          ],
+          [
+            "vulnerable_exposed_known_exploited_2",
+            "vulnerability"
+          ]
+        ],
+        "id": "cor_54d2791a867fd411",
+        "relationships": [
+          [
+            "exposes",
+            "vulnerable_exposed_known_exploited_0",
+            "vulnerable_exposed_known_exploited_2"
+          ]
+        ],
+        "rule_id": "vulnerable_exposed_service",
+        "source_finding_ids": [
+          "vulnerable_exposed_known_exploited_0",
+          "vulnerable_exposed_known_exploited_2"
+        ],
+        "subject": [
+          "ipv4",
+          "8.8.8.8"
+        ]
+      }
+    ],
+    "statistics": {
+      "categories": [
+        "known_exploited_exposure",
+        "known_exploited_vulnerability",
+        "multi_signal_vulnerable_exposure",
+        "vulnerable_exposed_service"
+      ],
+      "rules_evaluated": 70,
+      "rules_matched": 4,
+      "source_finding_count": 3,
+      "total_observations": 4
     }
   },
   "vulnerable_exposed_service": {
@@ -1172,7 +5645,7 @@
       "categories": [
         "vulnerable_exposed_service"
       ],
-      "rules_evaluated": 12,
+      "rules_evaluated": 70,
       "rules_matched": 1,
       "source_finding_count": 2,
       "total_observations": 1

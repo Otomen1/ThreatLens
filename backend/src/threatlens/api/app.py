@@ -1,64 +1,35 @@
-"""FastAPI application exposing the Universal Entity Detection Engine.
+"""FastAPI application: composition root for the ThreatLens API.
 
-A single deterministic endpoint, ``POST /api/v1/detect``, classifies arbitrary
-input into a normalized :class:`~threatlens.entities.models.Entity`. The engine
-does the work (:func:`threatlens.search.detect`); this module only handles
-transport, validation, and a per-request ``search_id``.
+Each subsystem's endpoints live in their own router under ``api/routes/``
+(plus the standalone ``health`` and ``system`` routers) and are mounted here.
+This module builds the FastAPI app, configures CORS, and includes every
+router — it holds no route handlers or business logic of its own.
 """
 
 from __future__ import annotations
 
-import asyncio
 import os
-import time
-from typing import Annotated
-from uuid import uuid4
 
-from fastapi import Depends, FastAPI, Query
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from ..ai import AIExplanation, AIExplanationService, build_ai_service
-from ..correlation import CORRELATION_FRAMEWORK_VERSION
-from ..correlation import build_default_registry as build_correlation_registry
-from ..detection import DetectionPackage
-from ..detection import build_default_registry as build_detection_registry
-from ..detection import generate as generate_detections
-from ..detection_library import (
-    CommunityRecommendation,
-    CommunitySearchResult,
-    DetectionKnowledgeService,
-    DetectionLanguage,
-    DetectionSeverity,
-    RulePlatform,
-)
-from ..exposure import EXPOSURE_FRAMEWORK_VERSION, ExposureService
-from ..exposure import build_default_registry as build_exposure_registry
-from ..identity import IDENTITY_FRAMEWORK_VERSION
-from ..identity import build_default_registry as build_identity_registry
-from ..investigation import InvestigationService
-from ..providers import build_default_router
-from ..reasoning import InvestigationSummary, reason
-from ..reference import build_default_reference_router
-from ..search import detect
 from ..system import build_system_router
-from ..system import registry as metrics_registry
-from ..system.record import (
-    record_ai_explanation,
-    record_detection_generation,
-    record_dkl_query,
-    record_investigation,
-)
 from .health import router as health_router
-from .schemas import (
-    MAX_QUERY_LENGTH,
-    CorrelationFrameworkStatus,
-    DetectRequest,
-    DetectResponse,
-    ExposureFrameworkStatus,
-    ExposureProviderStatusInfo,
-    IdentityFrameworkStatus,
-    InvestigationResponse,
+from .routes import (
+    ai,
+    correlation,
+    detection,
+    detection_knowledge,
+    exposure,
+    identity,
+    investigation,
+    workspace,
 )
+from .routes.ai import get_ai_service as get_ai_service
+from .routes.detection_knowledge import get_knowledge_service as get_knowledge_service
+from .routes.investigation import get_investigation_service as get_investigation_service
+from .routes.workspace import get_timeline_service as get_timeline_service
+from .routes.workspace import get_workspace_service as get_workspace_service
 
 # Local-development convenience: load backend/.env (if present) before anything
 # reads the environment, so secrets like MALWAREBAZAAR_AUTH_KEY are available.
@@ -94,78 +65,11 @@ _origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_origins,
-    allow_methods=["GET", "POST"],
+    # PUT/DELETE are needed by the Investigation Workspace (Phase 8.0) update
+    # and delete endpoints; every other route remains GET/POST only.
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
-
-
-# Process-wide routers and investigation service. Built once; providers are
-# stateless aside from their (network-only) HTTP client.
-_investigation_service = InvestigationService(
-    build_default_router(), build_default_reference_router()
-)
-
-
-def get_investigation_service() -> InvestigationService:
-    """Provide the investigation service (overridable in tests)."""
-    return _investigation_service
-
-
-# The AI explanation service is downstream and optional; built once from the
-# environment. It is disabled by default, so ThreatLens behaves identically when
-# no AI provider is configured or running.
-_ai_service = build_ai_service()
-
-
-def get_ai_service() -> AIExplanationService:
-    """Provide the AI explanation service (overridable in tests)."""
-    return _ai_service
-
-
-# The Detection Engineering registry is a downstream, deterministic consumer of
-# the InvestigationSummary. Built once; empty in Phase 4.0 (no generators yet).
-_detection_registry = build_detection_registry()
-
-
-# The Detection Knowledge Library is a separate, read-only downstream consumer:
-# it indexes *community* detection content and recommends it, never generating
-# rules and never touching the Detection Engine. Built once, offline-first (the
-# bundled seed corpus, or a synced cache when configured) — an investigation
-# never reaches the network to serve a recommendation.
-_knowledge_service = DetectionKnowledgeService.from_default()
-
-
-def get_knowledge_service() -> DetectionKnowledgeService:
-    """Provide the Detection Knowledge Library service (overridable in tests)."""
-    return _knowledge_service
-
-
-# Exposure Intelligence: a separate framework answering "where is this
-# entity exposed", never "is it malicious" (that remains Threat
-# Intelligence's question). Built once — Phase 5.1 registers the first
-# concrete provider (Shodan); see
-# docs/architecture/PHASE-5.0-EXPOSURE-FRAMEWORK.md and
-# docs/architecture/PHASE-5.1-SHODAN-PROVIDER.md.
-_exposure_registry = build_exposure_registry()
-_exposure_service = ExposureService(_exposure_registry)
-
-
-# Identity Intelligence: a fourth, separate framework answering "what is known
-# about this identity" (breaches, credential exposure, directory profile, …),
-# never "is it malicious" or "where is it exposed" (those remain Threat and
-# Exposure Intelligence's questions). Phase 6.0 is framework-only — zero
-# providers; a later phase registers the first (HIBP, Entra ID, …). See
-# docs/architecture/PHASE-6.0-IDENTITY-FRAMEWORK.md.
-_identity_registry = build_identity_registry()
-
-
-# Investigation Correlation Engine: a pure, deterministic engine that combines a
-# completed investigation's existing findings into higher-level correlation
-# observations (referencing source findings, never inventing evidence). Phase
-# 7.0 is framework-only — a small seed rule set, no /investigate integration.
-# See docs/architecture/PHASE-7.0-CORRELATION-FRAMEWORK.md.
-_correlation_registry = build_correlation_registry()
-
 
 # Operational-readiness endpoints. Mounted at the root (``/health``, ``/ready``,
 # ``/version``, …) for infrastructure probes hitting the backend directly, and
@@ -177,249 +81,37 @@ app.include_router(health_router, prefix="/api/v1")
 # Operational Dashboard (read-only): system health, API consumption, and
 # configuration status for administrators/developers. Isolated from the
 # investigation path — see docs/architecture/PHASE-OPERATIONAL-DASHBOARD-V1.md.
+# Reads the same singleton DetectionRegistry / DetectionKnowledgeService their
+# own routers below already built — never a second copy.
 app.include_router(
     build_system_router(
-        detection_registry=_detection_registry,
-        knowledge_service=_knowledge_service,
+        detection_registry=detection.detection_registry,
+        knowledge_service=detection_knowledge.knowledge_service,
     ),
     prefix="/api/v1",
 )
 
+# Core entity detection + investigation (TI + reference providers, reasoning).
+app.include_router(investigation.router)
 
-@app.post("/api/v1/detect", response_model=DetectResponse)
-def detect_entity(request: DetectRequest) -> DetectResponse:
-    """Classify ``request.query`` into a normalized entity.
+# Investigation Workspace: a persistence layer over completed investigations
+# (save/load/update/delete/list), plus a read-only, derived investigation
+# timeline (Phase 8.1). Consumes existing outputs; never generates them and
+# never touches the analytical pipeline above.
+app.include_router(workspace.router)
 
-    A well-formed request always returns ``200``: unclassifiable input resolves
-    to an ``UNKNOWN``/``FREETEXT`` entity rather than an error. Malformed
-    requests (missing, blank, or oversized query) are rejected with ``422``.
-    """
-    entity = detect(request.query)
-    return DetectResponse(search_id=uuid4(), entity=entity)
+# Downstream, optional AI explanation of a completed investigation.
+app.include_router(ai.router)
 
+# Downstream, deterministic Detection Engineering (generated detections), and
+# the separate, read-only Detection Knowledge Library (community detections).
+app.include_router(detection.router)
+app.include_router(detection_knowledge.router)
 
-@app.post("/api/v1/investigate", response_model=InvestigationResponse)
-async def investigate_entity(
-    request: DetectRequest,
-    service: Annotated[InvestigationService, Depends(get_investigation_service)],
-) -> InvestigationResponse:
-    """Detect the entity and run TI + reference providers concurrently.
-
-    Returns both a ``threat_intelligence`` AggregatedResult (external provider
-    findings) and a ``knowledge`` AggregatedResult (reference knowledge such as
-    MITRE ATT&CK). Either may be empty — the client hides empty sections.
-    Providers that fail contribute their status, not an exception.
-    """
-    entity = detect(request.query)
-    _start = time.perf_counter()
-    threat_intelligence, knowledge = await service.investigate(entity)
-    _duration_ms = (time.perf_counter() - _start) * 1000
-    investigation_summary = reason(entity, threat_intelligence, knowledge)
-    record_investigation(
-        metrics_registry,
-        threat_intelligence=threat_intelligence,
-        knowledge=knowledge,
-        summary=investigation_summary,
-        duration_ms=_duration_ms,
-    )
-    return InvestigationResponse(
-        investigation_id=uuid4(),
-        entity=entity,
-        threat_intelligence=threat_intelligence,
-        knowledge=knowledge,
-        investigation_summary=investigation_summary,
-    )
-
-
-@app.post("/api/v1/explain", response_model=AIExplanation)
-async def explain_investigation(
-    summary: InvestigationSummary,
-    service: Annotated[AIExplanationService, Depends(get_ai_service)],
-) -> AIExplanation:
-    """Explain a completed investigation with the configured AI provider.
-
-    The input is the deterministic ``InvestigationSummary`` produced by
-    ``/investigate``; the output is an :class:`AIExplanation`. This endpoint is
-    strictly downstream — the AI never influences findings, confidence, severity,
-    priority, or recommendations, and it has no access to providers.
-
-    It always returns ``200``: a disabled provider or an unreachable model yields
-    a structured ``disabled`` / ``unavailable`` response (never an error), so the
-    AI layer can never fail an investigation. ``/investigate`` is unchanged.
-    """
-    _start = time.perf_counter()
-    explanation = await service.explain(summary)
-    _duration_ms = (time.perf_counter() - _start) * 1000
-    if explanation.status != "disabled":
-        record_ai_explanation(
-            metrics_registry,
-            explanation=explanation,
-            prompt_chars=len(summary.model_dump_json()),
-            duration_ms=_duration_ms,
-        )
-    return explanation
-
-
-@app.post("/api/v1/detections", response_model=DetectionPackage)
-def create_detections(summary: InvestigationSummary) -> DetectionPackage:
-    """Convert a completed investigation into a ``DetectionPackage``.
-
-    The input is the deterministic ``InvestigationSummary`` produced by
-    ``/investigate``; the output is a content-addressed ``DetectionPackage``. The
-    Detection Engine is strictly downstream and pure — it never influences
-    findings, confidence, severity, priority, recommendations, or relationships,
-    and it has no access to providers or AI.
-
-    In Phase 4.0 no generators are registered, so the package is well-formed but
-    carries no artifacts (``is_empty``). The endpoint and contract already exist
-    so future generators light up without an API change.
-    """
-    _start = time.perf_counter()
-    package = generate_detections(summary, registry=_detection_registry)
-    _duration_ms = (time.perf_counter() - _start) * 1000
-    record_detection_generation(metrics_registry, package=package, duration_ms=_duration_ms)
-    return package
-
-
-@app.post("/api/v1/detection-knowledge/recommend", response_model=CommunityRecommendation)
-def recommend_community_detections(
-    summary: InvestigationSummary,
-    service: Annotated[DetectionKnowledgeService, Depends(get_knowledge_service)],
-) -> CommunityRecommendation:
-    """Recommend *community* detections that resemble a completed investigation.
-
-    Strictly downstream, read-only, and deterministic (no AI, no embeddings, no
-    network): the same summary always yields the same ranked exact/partial/
-    related community rules. These are complementary to — never merged with — the
-    generated ``DetectionPackage`` from ``/detections``; provenance (repository,
-    author, license, version, URL) is preserved on every match.
-    """
-    _start = time.perf_counter()
-    result = service.recommend(summary)
-    record_dkl_query(metrics_registry, duration_ms=(time.perf_counter() - _start) * 1000)
-    return result
-
-
-@app.get("/api/v1/exposure", response_model=ExposureFrameworkStatus)
-async def exposure_framework_status(
-    value: Annotated[str | None, Query(max_length=MAX_QUERY_LENGTH)] = None,
-) -> ExposureFrameworkStatus:
-    """Report Exposure Intelligence Framework + provider status, or run a real lookup.
-
-    With no ``value``, this is a pure status probe: framework version,
-    registered-provider count, and each provider's health (Shodan today) —
-    never an entity lookup. With ``value``, additionally detects the entity
-    and runs it through every routed exposure provider, returning their
-    merged ``ExposureSummary``. A disabled or unconfigured provider (e.g.
-    ``SHODAN_ENABLED=false`` or no ``SHODAN_API_KEY``) yields a well-formed,
-    empty or ``unauthorized`` summary — never an error. Still never
-    integrated into ``/investigate``.
-    """
-    providers = _exposure_registry.providers
-    health = await asyncio.gather(*(p.health() for p in providers))
-    provider_info = [
-        ExposureProviderStatusInfo(
-            name=provider.metadata.name,
-            display_name=provider.metadata.display_name,
-            status=snapshot.status,
-            detail=snapshot.detail,
-        )
-        for provider, snapshot in zip(providers, health, strict=True)
-    ]
-
-    summary = None
-    if value is not None and value.strip():
-        entity = detect(value)
-        summary = await _exposure_service.investigate(entity)
-
-    count = len(_exposure_registry)
-    return ExposureFrameworkStatus(
-        status="ready",
-        message="No providers configured" if count == 0 else f"{count} provider(s) registered",
-        framework_version=EXPOSURE_FRAMEWORK_VERSION,
-        providers_registered=count,
-        providers=provider_info,
-        summary=summary,
-    )
-
-
-@app.get("/api/v1/identity", response_model=IdentityFrameworkStatus)
-def identity_framework_status() -> IdentityFrameworkStatus:
-    """Report Identity Intelligence Framework status (Phase 6.0 — framework only).
-
-    A pure readiness probe: framework version and registered-provider count.
-    Phase 6.0 registers zero providers, so this never performs an entity
-    lookup and never touches the network — it mirrors the Phase 5.0 exposure
-    framework-status probe. A later phase adds per-provider health and an
-    optional lookup exactly as exposure did. Never integrated into
-    ``/investigate``.
-    """
-    count = len(_identity_registry)
-    return IdentityFrameworkStatus(
-        status="ready",
-        message="No providers configured" if count == 0 else f"{count} provider(s) registered",
-        framework_version=IDENTITY_FRAMEWORK_VERSION,
-        providers_registered=count,
-    )
-
-
-@app.get("/api/v1/correlation", response_model=CorrelationFrameworkStatus)
-def correlation_framework_status() -> CorrelationFrameworkStatus:
-    """Report Investigation Correlation Engine status (Phase 7.0 — framework only).
-
-    A pure readiness probe: framework version and the count of registered
-    correlation rules. Never runs a correlation (that consumes an
-    ``InvestigationSummary``) and never touches the network — it only reads the
-    seeded rule registry's length. Not integrated into ``/investigate`` yet.
-    """
-    count = len(_correlation_registry)
-    return CorrelationFrameworkStatus(
-        status="ready",
-        message="No rules registered" if count == 0 else f"{count} correlation rule(s) registered",
-        framework_version=CORRELATION_FRAMEWORK_VERSION,
-        rules_registered=count,
-    )
-
-
-@app.get("/api/v1/detection-knowledge/search", response_model=CommunitySearchResult)
-def search_community_detections(
-    service: Annotated[DetectionKnowledgeService, Depends(get_knowledge_service)],
-    ioc: str | None = None,
-    technique: str | None = None,
-    actor: str | None = None,
-    malware: str | None = None,
-    name: str | None = None,
-    tag: str | None = None,
-    rule_id: str | None = None,
-    language: DetectionLanguage | None = None,
-    repository: str | None = None,
-    min_severity: DetectionSeverity | None = None,
-    platform: RulePlatform | None = None,
-    text: str | None = None,
-    limit: int = 50,
-    offset: int = 0,
-) -> CommunitySearchResult:
-    """Search the offline community library by any combination of axes (AND).
-
-    Every filter is optional; results are returned in a stable, deterministic
-    order with a snapshot of library stats. Read-only and offline.
-    """
-    _start = time.perf_counter()
-    result = service.search(
-        ioc=ioc,
-        technique=technique,
-        actor=actor,
-        malware=malware,
-        name=name,
-        tag=tag,
-        rule_id=rule_id,
-        language=language,
-        repository=repository,
-        min_severity=min_severity,
-        platform=platform,
-        text=text,
-        limit=limit,
-        offset=offset,
-    )
-    record_dkl_query(metrics_registry, duration_ms=(time.perf_counter() - _start) * 1000)
-    return result
+# Exposure Intelligence, Identity Intelligence, and the Investigation
+# Correlation Engine: three separate, isolated frameworks, each a pure
+# readiness probe today (Exposure additionally runs a real lookup). None is
+# integrated into ``/investigate``.
+app.include_router(exposure.router)
+app.include_router(identity.router)
+app.include_router(correlation.router)

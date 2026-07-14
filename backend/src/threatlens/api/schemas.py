@@ -7,14 +7,17 @@ with a per-request ``search_id`` for future history/replay (not persisted yet).
 
 from __future__ import annotations
 
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
 
 from ..entities.models import Entity
+from ..entities.types import EntityType
 from ..exposure import ExposureSummary
 from ..providers import AggregatedResult
-from ..reasoning import InvestigationSummary
+from ..reasoning import InvestigationSummary, Severity
+from ..workspace import WorkspaceStatus
 
 # Generous upper bound for a single query (long URLs, registry keys) while still
 # rejecting obvious abuse and keeping request handling cheap.
@@ -120,3 +123,32 @@ class CorrelationFrameworkStatus(BaseModel):
     message: str
     framework_version: str
     rules_registered: int
+
+
+class WorkspaceListItem(BaseModel):
+    """One row of ``GET /api/v1/workspace`` — metadata only.
+
+    Deliberately excludes the nested ``investigation_summary``/
+    ``detection_package``/``correlation_summary`` payloads: a list of many
+    saved investigations only needs the metadata columns (mirrors the
+    "Investigation metadata" fields), not every attached engine output. The
+    full record — including those payloads — is available from
+    ``GET /api/v1/workspace/{id}``.
+    """
+
+    id: UUID
+    title: str
+    created_at: datetime
+    updated_at: datetime
+    status: WorkspaceStatus
+    tags: list[str]
+    summary: str | None
+    severity: Severity | None
+    investigation_type: EntityType
+
+
+class WorkspaceListResponse(BaseModel):
+    """The full result of ``GET /api/v1/workspace``: matching rows plus a count."""
+
+    investigations: list[WorkspaceListItem]
+    total: int

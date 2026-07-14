@@ -4,14 +4,20 @@ import {
   ApiError,
   aiHealth,
   correlationFrameworkStatus,
+  deleteInvestigation,
   detect,
   explain,
   exposureFrameworkStatus,
   generateDetections,
+  getInvestigation,
+  getInvestigationTimeline,
   health,
   identityFrameworkStatus,
+  listInvestigations,
   recommendCommunityDetections,
+  saveInvestigation,
   searchCommunityDetections,
+  updateInvestigation,
   type InvestigationSummary,
 } from "./api";
 
@@ -382,5 +388,273 @@ describe("searchCommunityDetections", () => {
     expect(String(url)).toContain("technique=T1071");
     expect(String(url)).toContain("language=yara");
     expect(String(url)).not.toContain("ignored");
+  });
+});
+
+const WORKSPACE_RECORD = {
+  id: "b6b25169-8d22-4503-b53c-0f59ff38c992",
+  title: "Suspicious IP",
+  created_at: "2026-07-14T00:00:00Z",
+  updated_at: "2026-07-14T00:00:00Z",
+  status: "open",
+  tags: [],
+  summary: null,
+  severity: null,
+  investigation_type: "ipv4",
+  investigation_summary: null,
+  detection_package: null,
+  correlation_summary: null,
+};
+
+describe("saveInvestigation", () => {
+  it("POSTs the request to the workspace endpoint and returns the saved record", async () => {
+    const fetchMock = stubFetch(201, WORKSPACE_RECORD);
+
+    const result = await saveInvestigation({ title: "Suspicious IP", investigation_type: "ipv4" });
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(/\/workspace$/);
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual({
+      title: "Suspicious IP",
+      investigation_type: "ipv4",
+    });
+    expect(result).toEqual(WORKSPACE_RECORD);
+  });
+
+  it("throws ApiError on a non-2xx response", async () => {
+    stubFetch(422, { detail: "bad" });
+    await expect(
+      saveInvestigation({ title: "", investigation_type: "ipv4" }),
+    ).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(201, WORKSPACE_RECORD);
+    const controller = new AbortController();
+
+    await saveInvestigation({ title: "Case", investigation_type: "ipv4" }, controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("listInvestigations", () => {
+  it("GETs the workspace endpoint with no query string when no filters are given", async () => {
+    const fetchMock = stubFetch(200, { investigations: [], total: 0 });
+
+    await listInvestigations();
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(/\/workspace$/);
+    expect(init.method).toBe("GET");
+  });
+
+  it("builds a query string from every given filter", async () => {
+    const fetchMock = stubFetch(200, { investigations: [], total: 0 });
+
+    await listInvestigations({
+      status: "closed",
+      severity: 4,
+      investigation_type: "domain",
+      tag: "urgent",
+      q: "beacon",
+    });
+
+    const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const parsed = new URL(String(url), "http://example.test");
+    expect(parsed.searchParams.get("status")).toBe("closed");
+    expect(parsed.searchParams.get("severity")).toBe("4");
+    expect(parsed.searchParams.get("investigation_type")).toBe("domain");
+    expect(parsed.searchParams.get("tag")).toBe("urgent");
+    expect(parsed.searchParams.get("q")).toBe("beacon");
+  });
+
+  it("omits filters that are not provided", async () => {
+    const fetchMock = stubFetch(200, { investigations: [], total: 0 });
+
+    await listInvestigations({ status: "open" });
+
+    const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).not.toContain("severity");
+    expect(String(url)).not.toContain("tag");
+    expect(String(url)).not.toContain("q=");
+  });
+
+  it("throws ApiError on a non-2xx response", async () => {
+    stubFetch(500, { detail: "boom" });
+    await expect(listInvestigations()).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(200, { investigations: [], total: 0 });
+    const controller = new AbortController();
+
+    await listInvestigations({}, controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("getInvestigation", () => {
+  it("GETs the workspace/{id} endpoint and returns the full record", async () => {
+    const fetchMock = stubFetch(200, WORKSPACE_RECORD);
+
+    const result = await getInvestigation(WORKSPACE_RECORD.id);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(new RegExp(`/workspace/${WORKSPACE_RECORD.id}$`));
+    expect(init.method).toBe("GET");
+    expect(result).toEqual(WORKSPACE_RECORD);
+  });
+
+  it("URL-encodes the id", async () => {
+    const fetchMock = stubFetch(200, WORKSPACE_RECORD);
+
+    await getInvestigation("weird id/with slash");
+
+    const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toContain(encodeURIComponent("weird id/with slash"));
+  });
+
+  it("throws ApiError on a 404", async () => {
+    stubFetch(404, { detail: "not found" });
+    await expect(getInvestigation("missing")).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(200, WORKSPACE_RECORD);
+    const controller = new AbortController();
+
+    await getInvestigation(WORKSPACE_RECORD.id, controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("updateInvestigation", () => {
+  it("PUTs the partial update to workspace/{id} and returns the updated record", async () => {
+    const updated = { ...WORKSPACE_RECORD, status: "closed" };
+    const fetchMock = stubFetch(200, updated);
+
+    const result = await updateInvestigation(WORKSPACE_RECORD.id, { status: "closed" });
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(new RegExp(`/workspace/${WORKSPACE_RECORD.id}$`));
+    expect(init.method).toBe("PUT");
+    expect(JSON.parse(init.body as string)).toEqual({ status: "closed" });
+    expect(result).toEqual(updated);
+  });
+
+  it("throws ApiError on a 404", async () => {
+    stubFetch(404, { detail: "not found" });
+    await expect(
+      updateInvestigation("missing", { status: "closed" }),
+    ).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(200, WORKSPACE_RECORD);
+    const controller = new AbortController();
+
+    await updateInvestigation(WORKSPACE_RECORD.id, { status: "closed" }, controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("deleteInvestigation", () => {
+  it("DELETEs workspace/{id} and resolves with no value", async () => {
+    const fetchMock = stubFetch(204, undefined);
+
+    const result = await deleteInvestigation(WORKSPACE_RECORD.id);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(new RegExp(`/workspace/${WORKSPACE_RECORD.id}$`));
+    expect(init.method).toBe("DELETE");
+    expect(result).toBeUndefined();
+  });
+
+  it("throws ApiError on a 404", async () => {
+    stubFetch(404, { detail: "not found" });
+    await expect(deleteInvestigation("missing")).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(204, undefined);
+    const controller = new AbortController();
+
+    await deleteInvestigation(WORKSPACE_RECORD.id, controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("getInvestigationTimeline", () => {
+  const TIMELINE_PAYLOAD = {
+    investigation_id: WORKSPACE_RECORD.id,
+    entity_type: "ipv4",
+    entity_value: "1.1.1.1",
+    generated_at: "2026-07-14T00:00:00Z",
+    events: [
+      {
+        event_id: "evt_abc123",
+        timestamp: "2026-07-01T00:00:00Z",
+        event_type: "classification",
+        title: "Reported malicious by 3 blocklists",
+        description: "95",
+        source_type: "investigation_evidence",
+        source_id: "fnd_1",
+        severity: 3,
+        evidence_references: ["fnd_1"],
+      },
+    ],
+  };
+
+  it("GETs the workspace/{id}/timeline endpoint and returns the parsed timeline", async () => {
+    const fetchMock = stubFetch(200, TIMELINE_PAYLOAD);
+
+    const result = await getInvestigationTimeline(WORKSPACE_RECORD.id);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(new RegExp(`/workspace/${WORKSPACE_RECORD.id}/timeline$`));
+    expect(init.method).toBe("GET");
+    expect(result).toEqual(TIMELINE_PAYLOAD);
+  });
+
+  it("URL-encodes the id", async () => {
+    const fetchMock = stubFetch(200, TIMELINE_PAYLOAD);
+
+    await getInvestigationTimeline("weird id/with slash");
+
+    const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toContain(encodeURIComponent("weird id/with slash"));
+  });
+
+  it("throws ApiError on a 404", async () => {
+    stubFetch(404, { detail: "not found" });
+    await expect(getInvestigationTimeline("missing")).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("returns an empty events array for an investigation with no timestamped evidence", async () => {
+    stubFetch(200, { ...TIMELINE_PAYLOAD, events: [] });
+    const result = await getInvestigationTimeline(WORKSPACE_RECORD.id);
+    expect(result.events).toEqual([]);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(200, TIMELINE_PAYLOAD);
+    const controller = new AbortController();
+
+    await getInvestigationTimeline(WORKSPACE_RECORD.id, controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
   });
 });

@@ -6,6 +6,212 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Added — Phase 8.1: Investigation Timeline Framework
+
+- **New `backend/src/threatlens/timeline/` package** — a pure, deterministic,
+  **read-only** consumer of a saved investigation's existing evidence, not a
+  new intelligence engine. Derives chronological `TimelineEvent`s only from
+  evidence that already carries an explicit, timezone-aware timestamp
+  (`Finding.evidence[].evidence.evidence.observed_at`); never invents one,
+  never estimates chronology, never infers causality. Evidence with no valid
+  timestamp is silently omitted, never backfilled with the current time.
+- **Detection and Correlation deliberately contribute no events**: neither
+  `DetectionPackage`/`DetectionArtifact` nor
+  `CorrelationSummary`/`CorrelationObservation` carries a per-item event
+  timestamp — only a package/summary-level `generated_at` inherited from the
+  investigation, describing when that output was *computed*, never when a
+  security event was *observed*. Treating it as one would be exactly the
+  invented chronology this framework refuses to produce.
+- **Content-addressed `event_id`** (`sha256`, mirrors
+  `correlation.engine.compute_observation_id`'s exact shape): hashes only
+  stable evidence content, never a timestamp, random UUID, or list position.
+  The same underlying evidence always produces the same id — which is also
+  the mechanism that collapses duplicate evidence (the same observation
+  cited by more than one finding) into **one canonical event**, retaining
+  full provenance (`evidence_references`: every citing finding id;
+  `severity`: the worst across all of them).
+- **Deterministic ordering**: `(timestamp, event_type, event_id)` — proven
+  independent of input order and stable across repeated runs.
+- **API**: `GET /api/v1/workspace/{id}/timeline`, added to the existing
+  workspace router as a sub-resource. Every existing workspace endpoint
+  (`POST`/`GET`/`GET {id}`/`PUT {id}`/`DELETE {id}`) is unchanged.
+- **Frontend**: `getInvestigationTimeline()` in `lib/api/workspace.ts`; a
+  new, collapsed-by-default "Timeline" section on the workspace detail page
+  (`/workspace/{id}`), fetched lazily on first expand — mirrors the existing
+  Detection Engineering card's disclosure pattern exactly. Plain
+  chronological list; no graph, no animation library, no interactive
+  timeline widget.
+- **Testing**: 81 new backend tests (`backend/tests/timeline/`) — models,
+  engine (timestamp policy, deduplication, identity, ordering, read-only
+  behavior), service, API contract, a dedicated no-regression suite, and a
+  10-scenario golden corpus (`THREATLENS_UPDATE_GOLDEN=1` to regenerate,
+  matching Correlation's exact convention). 5 new frontend tests
+  (`lib/api.test.ts`); the new UI verified with a real, scripted browser
+  session against a live backend using hand-built evidence including a
+  duplicate citation and a missing timestamp. Backend suite: **2,577
+  passed, 1 skipped** (was 2,496). Ruff/mypy (strict) clean across 182
+  source files (was 178). Frontend: 127 Vitest tests passed (was 122).
+- **Docs:** `docs/architecture/PHASE-8.1-INVESTIGATION-TIMELINE.md`.
+
+### Added — Phase 8.0: Investigation Workspace Framework
+
+- **New `backend/src/threatlens/workspace/` package** — a workflow and
+  persistence layer over the completed analytical pipeline, **not a new
+  intelligence engine**. Save, load, update, delete, list, filter, and
+  search completed investigations. No AI, no reasoning, no correlation, no
+  authentication (single-user, self-hosted), no database in this phase.
+- **`WorkspaceInvestigation`** (`models.py`): the saved record. Its metadata
+  envelope (`id`, `title`, `status`, `tags`, `summary`, `severity`,
+  `investigation_type`, timestamps) is new; `investigation_summary`,
+  `detection_package`, and `correlation_summary` are the **existing**
+  Reasoning/Detection/Correlation engines' own output models, imported and
+  persisted verbatim — none is redeclared. Unlike every other model in the
+  codebase it is **not frozen**: it is the one model designed to be mutated
+  over its lifetime, always via a fresh `model_copy`, never in place. `id`
+  is a random `uuid4()` (matching `search_id`/`investigation_id`), not
+  content-addressed like `CorrelationObservation`/`DetectionPackage` — two
+  saves of identical content are two distinct records, not a collision.
+- **Storage abstraction** (`storage.py`): `WorkspaceStorage` (ABC) +
+  `LocalFileStorage` — one JSON file per investigation, atomic writes
+  (temp file + rename), corrupt-file-resilient listing. The interface is
+  the seam for a future database-backed implementation; none is built here.
+- **`WorkspaceService`** (`service.py`): save/get/update/delete/list, with
+  update using PATCH-style merge semantics (`exclude_unset`) and list
+  supporting `status`/`severity`/`investigation_type`/`tag`/free-text
+  `query` filters, AND-combined, sorted most-recently-updated first.
+- **REST API** (`api/routes/workspace.py`, mounted at `/api/v1/workspace`):
+  `POST` (save, `201`), `GET` (list, metadata-only projection), `GET /{id}`
+  (full record, `404` if missing), `PUT /{id}` (partial update, `404` if
+  missing), `DELETE /{id}` (`204`, `404` if missing).
+- **One CORS fix required by the new endpoints:** `api/app.py`'s
+  `CORSMiddleware` allowed only `GET, POST` — every prior route was one or
+  the other, so the gap was never exercised. The new `PUT`/`DELETE`
+  endpoints failed their cross-origin preflight in the documented
+  separately-hosted-frontend configuration (found via manual browser
+  verification, not by the same-origin API tests, which can't see a
+  preflight at all). Fixed by adding `PUT, DELETE` to `allow_methods` —
+  additive, verified to leave every existing route's CORS behavior
+  unchanged.
+- **Frontend:** `frontend/lib/api/workspace.ts` (typed client, reusing
+  `InvestigationSummary`/`EntityType`/`DetectionPackage` rather than
+  redeclaring them); `client.ts` gained `put()`/`del()` (previously only
+  `post()`/`get()` existed, since no endpoint had needed them). A new
+  `/workspace` list page (search + status/severity filters + delete) and
+  `/workspace/{id}` detail page (status editing; reuses the existing, pure
+  `InvestigationSummaryCard`/`RecommendationRollup`/`FindingsSection`
+  components verbatim). A new `SaveInvestigationButton`, added to the
+  existing `components/InvestigationWorkspace.tsx` display component, is
+  the only change to that file (one import, one JSX block).
+- **A disclosed naming collision:** "Investigation Workspace" already names
+  the existing per-search analyst display UI
+  (`components/InvestigationWorkspace.tsx`, versioned "v2" as of v1.1.1).
+  This phase's new persistence layer keeps the brief's name for the
+  *feature* but lives entirely under its own `workspace` namespace in code
+  on both sides (backend package, frontend routes/components) to avoid any
+  code-level collision; see the architecture doc for the full
+  disambiguation.
+- **Testing:** 95 new backend tests (`backend/tests/workspace/`) — models,
+  storage, service, API contract, and a dedicated `test_no_regression.py`
+  proving every pre-Phase-8.0 route, engine version constant, and (via a
+  real cross-origin `OPTIONS` preflight, not a same-origin call) CORS
+  behavior is unchanged. 18 new frontend tests
+  (`frontend/lib/api.test.ts`, the established single file covering the
+  whole `lib/api/` barrel — this codebase has no component-rendering tests
+  anywhere, so the new UI was instead verified with a real, scripted
+  Playwright browser session against a live backend: search → save → list
+  → filter → detail → status update → delete, which is also how the CORS
+  bug above was found). Backend suite: **2,496 passed, 1 skipped** (was
+  2,493). Ruff/mypy (strict) clean across 178 source files (was 175).
+  Frontend: 122 Vitest tests passed (was 104); production build clean with
+  both new routes registered.
+- **Docs:** `docs/architecture/PHASE-8.0-INVESTIGATION-WORKSPACE.md`.
+
+### Added — Phase 7.1: Correlation Rule Library Expansion
+
+- **Rule library expanded from 12 to 70 rules**
+  (`backend/src/threatlens/correlation/rules/`), organized into 7 domain
+  modules (`seed` — the unchanged Phase 7.0 set, `compound`,
+  `infrastructure`, `vulnerability`, `malware`, `threat_actor`, `campaign`,
+  `mitre`) replacing the single Phase 7.0 `rules.py` file. Every rule is
+  still declarative `CorrelationRule` data interpreted by the engine's one
+  generic evaluator — **zero changes to the engine, registry, service,
+  summary generation, output schemas, or the public API.**
+- **Coverage, not padding:** every malware/actor/campaign/technique pairing
+  that previously existed only cross-subject gets a same-subject variant (a
+  materially tighter binding), the previously-unused disposition categories
+  (`CONTESTED`, `ACTION_REQUIRED`, `INFORMATIONAL`) are combined with the
+  domain categories that benefit most, and 6 new three-signal *compound*
+  rules capture escalations (e.g. malicious + exposed + known-exploited)
+  that are strictly more specific than any one of their two-category subset
+  rules — additive, not competing: both the compound rule and its subset
+  rules can fire on the same investigation.
+- **Deliberately does not build tactic-specific rule modules**
+  (persistence/execution/discovery/collection/exfiltration/
+  command-and-control/lateral-movement/privilege-escalation/impact): the
+  Reasoning Engine's `FindingCategory` vocabulary carries one
+  tactic-agnostic `ATTACK_PATTERN` value, so per-tactic rules would differ
+  only in display text, not in what they match — exactly the semantic
+  duplication this expansion avoids. All technique-co-occurrence rules live
+  in one `mitre.py`; see the architecture doc's "Known Limitations."
+- **One disclosed, additive model touch:** 26 new `CorrelationCategory`
+  enum values (`models.py`) — the same purely-additive pattern as Phase
+  5.3's `ExposureCapability.INTERNET_NOISE`. Related rules share a category
+  when they represent the same *kind* of pattern (e.g. every "+contested"
+  rule across every domain emits `FINDING_CONTESTED`) rather than each
+  rule getting a bespoke value, so 38 categories back 70 rules.
+- **Verified non-duplication programmatically:** a new registry test
+  asserts no two of the 70 rules share an identical
+  `(required_categories, same_subject)` signature — the real invariant that
+  replaces Phase 7.0's incidental 1:1 rule-to-category test.
+- **New rule-count performance benchmark** (`perf.py::measure_rule_scaling`,
+  synthetic benchmark-only rules, never registered in the real registry):
+  25/50/100 registered rules scale linearly (1.73× per-rule spread) at a
+  fixed investigation size — independent of Phase 7.0's existing
+  observation-count benchmark (unchanged, still 1.09× linear).
+- **Testing:** golden corpus grew from 18 to 76 scenarios (one per new rule,
+  generated programmatically rather than hand-written, plus the 18
+  unchanged Phase 7.0 scenarios); `test_rules.py`'s parametrized fire/no-fire
+  tests automatically extended from 12 to 70 rules with no test-file change.
+  Backend suite: **2,399 passed, 1 skipped** (was 2,281). Ruff/mypy (strict)
+  clean across 171 source files (was 163). No frontend changes.
+- **Docs:** `docs/architecture/PHASE-7.1-CORRELATION-RULE-LIBRARY.md`.
+
+### Changed — Phase 7.0.1: API composition-layer cleanup (no behavior change)
+
+- **`backend/src/threatlens/api/app.py`** is now a pure composition root.
+  Every subsystem's endpoints moved into their own router under the new
+  `api/routes/` package (`investigation.py` — `/detect` + `/investigate`;
+  `ai.py` — `/explain`; `detection.py` — `/detections`;
+  `detection_knowledge.py` — both `/detection-knowledge/*` routes;
+  `exposure.py`, `identity.py`, `correlation.py` — their framework-status
+  endpoints), mirroring the existing `system/router.py` pattern. `app.py`
+  now only builds the FastAPI app, configures CORS, and includes routers.
+  All endpoint URLs, request/response models, dependency-injection
+  overrides (`get_investigation_service`, `get_ai_service`,
+  `get_knowledge_service` — still importable from `threatlens.api.app`),
+  metrics recording, middleware, and OpenAPI output are unchanged.
+- **`backend/src/threatlens/api/timing.py`** (new) — a one-function
+  `elapsed_ms(start)` helper replacing the `_duration_ms = (time.perf_counter()
+  - _start) * 1000` line duplicated across five endpoints.
+- **`frontend/lib/api.ts`** (973 lines) split into `frontend/lib/api/`
+  (`client.ts`, `investigation.ts`, `ai.ts`, `detection.ts`,
+  `detectionKnowledge.ts`, `exposure.ts`, `identity.ts`, `correlation.ts`,
+  `system.ts`, plus an `index.ts` barrel). Every existing `from "@/lib/api"`
+  / `from "./api"` import continues to resolve unchanged; no exported name,
+  type, or function signature changed.
+- Two exposure test files (`tests/exposure/test_api.py`,
+  `tests/exposure_validation/test_exposure_freeze.py`) updated to
+  monkeypatch the exposure registry/service singleton in its new home
+  (`api.routes.exposure`) instead of `api.app` — the only test changes this
+  cleanup required.
+- Refreshed the `api/app.py` and `api/__init__.py` module docstrings, which
+  still described a single-endpoint Phase 1.1.5 API.
+- No new functionality, no API contract changes, no engine changes. Follows
+  from the Phase 6.0/7.0 Merge Readiness Review's High-severity findings on
+  `api/app.py` and `lib/api.ts` growth. Backend suite: **2,281 tests**
+  (2,280 passed, 1 skipped), unchanged. Frontend: **104 tests**, unchanged.
+  Ruff/mypy (strict) clean across 163 backend source files (was 154).
+
 ## [1.2.0] — 2026-07-06
 
 ### Added — Phase 7.0: Investigation Correlation Engine Framework (framework + seed rules)

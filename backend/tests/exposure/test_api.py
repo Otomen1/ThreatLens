@@ -16,12 +16,11 @@ from threatlens.exposure import (
     ShodanProvider,
 )
 
-# threatlens.api's __init__ does `from .app import app`, which rebinds the
-# `app` attribute on the `threatlens.api` package to the FastAPI instance —
-# so `import threatlens.api.app as x` (an attribute-chain lookup) would
-# resolve to that instance, not the module. importlib bypasses the package
-# namespace entirely and returns the actual module.
-app_module = importlib.import_module("threatlens.api.app")
+# The exposure singletons live in their own route module (Phase 7.0.1 split
+# api/app.py into a pure composition root under api/routes/) — importlib
+# reaches that actual module object so monkeypatch can swap the process-wide
+# registry/service the route handler itself reads from.
+exposure_module = importlib.import_module("threatlens.api.routes.exposure")
 
 client = TestClient(app)
 
@@ -36,8 +35,8 @@ def _use_registry(monkeypatch, registry: ExposureRegistry) -> None:  # type: ign
     "whatever this machine's ``.env`` contains") inject a fresh registry
     instead, the same way ``test_disabled_registry_...`` already does.
     """
-    monkeypatch.setattr(app_module, "_exposure_registry", registry)
-    monkeypatch.setattr(app_module, "_exposure_service", ExposureService(registry))
+    monkeypatch.setattr(exposure_module, "_exposure_registry", registry)
+    monkeypatch.setattr(exposure_module, "_exposure_service", ExposureService(registry))
 
 
 def _unconfigured_registry() -> ExposureRegistry:

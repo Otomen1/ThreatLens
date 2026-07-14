@@ -4,6 +4,7 @@ import { useMemo } from "react";
 
 import type { AttributedReference, AttributedRelationship, InvestigationResponse } from "@/lib/api";
 import { evidenceByProvider } from "@/lib/investigation";
+import { SaveInvestigationButton } from "@/components/workspace/SaveInvestigationButton";
 
 import { AdvancedPanel } from "./investigation/AdvancedPanel";
 import { AIExplanationCard } from "./investigation/AIExplanationCard";
@@ -56,6 +57,13 @@ export function InvestigationWorkspace({ data, timestamp }: Props) {
 
   return (
     <div className="w-full space-y-4 text-left" role="main" aria-label="Investigation workspace">
+      {/* ── 0. Save to Workspace (Phase 8.0 — persistence, separate from search) ── */}
+      {summary && (
+        <div className="flex justify-end">
+          <SaveInvestigationButton entity={entity} investigationSummary={summary} />
+        </div>
+      )}
+
       {/* ── 1. Header ─────────────────────────────────────────────── */}
       <InvestigationHeader
         entity={entity}

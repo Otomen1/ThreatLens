@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 
 from threatlens.api.app import app
-from threatlens.correlation import CORRELATION_FRAMEWORK_VERSION
+from threatlens.correlation import CORRELATION_FRAMEWORK_VERSION, SEED_RULES
 
 client = TestClient(app)
 
@@ -18,8 +18,8 @@ def test_returns_200_and_ready_status() -> None:
 
 def test_reports_the_seed_rule_count() -> None:
     body = client.get("/api/v1/correlation").json()
-    assert body["rules_registered"] == 12
-    assert body["message"] == "12 correlation rule(s) registered"
+    assert body["rules_registered"] == len(SEED_RULES)
+    assert body["message"] == f"{len(SEED_RULES)} correlation rule(s) registered"
 
 
 def test_reports_framework_version() -> None:

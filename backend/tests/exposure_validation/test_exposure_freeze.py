@@ -26,17 +26,17 @@ from .harness import snapshot, validate_scenario
 _GOLDEN = Path(__file__).with_name("golden.json")
 _UPDATE = os.environ.get("THREATLENS_UPDATE_GOLDEN") == "1"
 
-# threatlens.api's __init__ does `from .app import app`, which rebinds the
-# `app` attribute on the `threatlens.api` package to the FastAPI instance —
-# see tests/exposure/test_api.py for the full explanation of why importlib
-# (not an attribute-chain import) is required to reach the actual module.
-app_module = importlib.import_module("threatlens.api.app")
+# The exposure singletons live in their own route module (Phase 7.0.1 split
+# api/app.py into a pure composition root under api/routes/) — see
+# tests/exposure/test_api.py for the full explanation of why importlib (not an
+# attribute-chain import) is required to reach the actual module.
+exposure_module = importlib.import_module("threatlens.api.routes.exposure")
 client = TestClient(app)
 
 
 def _use_registry(monkeypatch: pytest.MonkeyPatch, registry: ExposureRegistry) -> None:
-    monkeypatch.setattr(app_module, "_exposure_registry", registry)
-    monkeypatch.setattr(app_module, "_exposure_service", ExposureService(registry))
+    monkeypatch.setattr(exposure_module, "_exposure_registry", registry)
+    monkeypatch.setattr(exposure_module, "_exposure_service", ExposureService(registry))
 
 
 # --------------------------------------------------------------------------- #
