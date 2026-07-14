@@ -16,6 +16,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from ...entities.types import EntityType
+from ...graph import EvidenceGraph, GraphService
 from ...reasoning import Severity
 from ...timeline import Timeline, TimelineService
 from ...workspace import (
@@ -43,6 +44,11 @@ _workspace_service = WorkspaceService(LocalFileStorage(_workspace_settings.stora
 # other *_service singleton in this module.
 _timeline_service = TimelineService()
 
+# The Evidence Relationship Graph Framework (Phase 8.2) is likewise a
+# stateless pure function of one WorkspaceInvestigation — a sibling of the
+# Timeline service, not a consumer of it.
+_graph_service = GraphService()
+
 
 def get_workspace_service() -> WorkspaceService:
     """Provide the Workspace service (overridable in tests)."""
@@ -52,6 +58,11 @@ def get_workspace_service() -> WorkspaceService:
 def get_timeline_service() -> TimelineService:
     """Provide the Timeline service (overridable in tests)."""
     return _timeline_service
+
+
+def get_graph_service() -> GraphService:
+    """Provide the Graph service (overridable in tests)."""
+    return _graph_service
 
 
 def _to_list_item(record: WorkspaceInvestigation) -> WorkspaceListItem:
@@ -139,6 +150,27 @@ def get_investigation_timeline(
     except InvestigationNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return timeline.build(record)
+
+
+@router.get("/api/v1/workspace/{investigation_id}/graph", response_model=EvidenceGraph)
+def get_investigation_graph(
+    investigation_id: UUID,
+    workspace: Annotated[WorkspaceService, Depends(get_workspace_service)],
+    graph: Annotated[GraphService, Depends(get_graph_service)],
+) -> EvidenceGraph:
+    """Derive the read-only evidence graph for one saved investigation.
+
+    Consumes the saved record's existing ``investigation_summary`` and
+    ``correlation_summary`` verbatim; never mutates either and never
+    persists graph data of its own — a repeated call against an unchanged
+    saved record always returns a byte-identical ``EvidenceGraph``. ``404``
+    if the investigation doesn't exist.
+    """
+    try:
+        record = workspace.get(investigation_id)
+    except InvestigationNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return graph.build(record)
 
 
 @router.put("/api/v1/workspace/{investigation_id}", response_model=WorkspaceInvestigation)
