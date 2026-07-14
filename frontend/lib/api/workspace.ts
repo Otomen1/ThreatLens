@@ -172,3 +172,57 @@ export function getInvestigationTimeline(
 ): Promise<Timeline> {
   return get<Timeline>(`/workspace/${encodeURIComponent(id)}/timeline`, signal);
 }
+
+// --- Evidence Relationship Graph (Phase 8.2) ---
+//
+// A read-only, derived view over a saved investigation's existing evidence
+// and correlation output — never a new intelligence engine. A node or edge
+// exists only when the backend found supporting evidence or an explicit
+// relationship; the UI renders exactly what it returns and never infers,
+// merges, or lays out a connection itself.
+
+/**
+ * `node_type`/`relationship_type` are left as plain `string` rather than
+ * exact unions — mirrors `TimelineEvent.event_type` above for the same
+ * reason: the underlying vocabularies genuinely differ by source, and
+ * nothing in the UI branches on a specific value.
+ */
+export interface GraphNode {
+  node_id: string;
+  node_type: string;
+  label: string;
+  value: string;
+  severity: number | null;
+  source_references: string[];
+  metadata: Record<string, unknown>;
+}
+
+export interface GraphEdge {
+  edge_id: string;
+  source_node_id: string;
+  target_node_id: string;
+  relationship_type: string;
+  explanation: string;
+  evidence_references: string[];
+  source_references: string[];
+}
+
+export interface EvidenceGraph {
+  investigation_id: string;
+  entity_type: EntityType;
+  entity_value: string;
+  generated_at: string;
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  node_count: number;
+  edge_count: number;
+  graph_version: string;
+}
+
+/** Derive the read-only evidence relationship graph for one saved investigation. */
+export function getInvestigationGraph(
+  id: string,
+  signal?: AbortSignal,
+): Promise<EvidenceGraph> {
+  return get<EvidenceGraph>(`/workspace/${encodeURIComponent(id)}/graph`, signal);
+}

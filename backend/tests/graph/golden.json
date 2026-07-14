@@ -1,0 +1,625 @@
+{
+  "correlation_present_but_empty_observations": {
+    "edge_count": 0,
+    "edges": [],
+    "node_count": 1,
+    "nodes": [
+      {
+        "label": "8.8.8.8",
+        "metadata": {},
+        "node_id": "node_fb99665d66683f87",
+        "node_type": "ipv4",
+        "severity": 3,
+        "source_references": [
+          "f1"
+        ],
+        "value": "8.8.8.8"
+      }
+    ]
+  },
+  "distinct_target_vocabulary_not_merged": {
+    "edge_count": 1,
+    "edges": [
+      {
+        "edge_id": "edge_54bfeefa47a0a462",
+        "evidence_references": [
+          "f1"
+        ],
+        "explanation": "test relationship",
+        "relationship_type": "associated_with",
+        "source_node_id": "node_fb99665d66683f87",
+        "source_references": [
+          "f1"
+        ],
+        "target_node_id": "node_f8996cc027c484b6"
+      }
+    ],
+    "node_count": 2,
+    "nodes": [
+      {
+        "label": "8.8.8.8",
+        "metadata": {},
+        "node_id": "node_fb99665d66683f87",
+        "node_type": "ipv4",
+        "severity": 3,
+        "source_references": [
+          "f1"
+        ],
+        "value": "8.8.8.8"
+      },
+      {
+        "label": "CVE-2024-9999",
+        "metadata": {},
+        "node_id": "node_f8996cc027c484b6",
+        "node_type": "vulnerability",
+        "severity": null,
+        "source_references": [
+          "f1"
+        ],
+        "value": "CVE-2024-9999"
+      }
+    ]
+  },
+  "duplicate_relationship_across_findings": {
+    "edge_count": 1,
+    "edges": [
+      {
+        "edge_id": "edge_0d3a7dbbd9358756",
+        "evidence_references": [
+          "f1",
+          "f2"
+        ],
+        "explanation": "test relationship",
+        "relationship_type": "associated_with",
+        "source_node_id": "node_fb99665d66683f87",
+        "source_references": [
+          "f1",
+          "f2"
+        ],
+        "target_node_id": "node_5544aaf0158a8ef9"
+      }
+    ],
+    "node_count": 2,
+    "nodes": [
+      {
+        "label": "8.8.8.8",
+        "metadata": {},
+        "node_id": "node_fb99665d66683f87",
+        "node_type": "ipv4",
+        "severity": 4,
+        "source_references": [
+          "f1",
+          "f2"
+        ],
+        "value": "8.8.8.8"
+      },
+      {
+        "label": "Emotet",
+        "metadata": {},
+        "node_id": "node_5544aaf0158a8ef9",
+        "node_type": "malware_family",
+        "severity": null,
+        "source_references": [
+          "f1",
+          "f2"
+        ],
+        "value": "Emotet"
+      }
+    ]
+  },
+  "empty_investigation": {
+    "edge_count": 0,
+    "edges": [],
+    "node_count": 0,
+    "nodes": []
+  },
+  "finding_with_no_relationships": {
+    "edge_count": 0,
+    "edges": [],
+    "node_count": 1,
+    "nodes": [
+      {
+        "label": "8.8.8.8",
+        "metadata": {},
+        "node_id": "node_fb99665d66683f87",
+        "node_type": "ipv4",
+        "severity": 3,
+        "source_references": [
+          "f1"
+        ],
+        "value": "8.8.8.8"
+      }
+    ]
+  },
+  "multiple_observations_share_entity_node": {
+    "edge_count": 2,
+    "edges": [
+      {
+        "edge_id": "edge_8c8d9e1a53f29e52",
+        "evidence_references": [
+          "f1"
+        ],
+        "explanation": "Test observation",
+        "relationship_type": "correlated_with",
+        "source_node_id": "node_5570a072898d8883",
+        "source_references": [
+          "cor_5"
+        ],
+        "target_node_id": "node_fb99665d66683f87"
+      },
+      {
+        "edge_id": "edge_a8a828703c06c5fc",
+        "evidence_references": [
+          "f2"
+        ],
+        "explanation": "Test observation",
+        "relationship_type": "correlated_with",
+        "source_node_id": "node_af4b7499f97eb708",
+        "source_references": [
+          "cor_6"
+        ],
+        "target_node_id": "node_fb99665d66683f87"
+      }
+    ],
+    "node_count": 3,
+    "nodes": [
+      {
+        "label": "Test observation",
+        "metadata": {
+          "category": "malicious_exposed_infrastructure",
+          "rule_id": "test_rule"
+        },
+        "node_id": "node_5570a072898d8883",
+        "node_type": "correlation_observation",
+        "severity": null,
+        "source_references": [
+          "cor_5"
+        ],
+        "value": "cor_5"
+      },
+      {
+        "label": "Test observation",
+        "metadata": {
+          "category": "malicious_exposed_infrastructure",
+          "rule_id": "test_rule"
+        },
+        "node_id": "node_af4b7499f97eb708",
+        "node_type": "correlation_observation",
+        "severity": null,
+        "source_references": [
+          "cor_6"
+        ],
+        "value": "cor_6"
+      },
+      {
+        "label": "8.8.8.8",
+        "metadata": {},
+        "node_id": "node_fb99665d66683f87",
+        "node_type": "ipv4",
+        "severity": 3,
+        "source_references": [
+          "f1",
+          "f2"
+        ],
+        "value": "8.8.8.8"
+      }
+    ]
+  },
+  "observation_relationship_unknown_finding_skipped": {
+    "edge_count": 1,
+    "edges": [
+      {
+        "edge_id": "edge_bf34ae9bf3bf3575",
+        "evidence_references": [
+          "f1"
+        ],
+        "explanation": "Test observation",
+        "relationship_type": "correlated_with",
+        "source_node_id": "node_61a5c2001f363639",
+        "source_references": [
+          "cor_4"
+        ],
+        "target_node_id": "node_fb99665d66683f87"
+      }
+    ],
+    "node_count": 2,
+    "nodes": [
+      {
+        "label": "Test observation",
+        "metadata": {
+          "category": "malicious_exposed_infrastructure",
+          "rule_id": "test_rule"
+        },
+        "node_id": "node_61a5c2001f363639",
+        "node_type": "correlation_observation",
+        "severity": null,
+        "source_references": [
+          "cor_4"
+        ],
+        "value": "cor_4"
+      },
+      {
+        "label": "8.8.8.8",
+        "metadata": {},
+        "node_id": "node_fb99665d66683f87",
+        "node_type": "ipv4",
+        "severity": 3,
+        "source_references": [
+          "f1"
+        ],
+        "value": "8.8.8.8"
+      }
+    ]
+  },
+  "observation_self_loop_omitted": {
+    "edge_count": 1,
+    "edges": [
+      {
+        "edge_id": "edge_7787bac01f5a076a",
+        "evidence_references": [
+          "f1",
+          "f2"
+        ],
+        "explanation": "Test observation",
+        "relationship_type": "correlated_with",
+        "source_node_id": "node_0a58816102cea21a",
+        "source_references": [
+          "cor_3"
+        ],
+        "target_node_id": "node_fb99665d66683f87"
+      }
+    ],
+    "node_count": 2,
+    "nodes": [
+      {
+        "label": "Test observation",
+        "metadata": {
+          "category": "malicious_exposed_infrastructure",
+          "rule_id": "test_rule"
+        },
+        "node_id": "node_0a58816102cea21a",
+        "node_type": "correlation_observation",
+        "severity": null,
+        "source_references": [
+          "cor_3"
+        ],
+        "value": "cor_3"
+      },
+      {
+        "label": "8.8.8.8",
+        "metadata": {},
+        "node_id": "node_fb99665d66683f87",
+        "node_type": "ipv4",
+        "severity": 3,
+        "source_references": [
+          "f1",
+          "f2"
+        ],
+        "value": "8.8.8.8"
+      }
+    ]
+  },
+  "observation_single_entity_hub": {
+    "edge_count": 1,
+    "edges": [
+      {
+        "edge_id": "edge_dc884907f0cc105e",
+        "evidence_references": [
+          "f1",
+          "f2"
+        ],
+        "explanation": "Test observation",
+        "relationship_type": "correlated_with",
+        "source_node_id": "node_8a72739ec8875035",
+        "source_references": [
+          "cor_1"
+        ],
+        "target_node_id": "node_fb99665d66683f87"
+      }
+    ],
+    "node_count": 2,
+    "nodes": [
+      {
+        "label": "Test observation",
+        "metadata": {
+          "category": "malicious_exposed_infrastructure",
+          "rule_id": "test_rule"
+        },
+        "node_id": "node_8a72739ec8875035",
+        "node_type": "correlation_observation",
+        "severity": null,
+        "source_references": [
+          "cor_1"
+        ],
+        "value": "cor_1"
+      },
+      {
+        "label": "8.8.8.8",
+        "metadata": {},
+        "node_id": "node_fb99665d66683f87",
+        "node_type": "ipv4",
+        "severity": 3,
+        "source_references": [
+          "f1",
+          "f2"
+        ],
+        "value": "8.8.8.8"
+      }
+    ]
+  },
+  "observation_two_entities_with_relationship": {
+    "edge_count": 3,
+    "edges": [
+      {
+        "edge_id": "edge_fbbf715d9c2de374",
+        "evidence_references": [
+          "f2"
+        ],
+        "explanation": "Test observation",
+        "relationship_type": "correlated_with",
+        "source_node_id": "node_968f15e5b065dd61",
+        "source_references": [
+          "cor_2"
+        ],
+        "target_node_id": "node_d6f044f317fb19f5"
+      },
+      {
+        "edge_id": "edge_38cd521bdc3ca96f",
+        "evidence_references": [
+          "f1"
+        ],
+        "explanation": "Test observation",
+        "relationship_type": "correlated_with",
+        "source_node_id": "node_968f15e5b065dd61",
+        "source_references": [
+          "cor_2"
+        ],
+        "target_node_id": "node_fb99665d66683f87"
+      },
+      {
+        "edge_id": "edge_f60937f4df671de2",
+        "evidence_references": [
+          "cor_2"
+        ],
+        "explanation": "test correlation relationship",
+        "relationship_type": "mapped_to",
+        "source_node_id": "node_fb99665d66683f87",
+        "source_references": [
+          "cor_2"
+        ],
+        "target_node_id": "node_d6f044f317fb19f5"
+      }
+    ],
+    "node_count": 3,
+    "nodes": [
+      {
+        "label": "Test observation",
+        "metadata": {
+          "category": "malicious_exposed_infrastructure",
+          "rule_id": "test_rule"
+        },
+        "node_id": "node_968f15e5b065dd61",
+        "node_type": "correlation_observation",
+        "severity": null,
+        "source_references": [
+          "cor_2"
+        ],
+        "value": "cor_2"
+      },
+      {
+        "label": "8.8.8.8",
+        "metadata": {},
+        "node_id": "node_fb99665d66683f87",
+        "node_type": "ipv4",
+        "severity": 3,
+        "source_references": [
+          "f1"
+        ],
+        "value": "8.8.8.8"
+      },
+      {
+        "label": "T1059",
+        "metadata": {},
+        "node_id": "node_d6f044f317fb19f5",
+        "node_type": "mitre_technique",
+        "severity": 3,
+        "source_references": [
+          "f2"
+        ],
+        "value": "T1059"
+      }
+    ]
+  },
+  "relationship_target_only_entity_has_no_severity": {
+    "edge_count": 1,
+    "edges": [
+      {
+        "edge_id": "edge_0d3a7dbbd9358756",
+        "evidence_references": [
+          "f1"
+        ],
+        "explanation": "test relationship",
+        "relationship_type": "associated_with",
+        "source_node_id": "node_fb99665d66683f87",
+        "source_references": [
+          "f1"
+        ],
+        "target_node_id": "node_5544aaf0158a8ef9"
+      }
+    ],
+    "node_count": 2,
+    "nodes": [
+      {
+        "label": "8.8.8.8",
+        "metadata": {},
+        "node_id": "node_fb99665d66683f87",
+        "node_type": "ipv4",
+        "severity": 3,
+        "source_references": [
+          "f1"
+        ],
+        "value": "8.8.8.8"
+      },
+      {
+        "label": "Emotet",
+        "metadata": {},
+        "node_id": "node_5544aaf0158a8ef9",
+        "node_type": "malware_family",
+        "severity": null,
+        "source_references": [
+          "f1"
+        ],
+        "value": "Emotet"
+      }
+    ]
+  },
+  "relationship_with_no_description": {
+    "edge_count": 1,
+    "edges": [
+      {
+        "edge_id": "edge_f7854645f401a76c",
+        "evidence_references": [
+          "f1"
+        ],
+        "explanation": "",
+        "relationship_type": "associated_with",
+        "source_node_id": "node_fb99665d66683f87",
+        "source_references": [
+          "f1"
+        ],
+        "target_node_id": "node_f5a2f0f1f588de98"
+      }
+    ],
+    "node_count": 2,
+    "nodes": [
+      {
+        "label": "8.8.8.8",
+        "metadata": {},
+        "node_id": "node_fb99665d66683f87",
+        "node_type": "ipv4",
+        "severity": 3,
+        "source_references": [
+          "f1"
+        ],
+        "value": "8.8.8.8"
+      },
+      {
+        "label": "Trickbot",
+        "metadata": {},
+        "node_id": "node_f5a2f0f1f588de98",
+        "node_type": "malware_family",
+        "severity": null,
+        "source_references": [
+          "f1"
+        ],
+        "value": "Trickbot"
+      }
+    ]
+  },
+  "severity_is_worst_across_findings_on_same_subject": {
+    "edge_count": 0,
+    "edges": [],
+    "node_count": 1,
+    "nodes": [
+      {
+        "label": "8.8.8.8",
+        "metadata": {},
+        "node_id": "node_fb99665d66683f87",
+        "node_type": "ipv4",
+        "severity": 4,
+        "source_references": [
+          "f1",
+          "f2"
+        ],
+        "value": "8.8.8.8"
+      }
+    ]
+  },
+  "shared_entity_vocabulary_alignment": {
+    "edge_count": 1,
+    "edges": [
+      {
+        "edge_id": "edge_0d3a7dbbd9358756",
+        "evidence_references": [
+          "f1"
+        ],
+        "explanation": "test relationship",
+        "relationship_type": "associated_with",
+        "source_node_id": "node_fb99665d66683f87",
+        "source_references": [
+          "f1"
+        ],
+        "target_node_id": "node_5544aaf0158a8ef9"
+      }
+    ],
+    "node_count": 2,
+    "nodes": [
+      {
+        "label": "8.8.8.8",
+        "metadata": {},
+        "node_id": "node_fb99665d66683f87",
+        "node_type": "ipv4",
+        "severity": 3,
+        "source_references": [
+          "f1"
+        ],
+        "value": "8.8.8.8"
+      },
+      {
+        "label": "Emotet",
+        "metadata": {},
+        "node_id": "node_5544aaf0158a8ef9",
+        "node_type": "malware_family",
+        "severity": 4,
+        "source_references": [
+          "f1",
+          "f2"
+        ],
+        "value": "Emotet"
+      }
+    ]
+  },
+  "single_relationship_edge": {
+    "edge_count": 1,
+    "edges": [
+      {
+        "edge_id": "edge_0d3a7dbbd9358756",
+        "evidence_references": [
+          "f1"
+        ],
+        "explanation": "test relationship",
+        "relationship_type": "associated_with",
+        "source_node_id": "node_fb99665d66683f87",
+        "source_references": [
+          "f1"
+        ],
+        "target_node_id": "node_5544aaf0158a8ef9"
+      }
+    ],
+    "node_count": 2,
+    "nodes": [
+      {
+        "label": "8.8.8.8",
+        "metadata": {},
+        "node_id": "node_fb99665d66683f87",
+        "node_type": "ipv4",
+        "severity": 3,
+        "source_references": [
+          "f1"
+        ],
+        "value": "8.8.8.8"
+      },
+      {
+        "label": "Emotet",
+        "metadata": {},
+        "node_id": "node_5544aaf0158a8ef9",
+        "node_type": "malware_family",
+        "severity": null,
+        "source_references": [
+          "f1"
+        ],
+        "value": "Emotet"
+      }
+    ]
+  }
+}

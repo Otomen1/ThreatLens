@@ -6,6 +6,65 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Added — Phase 8.2: Evidence Relationship Graph Framework
+
+- **New `backend/src/threatlens/graph/` package** — a pure, deterministic,
+  **read-only** consumer of a saved investigation's existing evidence, not a
+  new intelligence engine. Derives an `EvidenceGraph` of `GraphNode`s and
+  `GraphEdge`s only from a finding's own subject entity, a finding's
+  explicit `Relationship` to another entity, or a `CorrelationObservation`'s
+  cited findings and typed `CorrelationRelationship`s. Never invents an
+  entity, never infers a relationship, never connects two entities merely
+  because they co-occur in the same investigation.
+- **Correlation is a primary source of explicit relationships, unmodified**:
+  each `CorrelationObservation` becomes its own `correlation_observation`
+  node, hub-connected (`correlated_with`) to every distinct entity its own
+  evidence cites; each `CorrelationRelationship` additionally becomes a
+  direct, specifically-typed entity-to-entity edge — except when both ends
+  resolve to the same entity (a same-subject rule), which is omitted as a
+  self-loop that would add no connectivity beyond the hub edges.
+  `correlation/engine.py`, `registry.py`, the rule library, models, and
+  service are untouched.
+- **Canonicalization reuses existing normalization, never a new system**:
+  node identity uses the same `.strip().lower()` idiom already established
+  in `providers/aggregation.py` and `timeline/engine.py`. Where `EntityType`
+  and `RelationshipTargetType` happen to share an identical string value
+  (`malware_family`, `threat_actor`), the same entity collapses into one
+  node automatically; where the vocabularies deliberately diverge (`cve` vs.
+  `vulnerability`), no speculative remapping is attempted.
+- **Content-addressed `node_id`/`edge_id`** (`sha256`, matches
+  `correlation.engine.compute_observation_id`'s and
+  `timeline.engine.compute_event_id`'s exact shape): node identity hashes
+  only `node_type` + canonicalized value; edge identity hashes only the two
+  canonical node ids + relationship type — deliberately excluding evidence
+  references, so repeated assertions of the same relationship accumulate
+  onto one canonical edge instead of minting duplicates.
+- **Deterministic ordering**: nodes by `(node_type, value, node_id)`; edges
+  by `(relationship_type, source_node_id, target_node_id, edge_id)` — proven
+  independent of input order and stable across repeated runs.
+- **API**: `GET /api/v1/workspace/{id}/graph`, added to the existing
+  workspace router as a sub-resource, a sibling of the Phase 8.1 timeline
+  route (neither depends on the other). Every existing workspace/timeline
+  endpoint is unchanged.
+- **Frontend**: `getInvestigationGraph()` in `lib/api/workspace.ts`; a new,
+  collapsed-by-default "Evidence Graph" section on the workspace detail page
+  (`/workspace/{id}`), fetched lazily on first expand — mirrors the Timeline
+  section's disclosure pattern exactly. Plain node/edge lists with basic
+  node inspection (click to reveal source references/metadata); no graph
+  visualization library, no drag-to-create, no AI suggestions.
+- **Testing**: 91 new backend tests (`backend/tests/graph/`) — models,
+  engine (canonicalization, deduplication, correlation integration,
+  self-loop omission, identity, ordering, read-only behavior), service, API
+  contract, a dedicated no-regression suite, and a 14-scenario golden corpus
+  (`THREATLENS_UPDATE_GOLDEN=1` to regenerate). 5 new frontend tests
+  (`lib/api.test.ts`); the new UI verified with a real, scripted browser
+  session against a live backend using a hand-built investigation with a
+  correlation observation, confirming correct node/edge counts, relationship
+  labels, and no self-loop artifact. Backend suite: **2,668 passed, 1
+  skipped** (was 2,577). Ruff/mypy (strict) clean across 196 source files
+  (was 192). Frontend: 132 Vitest tests passed (was 127).
+- **Docs:** `docs/architecture/PHASE-8.2-EVIDENCE-RELATIONSHIP-GRAPH.md`.
+
 ### Added — Phase 8.1: Investigation Timeline Framework
 
 - **New `backend/src/threatlens/timeline/` package** — a pure, deterministic,

@@ -6,8 +6,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   getInvestigation,
+  getInvestigationGraph,
   getInvestigationTimeline,
   updateInvestigation,
+  type EvidenceGraph,
   type Timeline,
   type WorkspaceInvestigation,
   type WorkspaceStatus,
@@ -102,6 +104,8 @@ export default function WorkspaceDetailPage() {
             )}
 
             <TimelineSection investigationId={state.record.id} />
+
+            <GraphSection investigationId={state.record.id} />
 
             {state.record.detection_package && (
               <DetectionPackageSummary pkg={state.record.detection_package} />
@@ -284,6 +288,176 @@ function TimelineSection({ investigationId }: { investigationId: string }) {
                 </li>
               ))}
             </ul>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
+/**
+ * A collapsed-by-default, read-only graph of entities and relationships
+ * derived from the investigation's existing evidence and correlation
+ * output — fetched lazily on first expand, mirroring TimelineSection's
+ * pattern exactly. A sibling view, not a consumer of the timeline above.
+ * Rendered as plain lists rather than a node-link diagram: the brief calls
+ * for the simplest implementation that clearly communicates relationships,
+ * not a graph-visualization library.
+ */
+function GraphSection({ investigationId }: { investigationId: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [graph, setGraph] = useState<EvidenceGraph | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => () => abortRef.current?.abort(), []);
+
+  async function toggle() {
+    const next = !expanded;
+    setExpanded(next);
+    if (!next || graph !== null || loading) return;
+
+    setLoading(true);
+    setFailed(false);
+    const controller = new AbortController();
+    abortRef.current = controller;
+    try {
+      setGraph(await getInvestigationGraph(investigationId, controller.signal));
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      setFailed(true);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const nodesById = new Map((graph?.nodes ?? []).map((node) => [node.node_id, node]));
+
+  return (
+    <section
+      className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden"
+      aria-label="Evidence Graph"
+    >
+      <button
+        onClick={toggle}
+        className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-zinc-800/40 transition-colors"
+        aria-expanded={expanded}
+      >
+        <span className="flex-1 min-w-0">
+          <span className="block text-sm font-semibold text-white">Evidence Graph</span>
+          <span className="block text-[11px] text-zinc-500">
+            Entities and relationships derived from existing evidence · read-only
+          </span>
+        </span>
+        {graph && graph.node_count > 0 && (
+          <span className="text-[11px] font-mono text-zinc-400 bg-zinc-800 rounded-full px-2 py-0.5">
+            {graph.node_count} nodes · {graph.edge_count} edges
+          </span>
+        )}
+        <Chevron expanded={expanded} />
+      </button>
+
+      {expanded && (
+        <div className="px-5 pb-5 pt-1 border-t border-zinc-800">
+          {loading && (
+            <p className="text-sm text-zinc-400 animate-pulse pt-3">Deriving evidence graph…</p>
+          )}
+          {!loading && failed && (
+            <p className="text-sm text-zinc-400 pt-3">
+              The evidence graph could not be loaded. The investigation above is unaffected.
+            </p>
+          )}
+          {!loading && !failed && graph && graph.node_count === 0 && (
+            <p className="text-sm text-zinc-500 pt-3">
+              No evidence-supported entities or relationships were found for this investigation —
+              no graph to derive.
+            </p>
+          )}
+          {!loading && !failed && graph && graph.node_count > 0 && (
+            <div className="space-y-4 pt-3">
+              <div>
+                <h3 className="text-xs font-semibold text-zinc-400 mb-2">
+                  Nodes ({graph.node_count})
+                </h3>
+                <ul className="space-y-1.5">
+                  {graph.nodes.map((node) => (
+                    <li key={node.node_id}>
+                      <button
+                        onClick={() =>
+                          setSelectedNodeId(selectedNodeId === node.node_id ? null : node.node_id)
+                        }
+                        aria-expanded={selectedNodeId === node.node_id}
+                        className="w-full flex flex-wrap items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950/50 p-2.5 text-left hover:border-zinc-700 transition-colors"
+                      >
+                        <span className="text-[10px] text-zinc-400 bg-zinc-800 rounded-full px-2 py-0.5 shrink-0">
+                          {node.node_type.replace(/_/g, " ")}
+                        </span>
+                        <span className="text-sm text-zinc-200 flex-1 min-w-0 truncate">
+                          {node.label}
+                        </span>
+                        {node.severity !== null && (
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded-full border ${severityClasses(node.severity)}`}
+                          >
+                            {severityLabel(node.severity)}
+                          </span>
+                        )}
+                      </button>
+                      {selectedNodeId === node.node_id && (
+                        <div className="mt-1 ml-2 pl-3 border-l border-zinc-800 text-xs text-zinc-500 space-y-1 py-1.5">
+                          <p>
+                            Source references:{" "}
+                            {node.source_references.length > 0
+                              ? node.source_references.join(", ")
+                              : "none"}
+                          </p>
+                          {Object.entries(node.metadata).length > 0 && (
+                            <p>
+                              {Object.entries(node.metadata)
+                                .map(([key, value]) => `${key}: ${String(value)}`)
+                                .join(" · ")}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {graph.edges.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-semibold text-zinc-400 mb-2">
+                    Relationships ({graph.edge_count})
+                  </h3>
+                  <ul className="space-y-1.5">
+                    {graph.edges.map((edge) => (
+                      <li
+                        key={edge.edge_id}
+                        className="rounded-lg border border-zinc-800 bg-zinc-950/50 p-2.5"
+                      >
+                        <div className="flex flex-wrap items-center gap-2 text-sm text-zinc-200">
+                          <span className="truncate">
+                            {nodesById.get(edge.source_node_id)?.label ?? edge.source_node_id}
+                          </span>
+                          <span className="text-[10px] text-zinc-400 bg-zinc-800 rounded-full px-2 py-0.5 shrink-0">
+                            {edge.relationship_type.replace(/_/g, " ")}
+                          </span>
+                          <span className="truncate">
+                            {nodesById.get(edge.target_node_id)?.label ?? edge.target_node_id}
+                          </span>
+                        </div>
+                        {edge.explanation && (
+                          <p className="text-xs text-zinc-500 mt-1">{edge.explanation}</p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}

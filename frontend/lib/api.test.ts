@@ -10,6 +10,7 @@ import {
   exposureFrameworkStatus,
   generateDetections,
   getInvestigation,
+  getInvestigationGraph,
   getInvestigationTimeline,
   health,
   identityFrameworkStatus,
@@ -653,6 +654,72 @@ describe("getInvestigationTimeline", () => {
     const controller = new AbortController();
 
     await getInvestigationTimeline(WORKSPACE_RECORD.id, controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("getInvestigationGraph", () => {
+  const GRAPH_PAYLOAD = {
+    investigation_id: WORKSPACE_RECORD.id,
+    entity_type: "ipv4",
+    entity_value: "1.1.1.1",
+    generated_at: "2026-07-14T00:00:00Z",
+    nodes: [
+      {
+        node_id: "node_abc123",
+        node_type: "ipv4",
+        label: "1.1.1.1",
+        value: "1.1.1.1",
+        severity: 3,
+        source_references: ["fnd_1"],
+        metadata: {},
+      },
+    ],
+    edges: [],
+    node_count: 1,
+    edge_count: 0,
+    graph_version: "1.0",
+  };
+
+  it("GETs the workspace/{id}/graph endpoint and returns the parsed graph", async () => {
+    const fetchMock = stubFetch(200, GRAPH_PAYLOAD);
+
+    const result = await getInvestigationGraph(WORKSPACE_RECORD.id);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(new RegExp(`/workspace/${WORKSPACE_RECORD.id}/graph$`));
+    expect(init.method).toBe("GET");
+    expect(result).toEqual(GRAPH_PAYLOAD);
+  });
+
+  it("URL-encodes the id", async () => {
+    const fetchMock = stubFetch(200, GRAPH_PAYLOAD);
+
+    await getInvestigationGraph("weird id/with slash");
+
+    const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toContain(encodeURIComponent("weird id/with slash"));
+  });
+
+  it("throws ApiError on a 404", async () => {
+    stubFetch(404, { detail: "not found" });
+    await expect(getInvestigationGraph("missing")).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("returns an empty graph for an investigation with no supported evidence", async () => {
+    stubFetch(200, { ...GRAPH_PAYLOAD, nodes: [], edges: [], node_count: 0, edge_count: 0 });
+    const result = await getInvestigationGraph(WORKSPACE_RECORD.id);
+    expect(result.nodes).toEqual([]);
+    expect(result.edges).toEqual([]);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(200, GRAPH_PAYLOAD);
+    const controller = new AbortController();
+
+    await getInvestigationGraph(WORKSPACE_RECORD.id, controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(init.signal).toBe(controller.signal);

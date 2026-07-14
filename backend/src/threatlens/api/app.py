@@ -28,6 +28,7 @@ from .routes import (
 from .routes.ai import get_ai_service as get_ai_service
 from .routes.detection_knowledge import get_knowledge_service as get_knowledge_service
 from .routes.investigation import get_investigation_service as get_investigation_service
+from .routes.workspace import get_graph_service as get_graph_service
 from .routes.workspace import get_timeline_service as get_timeline_service
 from .routes.workspace import get_workspace_service as get_workspace_service
 
@@ -95,9 +96,10 @@ app.include_router(
 app.include_router(investigation.router)
 
 # Investigation Workspace: a persistence layer over completed investigations
-# (save/load/update/delete/list), plus a read-only, derived investigation
-# timeline (Phase 8.1). Consumes existing outputs; never generates them and
-# never touches the analytical pipeline above.
+# (save/load/update/delete/list), plus two read-only, derived sibling views —
+# an investigation timeline (Phase 8.1) and an evidence relationship graph
+# (Phase 8.2). Consumes existing outputs; never generates them and never
+# touches the analytical pipeline above.
 app.include_router(workspace.router)
 
 # Downstream, optional AI explanation of a completed investigation.
