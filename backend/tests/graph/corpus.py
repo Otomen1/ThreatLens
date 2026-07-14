@@ -237,4 +237,37 @@ CORPUS: tuple[Scenario, ...] = (
             ]
         ),
     ),
+    Scenario(
+        "finding_relationship_and_correlation_hub_share_a_subject",
+        # f1 and f2 share one subject; f1 also carries an explicit
+        # finding-level relationship to a malware family. A correlation
+        # observation cites both findings (contributing hub edges) and
+        # asserts a same-subject CorrelationRelationship between them (still
+        # omitted as a self-loop) — exercising both collection passes, and
+        # their interaction on one shared entity, in a single investigation.
+        summary(
+            [
+                finding("f1", relationships=[relationship()]),
+                finding("f2", categories=[FindingCategory.EXPOSURE], severity=Severity.MEDIUM),
+            ]
+        ),
+        correlation_summary(
+            [
+                observation(
+                    "cor_combined",
+                    evidence_items=[
+                        correlation_evidence("f1"),
+                        correlation_evidence("f2", matched_category=FindingCategory.EXPOSURE),
+                    ],
+                    relationships=[
+                        correlation_relationship(
+                            source_finding_id="f1",
+                            target_finding_id="f2",
+                            rel_type=CorrelationRelationshipType.EXPOSES,
+                        )
+                    ],
+                )
+            ]
+        ),
+    ),
 )

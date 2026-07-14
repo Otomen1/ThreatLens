@@ -316,6 +316,106 @@ class TestCollectGraphFromObservations:
 
 
 # --------------------------------------------------------------------------- #
+# Combined evidence — both collection passes interacting on one shared subject
+# --------------------------------------------------------------------------- #
+
+
+class TestCombinedFindingAndCorrelationEvidence:
+    """A finding-level ``Relationship`` and a correlation-observation hub,
+    sharing one subject, in the same investigation.
+
+    f1 and f2 share one subject; f1 also carries an explicit finding-level
+    relationship to a malware family. A correlation observation cites both
+    findings (contributing hub edges) and asserts a same-subject
+    ``CorrelationRelationship`` between them (which must still be omitted as
+    a self-loop). This exercises both ``_collect_from_findings`` and
+    ``_collect_from_observations`` writing into the *same* node/edge draft
+    dicts for one shared entity — the specific interaction the Phase 8.2
+    merge readiness review found untested at the golden-corpus level.
+    """
+
+    def _build(self) -> tuple[object, object]:
+        f1 = finding("f1", relationships=[relationship()])
+        f2 = finding("f2", categories=[FindingCategory.EXPOSURE], severity=Severity.MEDIUM)
+        s = summary([f1, f2])
+        corr = correlation_summary(
+            [
+                observation(
+                    "cor_combined",
+                    evidence_items=[
+                        correlation_evidence("f1"),
+                        correlation_evidence("f2", matched_category=FindingCategory.EXPOSURE),
+                    ],
+                    relationships=[
+                        correlation_relationship(
+                            source_finding_id="f1",
+                            target_finding_id="f2",
+                            rel_type=CorrelationRelationshipType.EXPOSES,
+                        )
+                    ],
+                )
+            ]
+        )
+        return s, corr
+
+    def test_produces_exactly_three_nodes(self) -> None:
+        s, corr = self._build()
+        nodes, _ = collect_graph(s, corr)
+        assert len(nodes) == 3  # shared subject, relationship target, observation
+
+    def test_produces_exactly_two_edges(self) -> None:
+        s, corr = self._build()
+        _, edges = collect_graph(s, corr)
+        assert len(edges) == 2  # finding-level relationship + hub edge
+
+    def test_shared_subject_is_one_deduplicated_node(self) -> None:
+        s, corr = self._build()
+        nodes, _ = collect_graph(s, corr)
+        subject_nodes = [n for n in nodes if n.node_type == "ipv4"]
+        assert len(subject_nodes) == 1
+
+    def test_shared_subject_severity_is_the_worst_across_both_findings(self) -> None:
+        s, corr = self._build()
+        nodes, _ = collect_graph(s, corr)
+        subject = next(n for n in nodes if n.node_type == "ipv4")
+        assert subject.severity == Severity.HIGH  # max(HIGH from f1, MEDIUM from f2)
+
+    def test_shared_subject_references_both_findings_via_both_passes(self) -> None:
+        s, corr = self._build()
+        nodes, _ = collect_graph(s, corr)
+        subject = next(n for n in nodes if n.node_type == "ipv4")
+        assert set(subject.source_references) == {"f1", "f2"}
+
+    def test_finding_level_relationship_edge_connects_subject_to_target(self) -> None:
+        s, corr = self._build()
+        nodes, edges = collect_graph(s, corr)
+        by_type = {n.node_type: n for n in nodes}
+        rel_edge = next(
+            e for e in edges if e.relationship_type == RelationshipType.ASSOCIATED_WITH.value
+        )
+        assert rel_edge.source_node_id == by_type["ipv4"].node_id
+        assert rel_edge.target_node_id == by_type["malware_family"].node_id
+
+    def test_hub_edge_accumulates_evidence_from_both_citations(self) -> None:
+        s, corr = self._build()
+        _, edges = collect_graph(s, corr)
+        hub_edge = next(e for e in edges if e.relationship_type == CORRELATED_WITH)
+        assert set(hub_edge.evidence_references) == {"f1", "f2"}
+
+    def test_same_subject_correlation_relationship_is_still_not_a_self_loop(self) -> None:
+        s, corr = self._build()
+        _, edges = collect_graph(s, corr)
+        assert all(e.source_node_id != e.target_node_id for e in edges)
+        assert not any(
+            e.relationship_type == CorrelationRelationshipType.EXPOSES.value for e in edges
+        )
+
+    def test_output_is_deterministic_across_repeated_calls(self) -> None:
+        s, corr = self._build()
+        assert collect_graph(s, corr) == collect_graph(s, corr)
+
+
+# --------------------------------------------------------------------------- #
 # compute_node_id / compute_edge_id — content-addressed identity
 # --------------------------------------------------------------------------- #
 

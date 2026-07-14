@@ -113,6 +113,78 @@
     "node_count": 0,
     "nodes": []
   },
+  "finding_relationship_and_correlation_hub_share_a_subject": {
+    "edge_count": 2,
+    "edges": [
+      {
+        "edge_id": "edge_0d3a7dbbd9358756",
+        "evidence_references": [
+          "f1"
+        ],
+        "explanation": "test relationship",
+        "relationship_type": "associated_with",
+        "source_node_id": "node_fb99665d66683f87",
+        "source_references": [
+          "f1"
+        ],
+        "target_node_id": "node_5544aaf0158a8ef9"
+      },
+      {
+        "edge_id": "edge_96c128bb71f792a9",
+        "evidence_references": [
+          "f1",
+          "f2"
+        ],
+        "explanation": "Test observation",
+        "relationship_type": "correlated_with",
+        "source_node_id": "node_8ac9a93a18997ec6",
+        "source_references": [
+          "cor_combined"
+        ],
+        "target_node_id": "node_fb99665d66683f87"
+      }
+    ],
+    "node_count": 3,
+    "nodes": [
+      {
+        "label": "Test observation",
+        "metadata": {
+          "category": "malicious_exposed_infrastructure",
+          "rule_id": "test_rule"
+        },
+        "node_id": "node_8ac9a93a18997ec6",
+        "node_type": "correlation_observation",
+        "severity": null,
+        "source_references": [
+          "cor_combined"
+        ],
+        "value": "cor_combined"
+      },
+      {
+        "label": "8.8.8.8",
+        "metadata": {},
+        "node_id": "node_fb99665d66683f87",
+        "node_type": "ipv4",
+        "severity": 3,
+        "source_references": [
+          "f1",
+          "f2"
+        ],
+        "value": "8.8.8.8"
+      },
+      {
+        "label": "Emotet",
+        "metadata": {},
+        "node_id": "node_5544aaf0158a8ef9",
+        "node_type": "malware_family",
+        "severity": null,
+        "source_references": [
+          "f1"
+        ],
+        "value": "Emotet"
+      }
+    ]
+  },
   "finding_with_no_relationships": {
     "edge_count": 0,
     "edges": [],
