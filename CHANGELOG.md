@@ -6,6 +6,42 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Added — Phase 8.3: Interactive Evidence Graph Visualization
+
+- **Frontend-only upgrade of Phase 8.2's plain node/edge lists into an
+  interactive graph** — no backend change, no new API field, no change to
+  `backend/src/threatlens/graph/` or the `GET /api/v1/workspace/{id}/graph`
+  route. Consumes the exact same `EvidenceGraph` response as before.
+- **New dependency: `@xyflow/react` (React Flow) v12.11.2** — the only new
+  package this phase adds, selected for being React-first/TypeScript-native,
+  actively maintained, and providing pan/zoom/fit-view/click-selection out of
+  the box. No second graph model and no frontend reasoning layer were
+  introduced.
+- **`frontend/components/workspace/graph/`**: `graphAdapter.ts` (a pure
+  presentation adapter — verbatim id/type/value/reference pass-through plus a
+  deterministic, non-physics column-by-`node_type` layout and
+  presentation-only search/filter predicates), `GraphCanvasNode.tsx` (custom
+  node renderer), `GraphInspector.tsx` (full node/edge detail panel),
+  `GraphToolbar.tsx` (search + filter chips), `EvidenceGraphView.tsx`
+  (container wiring it all into a React Flow canvas).
+- **Search and filtering are presentation-only**: they change which
+  already-existing nodes/edges are visible; they never mutate, reorder, or
+  invent graph data. An edge is only shown when both its endpoints are
+  visible.
+- **Workspace integration**: the existing `GraphSection` on
+  `/workspace/{id}` is unchanged except for its populated-graph render
+  branch, which now renders `<EvidenceGraphView>` instead of plain `<ul>`
+  lists; loading/failed/empty states are untouched.
+- **Testing**: 25 new frontend tests (`graphAdapter.test.ts`) covering
+  verbatim node/edge preservation, no-invention guarantees, deterministic
+  order-independent layout, and search/filter predicates. Verified with real,
+  scripted Playwright sessions across a populated graph, a single-node graph,
+  an empty graph, and a narrow viewport, plus a synthetic 80-node/40-edge
+  graph for performance (rendered and interactive in ~1 second). Frontend
+  suite: **157 passed** (was 132); production build clean. No backend code
+  changed, so the backend suite was not re-run.
+- **Docs:** `docs/architecture/PHASE-8.3-INTERACTIVE-EVIDENCE-GRAPH.md`.
+
 ### Added — Phase 8.2: Evidence Relationship Graph Framework
 
 - **New `backend/src/threatlens/graph/` package** — a pure, deterministic,

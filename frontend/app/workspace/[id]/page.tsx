@@ -19,6 +19,7 @@ import { FindingsSection } from "@/components/investigation/FindingsSection";
 import { InvestigationSummaryCard } from "@/components/investigation/InvestigationSummaryCard";
 import { RecommendationRollup } from "@/components/investigation/RecommendationRollup";
 import { Chevron } from "@/components/investigation/shared/DetectionDisclosure";
+import { EvidenceGraphView } from "@/components/workspace/graph/EvidenceGraphView";
 
 type State =
   | { kind: "loading" }
@@ -309,7 +310,6 @@ function GraphSection({ investigationId }: { investigationId: string }) {
   const [loading, setLoading] = useState(false);
   const [graph, setGraph] = useState<EvidenceGraph | null>(null);
   const [failed, setFailed] = useState(false);
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => () => abortRef.current?.abort(), []);
@@ -332,8 +332,6 @@ function GraphSection({ investigationId }: { investigationId: string }) {
       setLoading(false);
     }
   }
-
-  const nodesById = new Map((graph?.nodes ?? []).map((node) => [node.node_id, node]));
 
   return (
     <section
@@ -376,87 +374,8 @@ function GraphSection({ investigationId }: { investigationId: string }) {
             </p>
           )}
           {!loading && !failed && graph && graph.node_count > 0 && (
-            <div className="space-y-4 pt-3">
-              <div>
-                <h3 className="text-xs font-semibold text-zinc-400 mb-2">
-                  Nodes ({graph.node_count})
-                </h3>
-                <ul className="space-y-1.5">
-                  {graph.nodes.map((node) => (
-                    <li key={node.node_id}>
-                      <button
-                        onClick={() =>
-                          setSelectedNodeId(selectedNodeId === node.node_id ? null : node.node_id)
-                        }
-                        aria-expanded={selectedNodeId === node.node_id}
-                        className="w-full flex flex-wrap items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950/50 p-2.5 text-left hover:border-zinc-700 transition-colors"
-                      >
-                        <span className="text-[10px] text-zinc-400 bg-zinc-800 rounded-full px-2 py-0.5 shrink-0">
-                          {node.node_type.replace(/_/g, " ")}
-                        </span>
-                        <span className="text-sm text-zinc-200 flex-1 min-w-0 truncate">
-                          {node.label}
-                        </span>
-                        {node.severity !== null && (
-                          <span
-                            className={`text-[10px] px-2 py-0.5 rounded-full border ${severityClasses(node.severity)}`}
-                          >
-                            {severityLabel(node.severity)}
-                          </span>
-                        )}
-                      </button>
-                      {selectedNodeId === node.node_id && (
-                        <div className="mt-1 ml-2 pl-3 border-l border-zinc-800 text-xs text-zinc-500 space-y-1 py-1.5">
-                          <p>
-                            Source references:{" "}
-                            {node.source_references.length > 0
-                              ? node.source_references.join(", ")
-                              : "none"}
-                          </p>
-                          {Object.entries(node.metadata).length > 0 && (
-                            <p>
-                              {Object.entries(node.metadata)
-                                .map(([key, value]) => `${key}: ${String(value)}`)
-                                .join(" · ")}
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {graph.edges.length > 0 && (
-                <div>
-                  <h3 className="text-xs font-semibold text-zinc-400 mb-2">
-                    Relationships ({graph.edge_count})
-                  </h3>
-                  <ul className="space-y-1.5">
-                    {graph.edges.map((edge) => (
-                      <li
-                        key={edge.edge_id}
-                        className="rounded-lg border border-zinc-800 bg-zinc-950/50 p-2.5"
-                      >
-                        <div className="flex flex-wrap items-center gap-2 text-sm text-zinc-200">
-                          <span className="truncate">
-                            {nodesById.get(edge.source_node_id)?.label ?? edge.source_node_id}
-                          </span>
-                          <span className="text-[10px] text-zinc-400 bg-zinc-800 rounded-full px-2 py-0.5 shrink-0">
-                            {edge.relationship_type.replace(/_/g, " ")}
-                          </span>
-                          <span className="truncate">
-                            {nodesById.get(edge.target_node_id)?.label ?? edge.target_node_id}
-                          </span>
-                        </div>
-                        {edge.explanation && (
-                          <p className="text-xs text-zinc-500 mt-1">{edge.explanation}</p>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+            <div className="pt-3">
+              <EvidenceGraphView graph={graph} />
             </div>
           )}
         </div>
