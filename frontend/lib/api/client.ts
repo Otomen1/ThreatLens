@@ -60,3 +60,43 @@ export async function get<T>(path: string, signal?: AbortSignal): Promise<T> {
   if (!res.ok) throw new ApiError(`Request failed (${res.status}).`, res.status);
   return (await res.json()) as T;
 }
+
+/** PUT `body` to an API path and return the parsed JSON (used by the Workspace's update). */
+export async function put<T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal,
+    });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") throw err;
+    throw new ApiError("Could not reach the service.");
+  }
+
+  if (!res.ok) {
+    let message = `Request failed (${res.status}).`;
+    if (res.status === 404) message = "Not found.";
+    if (res.status === 422) message = "That request could not be processed.";
+    throw new ApiError(message, res.status);
+  }
+
+  return (await res.json()) as T;
+}
+
+/** DELETE an API path. Resolves with no value on success (the API returns 204). */
+export async function del(path: string, signal?: AbortSignal): Promise<void> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, { method: "DELETE", signal });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") throw err;
+    throw new ApiError("Could not reach the service.");
+  }
+  if (!res.ok) {
+    const message = res.status === 404 ? "Not found." : `Request failed (${res.status}).`;
+    throw new ApiError(message, res.status);
+  }
+}

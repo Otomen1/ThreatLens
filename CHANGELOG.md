@@ -6,6 +6,79 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Added — Phase 8.0: Investigation Workspace Framework
+
+- **New `backend/src/threatlens/workspace/` package** — a workflow and
+  persistence layer over the completed analytical pipeline, **not a new
+  intelligence engine**. Save, load, update, delete, list, filter, and
+  search completed investigations. No AI, no reasoning, no correlation, no
+  authentication (single-user, self-hosted), no database in this phase.
+- **`WorkspaceInvestigation`** (`models.py`): the saved record. Its metadata
+  envelope (`id`, `title`, `status`, `tags`, `summary`, `severity`,
+  `investigation_type`, timestamps) is new; `investigation_summary`,
+  `detection_package`, and `correlation_summary` are the **existing**
+  Reasoning/Detection/Correlation engines' own output models, imported and
+  persisted verbatim — none is redeclared. Unlike every other model in the
+  codebase it is **not frozen**: it is the one model designed to be mutated
+  over its lifetime, always via a fresh `model_copy`, never in place. `id`
+  is a random `uuid4()` (matching `search_id`/`investigation_id`), not
+  content-addressed like `CorrelationObservation`/`DetectionPackage` — two
+  saves of identical content are two distinct records, not a collision.
+- **Storage abstraction** (`storage.py`): `WorkspaceStorage` (ABC) +
+  `LocalFileStorage` — one JSON file per investigation, atomic writes
+  (temp file + rename), corrupt-file-resilient listing. The interface is
+  the seam for a future database-backed implementation; none is built here.
+- **`WorkspaceService`** (`service.py`): save/get/update/delete/list, with
+  update using PATCH-style merge semantics (`exclude_unset`) and list
+  supporting `status`/`severity`/`investigation_type`/`tag`/free-text
+  `query` filters, AND-combined, sorted most-recently-updated first.
+- **REST API** (`api/routes/workspace.py`, mounted at `/api/v1/workspace`):
+  `POST` (save, `201`), `GET` (list, metadata-only projection), `GET /{id}`
+  (full record, `404` if missing), `PUT /{id}` (partial update, `404` if
+  missing), `DELETE /{id}` (`204`, `404` if missing).
+- **One CORS fix required by the new endpoints:** `api/app.py`'s
+  `CORSMiddleware` allowed only `GET, POST` — every prior route was one or
+  the other, so the gap was never exercised. The new `PUT`/`DELETE`
+  endpoints failed their cross-origin preflight in the documented
+  separately-hosted-frontend configuration (found via manual browser
+  verification, not by the same-origin API tests, which can't see a
+  preflight at all). Fixed by adding `PUT, DELETE` to `allow_methods` —
+  additive, verified to leave every existing route's CORS behavior
+  unchanged.
+- **Frontend:** `frontend/lib/api/workspace.ts` (typed client, reusing
+  `InvestigationSummary`/`EntityType`/`DetectionPackage` rather than
+  redeclaring them); `client.ts` gained `put()`/`del()` (previously only
+  `post()`/`get()` existed, since no endpoint had needed them). A new
+  `/workspace` list page (search + status/severity filters + delete) and
+  `/workspace/{id}` detail page (status editing; reuses the existing, pure
+  `InvestigationSummaryCard`/`RecommendationRollup`/`FindingsSection`
+  components verbatim). A new `SaveInvestigationButton`, added to the
+  existing `components/InvestigationWorkspace.tsx` display component, is
+  the only change to that file (one import, one JSX block).
+- **A disclosed naming collision:** "Investigation Workspace" already names
+  the existing per-search analyst display UI
+  (`components/InvestigationWorkspace.tsx`, versioned "v2" as of v1.1.1).
+  This phase's new persistence layer keeps the brief's name for the
+  *feature* but lives entirely under its own `workspace` namespace in code
+  on both sides (backend package, frontend routes/components) to avoid any
+  code-level collision; see the architecture doc for the full
+  disambiguation.
+- **Testing:** 95 new backend tests (`backend/tests/workspace/`) — models,
+  storage, service, API contract, and a dedicated `test_no_regression.py`
+  proving every pre-Phase-8.0 route, engine version constant, and (via a
+  real cross-origin `OPTIONS` preflight, not a same-origin call) CORS
+  behavior is unchanged. 18 new frontend tests
+  (`frontend/lib/api.test.ts`, the established single file covering the
+  whole `lib/api/` barrel — this codebase has no component-rendering tests
+  anywhere, so the new UI was instead verified with a real, scripted
+  Playwright browser session against a live backend: search → save → list
+  → filter → detail → status update → delete, which is also how the CORS
+  bug above was found). Backend suite: **2,496 passed, 1 skipped** (was
+  2,493). Ruff/mypy (strict) clean across 178 source files (was 175).
+  Frontend: 122 Vitest tests passed (was 104); production build clean with
+  both new routes registered.
+- **Docs:** `docs/architecture/PHASE-8.0-INVESTIGATION-WORKSPACE.md`.
+
 ### Added — Phase 7.1: Correlation Rule Library Expansion
 
 - **Rule library expanded from 12 to 70 rules**

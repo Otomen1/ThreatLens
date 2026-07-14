@@ -17,3 +17,4 @@ export * from "./exposure";
 export * from "./identity";
 export * from "./correlation";
 export * from "./system";
+export * from "./workspace";

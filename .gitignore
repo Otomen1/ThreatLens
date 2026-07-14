@@ -218,3 +218,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ThreatLens Investigation Workspace — local file-backed storage (Phase 8.0).
+# Runtime data, not source; THREATLENS_WORKSPACE_DIR overrides the location.
+backend/data/

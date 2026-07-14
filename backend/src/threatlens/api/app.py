@@ -23,10 +23,12 @@ from .routes import (
     exposure,
     identity,
     investigation,
+    workspace,
 )
 from .routes.ai import get_ai_service as get_ai_service
 from .routes.detection_knowledge import get_knowledge_service as get_knowledge_service
 from .routes.investigation import get_investigation_service as get_investigation_service
+from .routes.workspace import get_workspace_service as get_workspace_service
 
 # Local-development convenience: load backend/.env (if present) before anything
 # reads the environment, so secrets like MALWAREBAZAAR_AUTH_KEY are available.
@@ -62,7 +64,9 @@ _origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_origins,
-    allow_methods=["GET", "POST"],
+    # PUT/DELETE are needed by the Investigation Workspace (Phase 8.0) update
+    # and delete endpoints; every other route remains GET/POST only.
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
 
@@ -88,6 +92,11 @@ app.include_router(
 
 # Core entity detection + investigation (TI + reference providers, reasoning).
 app.include_router(investigation.router)
+
+# Investigation Workspace: a persistence layer over completed investigations
+# (save/load/update/delete/list). Consumes existing outputs; never generates
+# them and never touches the analytical pipeline above.
+app.include_router(workspace.router)
 
 # Downstream, optional AI explanation of a completed investigation.
 app.include_router(ai.router)
