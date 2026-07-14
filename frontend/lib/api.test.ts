@@ -10,6 +10,7 @@ import {
   exposureFrameworkStatus,
   generateDetections,
   getInvestigation,
+  getInvestigationTimeline,
   health,
   identityFrameworkStatus,
   listInvestigations,
@@ -589,6 +590,69 @@ describe("deleteInvestigation", () => {
     const controller = new AbortController();
 
     await deleteInvestigation(WORKSPACE_RECORD.id, controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("getInvestigationTimeline", () => {
+  const TIMELINE_PAYLOAD = {
+    investigation_id: WORKSPACE_RECORD.id,
+    entity_type: "ipv4",
+    entity_value: "1.1.1.1",
+    generated_at: "2026-07-14T00:00:00Z",
+    events: [
+      {
+        event_id: "evt_abc123",
+        timestamp: "2026-07-01T00:00:00Z",
+        event_type: "classification",
+        title: "Reported malicious by 3 blocklists",
+        description: "95",
+        source_type: "investigation_evidence",
+        source_id: "fnd_1",
+        severity: 3,
+        evidence_references: ["fnd_1"],
+      },
+    ],
+  };
+
+  it("GETs the workspace/{id}/timeline endpoint and returns the parsed timeline", async () => {
+    const fetchMock = stubFetch(200, TIMELINE_PAYLOAD);
+
+    const result = await getInvestigationTimeline(WORKSPACE_RECORD.id);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(new RegExp(`/workspace/${WORKSPACE_RECORD.id}/timeline$`));
+    expect(init.method).toBe("GET");
+    expect(result).toEqual(TIMELINE_PAYLOAD);
+  });
+
+  it("URL-encodes the id", async () => {
+    const fetchMock = stubFetch(200, TIMELINE_PAYLOAD);
+
+    await getInvestigationTimeline("weird id/with slash");
+
+    const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toContain(encodeURIComponent("weird id/with slash"));
+  });
+
+  it("throws ApiError on a 404", async () => {
+    stubFetch(404, { detail: "not found" });
+    await expect(getInvestigationTimeline("missing")).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("returns an empty events array for an investigation with no timestamped evidence", async () => {
+    stubFetch(200, { ...TIMELINE_PAYLOAD, events: [] });
+    const result = await getInvestigationTimeline(WORKSPACE_RECORD.id);
+    expect(result.events).toEqual([]);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(200, TIMELINE_PAYLOAD);
+    const controller = new AbortController();
+
+    await getInvestigationTimeline(WORKSPACE_RECORD.id, controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(init.signal).toBe(controller.signal);

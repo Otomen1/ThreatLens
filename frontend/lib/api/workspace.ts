@@ -131,3 +131,44 @@ export function updateInvestigation(
 export function deleteInvestigation(id: string, signal?: AbortSignal): Promise<void> {
   return del(`/workspace/${encodeURIComponent(id)}`, signal);
 }
+
+// --- Investigation Timeline (Phase 8.1) ---
+//
+// A read-only, derived view over a saved investigation's existing evidence —
+// never a new intelligence engine. An event exists only when the evidence it
+// came from already carried an explicit timestamp; the UI renders exactly
+// what the backend returns and never re-sorts, re-derives, or estimates a
+// missing time itself.
+
+/**
+ * `event_type`/`source_type` are left as plain `string` rather than exact
+ * unions — mirrors `Evidence.type` in `./investigation`, which does the same
+ * for the same reason: nothing in the UI branches on a specific value.
+ */
+export interface TimelineEvent {
+  event_id: string;
+  timestamp: string;
+  event_type: string;
+  title: string;
+  description: string;
+  source_type: string;
+  source_id: string;
+  severity: number | null;
+  evidence_references: string[];
+}
+
+export interface Timeline {
+  investigation_id: string;
+  entity_type: EntityType;
+  entity_value: string;
+  generated_at: string;
+  events: TimelineEvent[];
+}
+
+/** Derive the read-only timeline for one saved investigation. */
+export function getInvestigationTimeline(
+  id: string,
+  signal?: AbortSignal,
+): Promise<Timeline> {
+  return get<Timeline>(`/workspace/${encodeURIComponent(id)}/timeline`, signal);
+}

@@ -1,0 +1,179 @@
+{
+  "duplicate_evidence_across_findings": {
+    "event_count": 1,
+    "events": [
+      {
+        "description": "X",
+        "event_id": "evt_4466e8075cafb75d",
+        "event_type": "classification",
+        "evidence_references": [
+          "f1",
+          "f2"
+        ],
+        "severity": 4,
+        "source_id": "f1",
+        "source_type": "investigation_evidence",
+        "timestamp": "2024-01-01T12:00:00+00:00",
+        "title": "Shared"
+      }
+    ]
+  },
+  "empty_investigation": {
+    "event_count": 0,
+    "events": []
+  },
+  "equal_timestamps_tie_break": {
+    "event_count": 2,
+    "events": [
+      {
+        "description": "2",
+        "event_id": "evt_639703a0949bd4ed",
+        "event_type": "blocklist",
+        "evidence_references": [
+          "f1"
+        ],
+        "severity": 3,
+        "source_id": "f1",
+        "source_type": "investigation_evidence",
+        "timestamp": "2024-01-01T12:00:00+00:00",
+        "title": "A"
+      },
+      {
+        "description": "1",
+        "event_id": "evt_3e21b73276d3785b",
+        "event_type": "tag",
+        "evidence_references": [
+          "f1"
+        ],
+        "severity": 3,
+        "source_id": "f1",
+        "source_type": "investigation_evidence",
+        "timestamp": "2024-01-01T12:00:00+00:00",
+        "title": "Z"
+      }
+    ]
+  },
+  "finding_with_no_evidence": {
+    "event_count": 0,
+    "events": []
+  },
+  "missing_timestamp_omitted": {
+    "event_count": 0,
+    "events": []
+  },
+  "mixed_valid_and_invalid": {
+    "event_count": 1,
+    "events": [
+      {
+        "description": "",
+        "event_id": "evt_700293378b9bf286",
+        "event_type": "classification",
+        "evidence_references": [
+          "f1"
+        ],
+        "severity": 3,
+        "source_id": "f1",
+        "source_type": "investigation_evidence",
+        "timestamp": "2024-01-01T12:00:00+00:00",
+        "title": "Valid"
+      }
+    ]
+  },
+  "multiple_findings_distinct_evidence": {
+    "event_count": 3,
+    "events": [
+      {
+        "description": "",
+        "event_id": "evt_3b7905468dd88d56",
+        "event_type": "classification",
+        "evidence_references": [
+          "f1"
+        ],
+        "severity": 3,
+        "source_id": "f1",
+        "source_type": "investigation_evidence",
+        "timestamp": "2024-01-01T12:00:00+00:00",
+        "title": "A"
+      },
+      {
+        "description": "",
+        "event_id": "evt_f41051d8e6350068",
+        "event_type": "classification",
+        "evidence_references": [
+          "f2"
+        ],
+        "severity": 3,
+        "source_id": "f2",
+        "source_type": "investigation_evidence",
+        "timestamp": "2024-01-02T12:00:00+00:00",
+        "title": "B"
+      },
+      {
+        "description": "",
+        "event_id": "evt_7484a35d2bd48193",
+        "event_type": "classification",
+        "evidence_references": [
+          "f3"
+        ],
+        "severity": 3,
+        "source_id": "f3",
+        "source_type": "investigation_evidence",
+        "timestamp": "2024-01-03T12:00:00+00:00",
+        "title": "C"
+      }
+    ]
+  },
+  "naive_timestamp_omitted": {
+    "event_count": 0,
+    "events": []
+  },
+  "one_finding_multiple_evidence_items": {
+    "event_count": 2,
+    "events": [
+      {
+        "description": "",
+        "event_id": "evt_700196aa6fb76093",
+        "event_type": "classification",
+        "evidence_references": [
+          "f1"
+        ],
+        "severity": 3,
+        "source_id": "f1",
+        "source_type": "investigation_evidence",
+        "timestamp": "2024-01-01T12:00:00+00:00",
+        "title": "B"
+      },
+      {
+        "description": "",
+        "event_id": "evt_cd22963ad153c598",
+        "event_type": "classification",
+        "evidence_references": [
+          "f1"
+        ],
+        "severity": 3,
+        "source_id": "f1",
+        "source_type": "investigation_evidence",
+        "timestamp": "2024-01-02T12:00:00+00:00",
+        "title": "A"
+      }
+    ]
+  },
+  "single_timestamped_evidence": {
+    "event_count": 1,
+    "events": [
+      {
+        "description": "95",
+        "event_id": "evt_70bfa3a3e6227668",
+        "event_type": "classification",
+        "evidence_references": [
+          "f1"
+        ],
+        "severity": 3,
+        "source_id": "f1",
+        "source_type": "investigation_evidence",
+        "timestamp": "2024-01-01T12:00:00+00:00",
+        "title": "Malicious per feed"
+      }
+    ]
+  }
+}

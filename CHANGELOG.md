@@ -6,6 +6,53 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Added — Phase 8.1: Investigation Timeline Framework
+
+- **New `backend/src/threatlens/timeline/` package** — a pure, deterministic,
+  **read-only** consumer of a saved investigation's existing evidence, not a
+  new intelligence engine. Derives chronological `TimelineEvent`s only from
+  evidence that already carries an explicit, timezone-aware timestamp
+  (`Finding.evidence[].evidence.evidence.observed_at`); never invents one,
+  never estimates chronology, never infers causality. Evidence with no valid
+  timestamp is silently omitted, never backfilled with the current time.
+- **Detection and Correlation deliberately contribute no events**: neither
+  `DetectionPackage`/`DetectionArtifact` nor
+  `CorrelationSummary`/`CorrelationObservation` carries a per-item event
+  timestamp — only a package/summary-level `generated_at` inherited from the
+  investigation, describing when that output was *computed*, never when a
+  security event was *observed*. Treating it as one would be exactly the
+  invented chronology this framework refuses to produce.
+- **Content-addressed `event_id`** (`sha256`, mirrors
+  `correlation.engine.compute_observation_id`'s exact shape): hashes only
+  stable evidence content, never a timestamp, random UUID, or list position.
+  The same underlying evidence always produces the same id — which is also
+  the mechanism that collapses duplicate evidence (the same observation
+  cited by more than one finding) into **one canonical event**, retaining
+  full provenance (`evidence_references`: every citing finding id;
+  `severity`: the worst across all of them).
+- **Deterministic ordering**: `(timestamp, event_type, event_id)` — proven
+  independent of input order and stable across repeated runs.
+- **API**: `GET /api/v1/workspace/{id}/timeline`, added to the existing
+  workspace router as a sub-resource. Every existing workspace endpoint
+  (`POST`/`GET`/`GET {id}`/`PUT {id}`/`DELETE {id}`) is unchanged.
+- **Frontend**: `getInvestigationTimeline()` in `lib/api/workspace.ts`; a
+  new, collapsed-by-default "Timeline" section on the workspace detail page
+  (`/workspace/{id}`), fetched lazily on first expand — mirrors the existing
+  Detection Engineering card's disclosure pattern exactly. Plain
+  chronological list; no graph, no animation library, no interactive
+  timeline widget.
+- **Testing**: 81 new backend tests (`backend/tests/timeline/`) — models,
+  engine (timestamp policy, deduplication, identity, ordering, read-only
+  behavior), service, API contract, a dedicated no-regression suite, and a
+  10-scenario golden corpus (`THREATLENS_UPDATE_GOLDEN=1` to regenerate,
+  matching Correlation's exact convention). 5 new frontend tests
+  (`lib/api.test.ts`); the new UI verified with a real, scripted browser
+  session against a live backend using hand-built evidence including a
+  duplicate citation and a missing timestamp. Backend suite: **2,577
+  passed, 1 skipped** (was 2,496). Ruff/mypy (strict) clean across 182
+  source files (was 178). Frontend: 127 Vitest tests passed (was 122).
+- **Docs:** `docs/architecture/PHASE-8.1-INVESTIGATION-TIMELINE.md`.
+
 ### Added — Phase 8.0: Investigation Workspace Framework
 
 - **New `backend/src/threatlens/workspace/` package** — a workflow and

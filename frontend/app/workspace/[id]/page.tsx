@@ -6,7 +6,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   getInvestigation,
+  getInvestigationTimeline,
   updateInvestigation,
+  type Timeline,
   type WorkspaceInvestigation,
   type WorkspaceStatus,
 } from "@/lib/api";
@@ -14,6 +16,7 @@ import { entityLabel, severityClasses, severityLabel } from "@/lib/investigation
 import { FindingsSection } from "@/components/investigation/FindingsSection";
 import { InvestigationSummaryCard } from "@/components/investigation/InvestigationSummaryCard";
 import { RecommendationRollup } from "@/components/investigation/RecommendationRollup";
+import { Chevron } from "@/components/investigation/shared/DetectionDisclosure";
 
 type State =
   | { kind: "loading" }
@@ -98,6 +101,8 @@ export default function WorkspaceDetailPage() {
               </>
             )}
 
+            <TimelineSection investigationId={state.record.id} />
+
             {state.record.detection_package && (
               <DetectionPackageSummary pkg={state.record.detection_package} />
             )}
@@ -171,6 +176,118 @@ function DetailHeader({
         </span>
       </div>
     </div>
+  );
+}
+
+/**
+ * A collapsed-by-default, read-only timeline of chronological events derived
+ * from the investigation's already-timestamped evidence — fetched lazily on
+ * first expand, mirroring the existing Detection Engineering card's pattern.
+ * Never re-sorts or re-derives what the backend returns.
+ */
+function TimelineSection({ investigationId }: { investigationId: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [timeline, setTimeline] = useState<Timeline | null>(null);
+  const [failed, setFailed] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => () => abortRef.current?.abort(), []);
+
+  async function toggle() {
+    const next = !expanded;
+    setExpanded(next);
+    if (!next || timeline !== null || loading) return;
+
+    setLoading(true);
+    setFailed(false);
+    const controller = new AbortController();
+    abortRef.current = controller;
+    try {
+      setTimeline(await getInvestigationTimeline(investigationId, controller.signal));
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      setFailed(true);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <section
+      className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden"
+      aria-label="Timeline"
+    >
+      <button
+        onClick={toggle}
+        className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-zinc-800/40 transition-colors"
+        aria-expanded={expanded}
+      >
+        <span className="flex-1 min-w-0">
+          <span className="block text-sm font-semibold text-white">Timeline</span>
+          <span className="block text-[11px] text-zinc-500">
+            Chronological events derived from timestamped evidence · read-only
+          </span>
+        </span>
+        {timeline && timeline.events.length > 0 && (
+          <span className="text-[11px] font-mono text-zinc-400 bg-zinc-800 rounded-full px-2 py-0.5">
+            {timeline.events.length}
+          </span>
+        )}
+        <Chevron expanded={expanded} />
+      </button>
+
+      {expanded && (
+        <div className="px-5 pb-5 pt-1 border-t border-zinc-800">
+          {loading && (
+            <p className="text-sm text-zinc-400 animate-pulse pt-3">Deriving timeline…</p>
+          )}
+          {!loading && failed && (
+            <p className="text-sm text-zinc-400 pt-3">
+              The timeline could not be loaded. The investigation above is unaffected.
+            </p>
+          )}
+          {!loading && !failed && timeline && timeline.events.length === 0 && (
+            <p className="text-sm text-zinc-500 pt-3">
+              No timestamped evidence was found for this investigation — no events to derive a
+              timeline from.
+            </p>
+          )}
+          {!loading && !failed && timeline && timeline.events.length > 0 && (
+            <ul className="space-y-2 pt-3">
+              {timeline.events.map((event) => (
+                <li
+                  key={event.event_id}
+                  className="rounded-lg border border-zinc-800 bg-zinc-950/50 p-3"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[11px] text-zinc-500 font-mono shrink-0">
+                      {new Date(event.timestamp).toLocaleString()}
+                    </span>
+                    <span className="text-sm text-zinc-200 flex-1 min-w-0 truncate">
+                      {event.title}
+                    </span>
+                    <span className="text-[10px] text-zinc-400 bg-zinc-800 rounded-full px-2 py-0.5">
+                      {event.event_type.replace(/_/g, " ")}
+                    </span>
+                    {event.severity !== null && (
+                      <span
+                        className={`text-[10px] px-2 py-0.5 rounded-full border ${severityClasses(event.severity)}`}
+                      >
+                        {severityLabel(event.severity)}
+                      </span>
+                    )}
+                  </div>
+                  {event.description && (
+                    <p className="text-xs text-zinc-500 mt-1">{event.description}</p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </section>
   );
 }
 

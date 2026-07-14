@@ -17,6 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from ...entities.types import EntityType
 from ...reasoning import Severity
+from ...timeline import Timeline, TimelineService
 from ...workspace import (
     InvestigationNotFoundError,
     LocalFileStorage,
@@ -36,10 +37,21 @@ router = APIRouter()
 _workspace_settings = WorkspaceSettings.from_env()
 _workspace_service = WorkspaceService(LocalFileStorage(_workspace_settings.storage_dir))
 
+# The Timeline Framework (Phase 8.1) is stateless — a pure function of
+# whatever WorkspaceInvestigation it's given — so one shared instance is
+# just a namespace, not a cache; still built once for consistency with every
+# other *_service singleton in this module.
+_timeline_service = TimelineService()
+
 
 def get_workspace_service() -> WorkspaceService:
     """Provide the Workspace service (overridable in tests)."""
     return _workspace_service
+
+
+def get_timeline_service() -> TimelineService:
+    """Provide the Timeline service (overridable in tests)."""
+    return _timeline_service
 
 
 def _to_list_item(record: WorkspaceInvestigation) -> WorkspaceListItem:
@@ -107,6 +119,26 @@ def get_investigation(
         return service.get(investigation_id)
     except InvestigationNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/api/v1/workspace/{investigation_id}/timeline", response_model=Timeline)
+def get_investigation_timeline(
+    investigation_id: UUID,
+    workspace: Annotated[WorkspaceService, Depends(get_workspace_service)],
+    timeline: Annotated[TimelineService, Depends(get_timeline_service)],
+) -> Timeline:
+    """Derive the read-only timeline for one saved investigation.
+
+    Consumes the saved record's existing ``investigation_summary`` verbatim;
+    never mutates it and never persists timeline data of its own — a
+    repeated call against an unchanged saved record always returns a
+    byte-identical ``Timeline``. ``404`` if the investigation doesn't exist.
+    """
+    try:
+        record = workspace.get(investigation_id)
+    except InvestigationNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return timeline.build(record)
 
 
 @router.put("/api/v1/workspace/{investigation_id}", response_model=WorkspaceInvestigation)
