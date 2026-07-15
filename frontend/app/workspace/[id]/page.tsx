@@ -7,18 +7,21 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   getInvestigation,
   getInvestigationGraph,
+  getInvestigationReport,
   getInvestigationTimeline,
   updateInvestigation,
+  type CorrelationSummary,
   type EvidenceGraph,
   type Timeline,
   type WorkspaceInvestigation,
   type WorkspaceStatus,
 } from "@/lib/api";
+import { sanitizeFilenameSegment, triggerJsonDownload } from "@/lib/download";
 import { entityLabel, severityClasses, severityLabel } from "@/lib/investigation";
 import { FindingsSection } from "@/components/investigation/FindingsSection";
 import { InvestigationSummaryCard } from "@/components/investigation/InvestigationSummaryCard";
 import { RecommendationRollup } from "@/components/investigation/RecommendationRollup";
-import { Chevron } from "@/components/investigation/shared/DetectionDisclosure";
+import { Chevron, IconButton } from "@/components/investigation/shared/DetectionDisclosure";
 import { EvidenceGraphView } from "@/components/workspace/graph/EvidenceGraphView";
 
 type State =
@@ -137,6 +140,21 @@ function DetailHeader({
   record: WorkspaceInvestigation;
   onStatusChange: (status: WorkspaceStatus) => void;
 }) {
+  const [exporting, setExporting] = useState(false);
+
+  async function exportJson() {
+    setExporting(true);
+    try {
+      const report = await getInvestigationReport(record.id);
+      triggerJsonDownload(`threatlens-${sanitizeFilenameSegment(record.id)}.json`, report);
+    } catch {
+      // Best-effort from this page; the analyst can retry, or use the
+      // report page's own Export JSON action.
+    } finally {
+      setExporting(false);
+    }
+  }
+
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-3">
       <div className="flex items-start justify-between gap-4">
@@ -156,6 +174,19 @@ function DetailHeader({
             </option>
           ))}
         </select>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Link
+          href={`/workspace/${record.id}/report`}
+          className="text-[10px] font-medium text-zinc-400 hover:text-zinc-200 bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700 rounded px-2 py-1 transition-colors"
+        >
+          View Report
+        </Link>
+        <IconButton
+          label={exporting ? "Exporting…" : "Export JSON"}
+          onClick={exportJson}
+        />
       </div>
 
       {record.summary && <p className="text-sm text-zinc-400">{record.summary}</p>}
@@ -418,7 +449,7 @@ function DetectionPackageSummary({
   );
 }
 
-function CorrelationSummaryPanel({ data }: { data: Record<string, unknown> }) {
+function CorrelationSummaryPanel({ data }: { data: CorrelationSummary }) {
   return (
     <section
       className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5"

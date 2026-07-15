@@ -6,6 +6,56 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Added — Phase 8.4: Workspace Export & Investigation Reporting
+
+- **New `backend/src/threatlens/reporting/` package** — a pure, deterministic
+  projection over a saved investigation's existing outputs and existing
+  derived projections, not a new intelligence engine and not AI-generated.
+  `InvestigationReport` composes the saved `WorkspaceInvestigation` verbatim
+  with the exact same `Timeline`/`EvidenceGraph` the sibling Phase
+  8.1/8.2 routes already return — `ReportService` delegates to
+  `TimelineService`/`GraphService` rather than re-deriving either.
+- **API**: `GET /api/v1/workspace/{id}/export`, added to the existing
+  workspace router as a sibling of the timeline/graph routes. Response:
+  `report_schema_version` (new, versions only this envelope's own shape),
+  `investigation`, `timeline`, `graph`. No `exported_at`/wall-clock field —
+  the same saved record always produces a byte-identical report. Every
+  existing workspace/timeline/graph endpoint is unchanged.
+- **Frontend**: a dedicated, print-friendly analyst report view at
+  `/workspace/{id}/report` (`ReportHeader`, `ReportAssessment`,
+  `ReportFindings`, `ReportRecommendations`, `ReportThreatIntelligence`,
+  `ReportCorrelation`, `ReportTimeline`, `ReportGraphSummary`,
+  `ReportDetections`, `ReportActions`) — every section fully expanded (no
+  click-to-open state), styled with Tailwind `print:` variants for a
+  light, ink-conscious printed page with interactive controls hidden. The
+  Evidence Graph is summarized as a table, not the interactive React Flow
+  canvas, which has no clean print representation. "Export JSON" (client-side
+  download, sanitized filename) and "Print Report" (native
+  `window.print()` — no server-side PDF engine) actions exist on both the
+  report page and the existing workspace detail page.
+- **Threat Intelligence section is provider-attribution, not a raw dump**:
+  `AggregatedResult`/`ProviderSummary` (per-provider status/reputation) are
+  not persisted on a saved `WorkspaceInvestigation` — only per-finding
+  `AttributedEvidence`/`AttributedRelationship` (which carry `sources`) are.
+  The report tallies contributions by provider from that existing data
+  rather than fabricating a status/reputation view the saved record never
+  had.
+- **Testing**: 41 new backend tests (`backend/tests/reporting/`) — envelope
+  model, service composition (each section asserted equal to the
+  independently-built sibling service's own output, not merely present),
+  full API contract, and a dedicated no-regression suite. 20 new frontend
+  tests: `getInvestigationReport` (`lib/api.test.ts`), the two new pure
+  presentation functions `summarizeProviders`/`countNodesByType`, and
+  `sanitizeFilenameSegment`. Verified with a real, scripted browser session
+  against a live backend (a MITRE ATT&CK investigation with an attached
+  correlation observation): correct report content across every section,
+  correct empty/error states, working JSON export (from both pages) and
+  print action, a clean print-media layout, and no regression in the
+  sibling interactive Evidence Graph or Timeline. Backend suite: **2,729
+  passed, 1 skipped** (was 2,688). Frontend: **177 Vitest tests passed**
+  (was 157); production build clean.
+- **Docs**: `docs/architecture/PHASE-8.4-WORKSPACE-EXPORT-AND-INVESTIGATION-REPORTING.md`.
+
 ### Fixed — Vercel Production API Startup Failure (Read-Only Workspace Storage)
 
 - **Root cause**: `api/routes/workspace.py` built its `WorkspaceService`
