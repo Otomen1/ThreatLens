@@ -343,8 +343,8 @@ not. Added a one-line `resolve.alias` mirroring `tsconfig.json`'s existing
 application change.
 
 Full suite after this phase: **2,729 backend tests passed, 1 skipped**
-(was 2,688). Ruff and mypy (`--strict`) clean across 192 source files (was
-189). Frontend: 177 Vitest tests passed (was 157); production build
+(was 2,688). Ruff and mypy (`--strict`) clean across 189 source files (was
+186). Frontend: 177 Vitest tests passed (was 157); production build
 clean, including the new `/workspace/[id]/report` route.
 
 ## Readiness review
