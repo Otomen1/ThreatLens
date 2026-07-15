@@ -65,7 +65,12 @@ class LocalFileStorage(WorkspaceStorage):
 
     def __init__(self, root: Path) -> None:
         self._root = root
-        self._root.mkdir(parents=True, exist_ok=True)
+        try:
+            self._root.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            raise WorkspaceStorageError(
+                f"Could not create workspace storage directory: {root}"
+            ) from exc
 
     def _path(self, investigation_id: UUID) -> Path:
         return self._root / f"{investigation_id}.json"

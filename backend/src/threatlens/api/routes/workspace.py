@@ -33,10 +33,18 @@ from ..schemas import WorkspaceListItem, WorkspaceListResponse
 
 router = APIRouter()
 
-# Process-wide workspace service, backed by local-file storage. Built once; the
-# storage root is created on first use (see LocalFileStorage.__init__).
-_workspace_settings = WorkspaceSettings.from_env()
-_workspace_service = WorkspaceService(LocalFileStorage(_workspace_settings.storage_dir))
+# Process-wide workspace service, backed by local-file storage. Built lazily,
+# on first use, rather than at import time: LocalFileStorage.__init__()
+# creates its storage root immediately, and constructing it at module scope
+# means a read-only or misconfigured default directory (e.g. a serverless
+# deployment whose only writable path is /tmp) fails the entire module
+# import — taking down every route in the app, not just the workspace ones.
+# Deferring construction to first request keeps import always safe; only an
+# actual workspace call can ever hit a storage error, and every other route
+# (health, investigate, …) is unaffected. Only success is memoized: a failed
+# attempt leaves this ``None`` so the next call retries rather than staying
+# permanently broken for the life of the process.
+_workspace_service: WorkspaceService | None = None
 
 # The Timeline Framework (Phase 8.1) is stateless — a pure function of
 # whatever WorkspaceInvestigation it's given — so one shared instance is
@@ -51,7 +59,18 @@ _graph_service = GraphService()
 
 
 def get_workspace_service() -> WorkspaceService:
-    """Provide the Workspace service (overridable in tests)."""
+    """Provide the Workspace service (overridable in tests).
+
+    Builds the singleton on first call. Raises
+    :class:`~threatlens.workspace.exceptions.WorkspaceStorageError` if the
+    configured storage directory cannot be created — a failure scoped to
+    whichever workspace request triggered it, never to app import or to any
+    unrelated route.
+    """
+    global _workspace_service
+    if _workspace_service is None:
+        settings = WorkspaceSettings.from_env()
+        _workspace_service = WorkspaceService(LocalFileStorage(settings.storage_dir))
     return _workspace_service
 
 

@@ -2,6 +2,9 @@
   "buildCommand": "node scripts/vendor-engine.mjs && npm run build",
   "outputDirectory": ".next",
   "framework": "nextjs",
+  "env": {
+    "THREATLENS_WORKSPACE_DIR": "/tmp/threatlens/workspace"
+  },
   "functions": {
     "api/index.py": {
       "includeFiles": "vendor/**"

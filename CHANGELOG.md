@@ -6,6 +6,80 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Fixed — Vercel Production API Startup Failure (Read-Only Workspace Storage)
+
+- **Root cause**: `api/routes/workspace.py` built its `WorkspaceService`
+  (and therefore called `LocalFileStorage.__init__`'s `mkdir`) at **module
+  import time**. On Vercel, whose function filesystem is read-only outside
+  `/tmp`, that `mkdir` raised `OSError`, which failed the import of
+  `threatlens.api.app` itself — every endpoint, including unrelated ones
+  like `/health` and `/investigate`, returned 500.
+- **Workspace storage construction is now lazy** — built on first actual
+  workspace request instead of at import time. App import can no longer
+  fail because of the storage path; a broken/unwritable path now only
+  affects the workspace endpoints that need it, never any other route. Only
+  a successful build is memoized, so a transient failure doesn't
+  permanently wedge the process.
+- **`LocalFileStorage.__init__` now wraps a failed `mkdir` in the existing
+  `WorkspaceStorageError`**, consistent with how `save`/`delete` already
+  report storage failures — no new exception type.
+- **`frontend/vercel.json` now sets `THREATLENS_WORKSPACE_DIR=/tmp/threatlens/workspace`**
+  for the deployed function, reusing the existing (already-documented,
+  Phase 8.0) `THREATLENS_WORKSPACE_DIR` override — no new configuration
+  mechanism was introduced. The local-development default (`data/workspace`)
+  is unchanged.
+- **`/tmp` on Vercel is ephemeral**, not durable — documented explicitly in
+  the README rather than implied. Saved investigations on a Vercel
+  deployment do not survive a redeploy/cold start; a database-backed
+  `WorkspaceStorage` remains future work behind the same interface.
+- No Workspace/Investigation/Reasoning/Correlation/Detection/Exposure/
+  Identity/Timeline/Graph/AI semantics, API contract, or frontend behavior
+  changed.
+- **Testing**: 11 new backend tests — `test_config.py` (new; `WorkspaceSettings.from_env`
+  had no prior direct coverage), one new `LocalFileStorage` failure-path
+  test, and `test_storage_resilience.py` (new: a genuinely fresh
+  re-import of `threatlens.api.app` succeeds under a broken storage path;
+  unrelated routes stay up while a workspace call fails cleanly; a failed
+  lazy-init attempt doesn't permanently poison later calls). Full backend
+  suite: **2,688 passed, 1 skipped** (was 2,677). Ruff and mypy `--strict`
+  clean.
+
+### Added — Phase 8.3: Interactive Evidence Graph Visualization
+
+- **Frontend-only upgrade of Phase 8.2's plain node/edge lists into an
+  interactive graph** — no backend change, no new API field, no change to
+  `backend/src/threatlens/graph/` or the `GET /api/v1/workspace/{id}/graph`
+  route. Consumes the exact same `EvidenceGraph` response as before.
+- **New dependency: `@xyflow/react` (React Flow) v12.11.2** — the only new
+  package this phase adds, selected for being React-first/TypeScript-native,
+  actively maintained, and providing pan/zoom/fit-view/click-selection out of
+  the box. No second graph model and no frontend reasoning layer were
+  introduced.
+- **`frontend/components/workspace/graph/`**: `graphAdapter.ts` (a pure
+  presentation adapter — verbatim id/type/value/reference pass-through plus a
+  deterministic, non-physics column-by-`node_type` layout and
+  presentation-only search/filter predicates), `GraphCanvasNode.tsx` (custom
+  node renderer), `GraphInspector.tsx` (full node/edge detail panel),
+  `GraphToolbar.tsx` (search + filter chips), `EvidenceGraphView.tsx`
+  (container wiring it all into a React Flow canvas).
+- **Search and filtering are presentation-only**: they change which
+  already-existing nodes/edges are visible; they never mutate, reorder, or
+  invent graph data. An edge is only shown when both its endpoints are
+  visible.
+- **Workspace integration**: the existing `GraphSection` on
+  `/workspace/{id}` is unchanged except for its populated-graph render
+  branch, which now renders `<EvidenceGraphView>` instead of plain `<ul>`
+  lists; loading/failed/empty states are untouched.
+- **Testing**: 25 new frontend tests (`graphAdapter.test.ts`) covering
+  verbatim node/edge preservation, no-invention guarantees, deterministic
+  order-independent layout, and search/filter predicates. Verified with real,
+  scripted Playwright sessions across a populated graph, a single-node graph,
+  an empty graph, and a narrow viewport, plus a synthetic 80-node/40-edge
+  graph for performance (rendered and interactive in ~1 second). Frontend
+  suite: **157 passed** (was 132); production build clean. No backend code
+  changed, so the backend suite was not re-run.
+- **Docs:** `docs/architecture/PHASE-8.3-INTERACTIVE-EVIDENCE-GRAPH.md`.
+
 ### Added — Phase 8.2: Evidence Relationship Graph Framework
 
 - **New `backend/src/threatlens/graph/` package** — a pure, deterministic,
