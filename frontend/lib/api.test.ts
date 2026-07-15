@@ -11,6 +11,7 @@ import {
   generateDetections,
   getInvestigation,
   getInvestigationGraph,
+  getInvestigationReport,
   getInvestigationTimeline,
   health,
   identityFrameworkStatus,
@@ -720,6 +721,74 @@ describe("getInvestigationGraph", () => {
     const controller = new AbortController();
 
     await getInvestigationGraph(WORKSPACE_RECORD.id, controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("getInvestigationReport", () => {
+  const REPORT_PAYLOAD = {
+    report_schema_version: "1.0",
+    investigation: WORKSPACE_RECORD,
+    timeline: {
+      investigation_id: WORKSPACE_RECORD.id,
+      entity_type: "ipv4",
+      entity_value: "",
+      generated_at: "2026-07-14T00:00:00Z",
+      events: [],
+    },
+    graph: {
+      investigation_id: WORKSPACE_RECORD.id,
+      entity_type: "ipv4",
+      entity_value: "",
+      generated_at: "2026-07-14T00:00:00Z",
+      nodes: [],
+      edges: [],
+      node_count: 0,
+      edge_count: 0,
+      graph_version: "1.0",
+    },
+  };
+
+  it("GETs the workspace/{id}/export endpoint and returns the parsed report", async () => {
+    const fetchMock = stubFetch(200, REPORT_PAYLOAD);
+
+    const result = await getInvestigationReport(WORKSPACE_RECORD.id);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(new RegExp(`/workspace/${WORKSPACE_RECORD.id}/export$`));
+    expect(init.method).toBe("GET");
+    expect(result).toEqual(REPORT_PAYLOAD);
+  });
+
+  it("URL-encodes the id", async () => {
+    const fetchMock = stubFetch(200, REPORT_PAYLOAD);
+
+    await getInvestigationReport("weird id/with slash");
+
+    const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toContain(encodeURIComponent("weird id/with slash"));
+  });
+
+  it("throws ApiError on a 404", async () => {
+    stubFetch(404, { detail: "not found" });
+    await expect(getInvestigationReport("missing")).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("bundles the investigation, timeline, and graph sections", async () => {
+    stubFetch(200, REPORT_PAYLOAD);
+    const result = await getInvestigationReport(WORKSPACE_RECORD.id);
+    expect(result.investigation).toEqual(WORKSPACE_RECORD);
+    expect(result.timeline.investigation_id).toBe(WORKSPACE_RECORD.id);
+    expect(result.graph.investigation_id).toBe(WORKSPACE_RECORD.id);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(200, REPORT_PAYLOAD);
+    const controller = new AbortController();
+
+    await getInvestigationReport(WORKSPACE_RECORD.id, controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(init.signal).toBe(controller.signal);

@@ -18,6 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from ...entities.types import EntityType
 from ...graph import EvidenceGraph, GraphService
 from ...reasoning import Severity
+from ...reporting import InvestigationReport, ReportService
 from ...timeline import Timeline, TimelineService
 from ...workspace import (
     InvestigationNotFoundError,
@@ -57,6 +58,11 @@ _timeline_service = TimelineService()
 # Timeline service, not a consumer of it.
 _graph_service = GraphService()
 
+# The Reporting Framework (Phase 8.4) composes the two services above rather
+# than re-deriving either of their outputs — it is the one of these four
+# services that depends on its siblings instead of being an independent leaf.
+_report_service = ReportService(_timeline_service, _graph_service)
+
 
 def get_workspace_service() -> WorkspaceService:
     """Provide the Workspace service (overridable in tests).
@@ -82,6 +88,11 @@ def get_timeline_service() -> TimelineService:
 def get_graph_service() -> GraphService:
     """Provide the Graph service (overridable in tests)."""
     return _graph_service
+
+
+def get_report_service() -> ReportService:
+    """Provide the Report service (overridable in tests)."""
+    return _report_service
 
 
 def _to_list_item(record: WorkspaceInvestigation) -> WorkspaceListItem:
@@ -190,6 +201,30 @@ def get_investigation_graph(
     except InvestigationNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return graph.build(record)
+
+
+@router.get("/api/v1/workspace/{investigation_id}/export", response_model=InvestigationReport)
+def get_investigation_report(
+    investigation_id: UUID,
+    workspace: Annotated[WorkspaceService, Depends(get_workspace_service)],
+    report: Annotated[ReportService, Depends(get_report_service)],
+) -> InvestigationReport:
+    """Deterministic JSON export: the saved record plus its Timeline and
+    Evidence Graph projections, in one envelope.
+
+    Recomputes nothing external — Timeline/Graph are the exact same
+    projections their own routes above already return — and never mutates
+    the saved record. A repeated call against an unchanged saved record
+    always returns a byte-identical ``InvestigationReport``. ``404`` if the
+    investigation doesn't exist. This same response also backs the analyst
+    report view (``/workspace/{id}/report`` on the frontend) and the
+    "Export JSON" action — one contract, two presentations.
+    """
+    try:
+        record = workspace.get(investigation_id)
+    except InvestigationNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return report.build(record)
 
 
 @router.put("/api/v1/workspace/{investigation_id}", response_model=WorkspaceInvestigation)

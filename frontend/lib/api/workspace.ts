@@ -9,13 +9,77 @@ import type { EntityType, InvestigationSummary } from "./investigation";
 
 export type WorkspaceStatus = "open" | "in_progress" | "closed" | "archived";
 
-/**
- * Mirrors `threatlens.correlation.models.CorrelationSummary` by name only. No
- * UI renders its fields yet — Correlation isn't wired into `/investigate`, so
- * this is almost always absent on a saved investigation. Kept deliberately
- * opaque until a future phase gives it a real consumer and a precise shape.
- */
-export type CorrelationSummary = Record<string, unknown>;
+// --- Correlation (Phase 7.0/7.1) ---
+//
+// Mirrors `threatlens.correlation.models` verbatim. Correlation isn't wired
+// into `/investigate`, so `correlation_summary` is almost always absent on a
+// saved investigation; when present (e.g. attached manually, or by a future
+// phase), the Phase 8.4 report is its first real consumer. `category`/
+// `relationship type` are left as plain `string` — mirrors `GraphNode.node_type`
+// and `TimelineEvent.event_type` for the same reason: the underlying
+// vocabularies (70+ rules as of Phase 7.1) genuinely vary by source and
+// nothing in the UI branches on a specific value.
+
+export interface CorrelationEvidence {
+  finding_id: string;
+  matched_category: string;
+  subject_type: EntityType;
+  subject_value: string;
+  summary: string;
+}
+
+export interface CorrelationRelationship {
+  type: string;
+  source_finding_id: string;
+  target_finding_id: string;
+  description: string;
+}
+
+export interface CorrelationObservation {
+  id: string;
+  rule_id: string;
+  category: string;
+  title: string;
+  summary: string;
+  subject_type: EntityType;
+  subject_value: string;
+  evidence: CorrelationEvidence[];
+  relationships: CorrelationRelationship[];
+  source_finding_ids: string[];
+}
+
+export interface CorrelationMatch {
+  rule_id: string;
+  category: string;
+  observation_ids: string[];
+}
+
+export interface CorrelationStatistics {
+  rules_evaluated: number;
+  rules_matched: number;
+  total_observations: number;
+  source_finding_count: number;
+  categories: string[];
+}
+
+export interface CorrelationMetadata {
+  entity_type: EntityType;
+  entity_value: string;
+  generated_at: string;
+  framework_version: string;
+  source_engine_version: string;
+}
+
+export interface CorrelationSummary {
+  id: string;
+  entity_type: EntityType;
+  entity_value: string;
+  observations: CorrelationObservation[];
+  matches: CorrelationMatch[];
+  statistics: CorrelationStatistics;
+  metadata: CorrelationMetadata;
+  source_finding_ids: string[];
+}
 
 export interface WorkspaceInvestigation {
   id: string;
@@ -225,4 +289,28 @@ export function getInvestigationGraph(
   signal?: AbortSignal,
 ): Promise<EvidenceGraph> {
   return get<EvidenceGraph>(`/workspace/${encodeURIComponent(id)}/graph`, signal);
+}
+
+// --- Workspace Export & Investigation Reporting (Phase 8.4) ---
+//
+// A deterministic projection over a saved investigation's existing outputs
+// and existing derived projections — never a new intelligence engine, never
+// AI-generated. `investigation`/`timeline`/`graph` are exactly the same
+// objects `getInvestigation()`/`getInvestigationTimeline()`/
+// `getInvestigationGraph()` already return; this one call bundles all three
+// so the JSON export and the analyst report view share a single fetch.
+
+export interface InvestigationReport {
+  report_schema_version: string;
+  investigation: WorkspaceInvestigation;
+  timeline: Timeline;
+  graph: EvidenceGraph;
+}
+
+/** Fetch the full deterministic report/export for one saved investigation. */
+export function getInvestigationReport(
+  id: string,
+  signal?: AbortSignal,
+): Promise<InvestigationReport> {
+  return get<InvestigationReport>(`/workspace/${encodeURIComponent(id)}/export`, signal);
 }
