@@ -42,6 +42,18 @@ class TestLocalFileStorage:
         LocalFileStorage(root)
         assert root.exists()
 
+    def test_unwritable_root_raises_storage_error(self, tmp_path: Path) -> None:
+        """A root whose parent path component is a file (not a directory) can
+        never be created — a portable, unmocked stand-in for a read-only or
+        misconfigured deployment filesystem (the Vercel production failure
+        this case guards against)."""
+        from threatlens.workspace import WorkspaceStorageError
+
+        blocker = tmp_path / "blocker"
+        blocker.write_text("not a directory")
+        with pytest.raises(WorkspaceStorageError):
+            LocalFileStorage(blocker / "workspace")
+
     def test_save_then_load_round_trips(self, tmp_path: Path) -> None:
         storage = LocalFileStorage(tmp_path)
         record = _record(title="Round trip")

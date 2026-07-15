@@ -146,7 +146,7 @@ npm ci
 NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1 npm run dev   # http://localhost:3000
 ```
 
-Production: `npm run build && npm start`. The frontend also deploys to Vercel (see `frontend/vercel.json`; the detection API ships as a Vercel Python function via `frontend/api/index.py`).
+Production: `npm run build && npm start`. The frontend also deploys to Vercel (see `frontend/vercel.json`; the detection API ships as a Vercel Python function via `frontend/api/index.py`). Vercel's function filesystem is read-only outside `/tmp`, so `frontend/vercel.json` sets `THREATLENS_WORKSPACE_DIR=/tmp/threatlens/workspace` for the deployed function — see the Investigation Workspace row below for what this does and does not guarantee.
 
 ### Ollama (optional — AI explanations)
 
@@ -261,9 +261,11 @@ Phase 6.0 is framework only — no providers, no secrets. Provider credentials (
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `THREATLENS_WORKSPACE_DIR` | `data/workspace` | Local directory for saved-investigation JSON files (`LocalFileStorage`). Created on first use if missing. |
+| `THREATLENS_WORKSPACE_DIR` | `data/workspace` | Local directory for saved-investigation JSON files (`LocalFileStorage`). Created lazily on the first workspace request (not at process/import time), so a misconfigured or unwritable path only affects workspace endpoints — every other route keeps working. |
 
 No authentication, no database — single-user, self-hosted, per the phase brief. See [`docs/architecture/PHASE-8.0-INVESTIGATION-WORKSPACE.md`](docs/architecture/PHASE-8.0-INVESTIGATION-WORKSPACE.md).
+
+**Serverless/Vercel deployments:** the project root is read-only everywhere except `/tmp`, so the default `data/workspace` cannot be created there. `frontend/vercel.json` sets `THREATLENS_WORKSPACE_DIR=/tmp/threatlens/workspace` for the deployed function so the Workspace API works out of the box — but **`/tmp` on Vercel is ephemeral**: it is wiped between cold starts/deployments and is not shared across concurrent function instances, so saved investigations are not durably persisted in that configuration. This makes the existing `LocalFileStorage` abstraction *deployment-compatible* on Vercel, not durable; a database-backed `WorkspaceStorage` implementation (swappable behind the same interface, no service/API changes) remains future work for anyone who needs saved investigations to survive a redeploy.
 
 ### Frontend
 
