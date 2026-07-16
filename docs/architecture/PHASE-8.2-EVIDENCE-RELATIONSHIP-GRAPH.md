@@ -365,7 +365,7 @@ investigation with no attached results correctly showed the "no
 evidence-supported entities" empty state.
 
 Full suite after this phase: **2,668 backend tests passed, 1 skipped** (was
-2,577). Ruff and mypy (`--strict`) clean across 192 source files (was 188).
+2,577). Ruff and mypy (`--strict`) clean across 186 source files (was 182).
 Frontend: 132 Vitest tests passed (was 127); production build clean,
 including the graph section on the existing `/workspace/[id]` route (no
 new route — the endpoint is a sub-resource, not a page).
