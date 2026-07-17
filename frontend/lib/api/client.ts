@@ -36,6 +36,7 @@ export async function post<T>(path: string, body: unknown, signal?: AbortSignal)
 
   if (!res.ok) {
     let message = `Request failed (${res.status}).`;
+    if (res.status === 404) message = "Not found.";
     if (res.status === 422) message = "That request could not be processed.";
     throw new ApiError(message, res.status);
   }
@@ -86,6 +87,32 @@ export async function put<T>(path: string, body: unknown, signal?: AbortSignal):
   return (await res.json()) as T;
 }
 
+/** PATCH `body` to an API path and return the parsed JSON (used by Case Management's partial update). */
+export async function patch<T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal,
+    });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") throw err;
+    throw new ApiError("Could not reach the service.");
+  }
+
+  if (!res.ok) {
+    let message = `Request failed (${res.status}).`;
+    if (res.status === 404) message = "Not found.";
+    if (res.status === 409) message = "That change is not allowed from the current state.";
+    if (res.status === 422) message = "That request could not be processed.";
+    throw new ApiError(message, res.status);
+  }
+
+  return (await res.json()) as T;
+}
+
 /** DELETE an API path. Resolves with no value on success (the API returns 204). */
 export async function del(path: string, signal?: AbortSignal): Promise<void> {
   let res: Response;
@@ -99,4 +126,25 @@ export async function del(path: string, signal?: AbortSignal): Promise<void> {
     const message = res.status === 404 ? "Not found." : `Request failed (${res.status}).`;
     throw new ApiError(message, res.status);
   }
+}
+
+/**
+ * DELETE an API path and return the parsed JSON response body — for
+ * endpoints that return the updated resource (e.g. unlinking a Workspace
+ * investigation from a case) rather than a bare `204`. Prefer {@link del}
+ * for the more common "204, no body" case.
+ */
+export async function delWithBody<T>(path: string, signal?: AbortSignal): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, { method: "DELETE", signal });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") throw err;
+    throw new ApiError("Could not reach the service.");
+  }
+  if (!res.ok) {
+    const message = res.status === 404 ? "Not found." : `Request failed (${res.status}).`;
+    throw new ApiError(message, res.status);
+  }
+  return (await res.json()) as T;
 }

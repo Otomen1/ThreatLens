@@ -321,7 +321,7 @@ detail → status change → delete — against a live backend, which is also
 how the cross-origin CORS bug above was actually found.
 
 Full suite after this phase: **2,496 backend tests passed, 1 skipped** (was
-2,493). Ruff and mypy (`--strict`) clean across 178 source files (was 175).
+2,493). Ruff and mypy (`--strict`) clean across 178 source files (was 171).
 Frontend: 122 Vitest tests passed (was 104); production build clean,
 including the two new routes (`/workspace` static, `/workspace/[id]`
 server-rendered on demand).

@@ -2,23 +2,31 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   ApiError,
+  addCaseNote,
   aiHealth,
   correlationFrameworkStatus,
+  createCase,
+  deleteCase,
   deleteInvestigation,
   detect,
   explain,
   exposureFrameworkStatus,
   generateDetections,
+  getCase,
   getInvestigation,
   getInvestigationGraph,
   getInvestigationReport,
   getInvestigationTimeline,
   health,
   identityFrameworkStatus,
+  linkWorkspaceToCase,
+  listCases,
   listInvestigations,
   recommendCommunityDetections,
   saveInvestigation,
   searchCommunityDetections,
+  unlinkWorkspaceFromCase,
+  updateCase,
   updateInvestigation,
   type InvestigationSummary,
 } from "./api";
@@ -789,6 +797,278 @@ describe("getInvestigationReport", () => {
     const controller = new AbortController();
 
     await getInvestigationReport(WORKSPACE_RECORD.id, controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+// --- Case Management (Phase 9.0) ---
+
+const CASE_RECORD = {
+  id: "b2a5e3c1-1234-4abc-9def-0123456789ab",
+  title: "Suspicious login activity",
+  description: null,
+  status: "open",
+  priority: "medium",
+  created_at: "2026-07-17T00:00:00Z",
+  updated_at: "2026-07-17T00:00:00Z",
+  owner: null,
+  tags: [],
+  linked_workspace_ids: [],
+  notes: [],
+  metadata: {},
+};
+
+describe("createCase", () => {
+  it("POSTs the request to the cases endpoint and returns the created case", async () => {
+    const fetchMock = stubFetch(201, CASE_RECORD);
+
+    const result = await createCase({ title: "Suspicious login activity" });
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(/\/cases$/);
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual({ title: "Suspicious login activity" });
+    expect(result).toEqual(CASE_RECORD);
+  });
+
+  it("throws ApiError on a non-2xx response", async () => {
+    stubFetch(422, { detail: "bad" });
+    await expect(createCase({ title: "" })).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(201, CASE_RECORD);
+    const controller = new AbortController();
+
+    await createCase({ title: "Case" }, controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("listCases", () => {
+  it("GETs the cases endpoint with no query string when no filters are given", async () => {
+    const fetchMock = stubFetch(200, { cases: [], total: 0 });
+
+    await listCases();
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(/\/cases$/);
+    expect(init.method).toBe("GET");
+  });
+
+  it("builds a query string from every given filter", async () => {
+    const fetchMock = stubFetch(200, { cases: [], total: 0 });
+
+    await listCases({
+      status: "closed",
+      priority: "high",
+      tag: "urgent",
+      owner: "alice",
+      title: "login",
+    });
+
+    const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const parsed = new URL(String(url), "http://example.test");
+    expect(parsed.searchParams.get("status")).toBe("closed");
+    expect(parsed.searchParams.get("priority")).toBe("high");
+    expect(parsed.searchParams.get("tag")).toBe("urgent");
+    expect(parsed.searchParams.get("owner")).toBe("alice");
+    expect(parsed.searchParams.get("title")).toBe("login");
+  });
+
+  it("omits filters that are not provided", async () => {
+    const fetchMock = stubFetch(200, { cases: [], total: 0 });
+
+    await listCases({ status: "open" });
+
+    const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).not.toContain("priority");
+    expect(String(url)).not.toContain("owner");
+  });
+
+  it("throws ApiError on a non-2xx response", async () => {
+    stubFetch(500, { detail: "boom" });
+    await expect(listCases()).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(200, { cases: [], total: 0 });
+    const controller = new AbortController();
+
+    await listCases({}, controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("getCase", () => {
+  it("GETs the cases/{id} endpoint and returns the full record", async () => {
+    const fetchMock = stubFetch(200, CASE_RECORD);
+
+    const result = await getCase(CASE_RECORD.id);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(new RegExp(`/cases/${CASE_RECORD.id}$`));
+    expect(init.method).toBe("GET");
+    expect(result).toEqual(CASE_RECORD);
+  });
+
+  it("throws ApiError on a 404", async () => {
+    stubFetch(404, { detail: "not found" });
+    await expect(getCase("missing")).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(200, CASE_RECORD);
+    const controller = new AbortController();
+
+    await getCase(CASE_RECORD.id, controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("updateCase", () => {
+  it("PATCHes the partial update to cases/{id} and returns the updated case", async () => {
+    const updated = { ...CASE_RECORD, status: "closed" };
+    const fetchMock = stubFetch(200, updated);
+
+    const result = await updateCase(CASE_RECORD.id, { status: "closed" });
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(new RegExp(`/cases/${CASE_RECORD.id}$`));
+    expect(init.method).toBe("PATCH");
+    expect(JSON.parse(init.body as string)).toEqual({ status: "closed" });
+    expect(result).toEqual(updated);
+  });
+
+  it("throws ApiError on a 409 (invalid status transition)", async () => {
+    stubFetch(409, { detail: "invalid transition" });
+    await expect(
+      updateCase(CASE_RECORD.id, { status: "resolved" }),
+    ).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("throws ApiError on a 404", async () => {
+    stubFetch(404, { detail: "not found" });
+    await expect(updateCase("missing", { title: "x" })).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(200, CASE_RECORD);
+    const controller = new AbortController();
+
+    await updateCase(CASE_RECORD.id, { title: "x" }, controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("deleteCase", () => {
+  it("DELETEs cases/{id} and resolves with no value", async () => {
+    const fetchMock = stubFetch(204, undefined);
+
+    const result = await deleteCase(CASE_RECORD.id);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(new RegExp(`/cases/${CASE_RECORD.id}$`));
+    expect(init.method).toBe("DELETE");
+    expect(result).toBeUndefined();
+  });
+
+  it("throws ApiError on a 404", async () => {
+    stubFetch(404, { detail: "not found" });
+    await expect(deleteCase("missing")).rejects.toBeInstanceOf(ApiError);
+  });
+});
+
+describe("linkWorkspaceToCase", () => {
+  it("POSTs the workspace id to cases/{id}/workspace and returns the updated case", async () => {
+    const linked = { ...CASE_RECORD, linked_workspace_ids: [WORKSPACE_RECORD.id] };
+    const fetchMock = stubFetch(200, linked);
+
+    const result = await linkWorkspaceToCase(CASE_RECORD.id, WORKSPACE_RECORD.id);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(new RegExp(`/cases/${CASE_RECORD.id}/workspace$`));
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual({ workspace_id: WORKSPACE_RECORD.id });
+    expect(result).toEqual(linked);
+  });
+
+  it("throws ApiError on a 404 (nonexistent investigation)", async () => {
+    stubFetch(404, { detail: "not found" });
+    await expect(
+      linkWorkspaceToCase(CASE_RECORD.id, "missing"),
+    ).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("surfaces a friendly message on a 404, matching put/patch/del", async () => {
+    stubFetch(404, { detail: "not found" });
+    await expect(linkWorkspaceToCase(CASE_RECORD.id, "missing")).rejects.toThrow("Not found.");
+  });
+});
+
+describe("unlinkWorkspaceFromCase", () => {
+  it("DELETEs cases/{id}/workspace/{workspaceId} and returns the updated case", async () => {
+    const fetchMock = stubFetch(200, CASE_RECORD);
+
+    const result = await unlinkWorkspaceFromCase(CASE_RECORD.id, WORKSPACE_RECORD.id);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(
+      new RegExp(`/cases/${CASE_RECORD.id}/workspace/${WORKSPACE_RECORD.id}$`),
+    );
+    expect(init.method).toBe("DELETE");
+    expect(result).toEqual(CASE_RECORD);
+  });
+
+  it("throws ApiError on a 404", async () => {
+    stubFetch(404, { detail: "not found" });
+    await expect(
+      unlinkWorkspaceFromCase("missing", WORKSPACE_RECORD.id),
+    ).rejects.toBeInstanceOf(ApiError);
+  });
+});
+
+describe("addCaseNote", () => {
+  it("POSTs author/content to cases/{id}/notes and returns the updated case", async () => {
+    const noted = {
+      ...CASE_RECORD,
+      notes: [{ author: "analyst", timestamp: "2026-07-17T01:00:00Z", content: "Investigating." }],
+    };
+    const fetchMock = stubFetch(201, noted);
+
+    const result = await addCaseNote(CASE_RECORD.id, "analyst", "Investigating.");
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(new RegExp(`/cases/${CASE_RECORD.id}/notes$`));
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual({
+      author: "analyst",
+      content: "Investigating.",
+    });
+    expect(result).toEqual(noted);
+  });
+
+  it("throws ApiError on a 404", async () => {
+    stubFetch(404, { detail: "not found" });
+    await expect(addCaseNote("missing", "analyst", "x")).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(201, CASE_RECORD);
+    const controller = new AbortController();
+
+    await addCaseNote(CASE_RECORD.id, "analyst", "note", controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(init.signal).toBe(controller.signal);

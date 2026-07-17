@@ -17,6 +17,7 @@ from ..system import build_system_router
 from .health import router as health_router
 from .routes import (
     ai,
+    cases,
     correlation,
     detection,
     detection_knowledge,
@@ -26,6 +27,7 @@ from .routes import (
     workspace,
 )
 from .routes.ai import get_ai_service as get_ai_service
+from .routes.cases import get_case_service as get_case_service
 from .routes.detection_knowledge import get_knowledge_service as get_knowledge_service
 from .routes.investigation import get_investigation_service as get_investigation_service
 from .routes.workspace import get_graph_service as get_graph_service
@@ -67,8 +69,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=_origins,
     # PUT/DELETE are needed by the Investigation Workspace (Phase 8.0) update
-    # and delete endpoints; every other route remains GET/POST only.
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    # and delete endpoints; PATCH is needed by Case Management's (Phase 9.0)
+    # partial-update endpoint; every other route remains GET/POST only.
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
     allow_headers=["*"],
 )
 
@@ -101,6 +104,13 @@ app.include_router(investigation.router)
 # (Phase 8.2). Consumes existing outputs; never generates them and never
 # touches the analytical pipeline above.
 app.include_router(workspace.router)
+
+# Case Management (Phase 9.0): an operational layer *above* the Workspace
+# platform, organizing zero or more saved investigations by reference (id
+# only). Depends on the Workspace service above to confirm a linked id
+# exists; never reads, mutates, or recomputes an investigation's content,
+# and Workspace itself has no notion of cases.
+app.include_router(cases.router)
 
 # Downstream, optional AI explanation of a completed investigation.
 app.include_router(ai.router)

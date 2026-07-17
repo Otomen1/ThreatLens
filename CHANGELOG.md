@@ -6,6 +6,85 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Added — Phase 9.0: Case Management Framework
+
+- **New `backend/src/threatlens/cases/` package** — an operational layer
+  *above* the Workspace platform, not a Workspace change. A `Case`
+  organizes zero or more saved investigations by reference (id only —
+  `linked_workspace_ids`, never a content copy); a Workspace investigation
+  may belong to multiple cases, and Workspace itself has no notion of
+  cases. Mirrors `threatlens.workspace`'s own architecture exactly:
+  models → independent local-file storage (`THREATLENS_CASES_DIR`) →
+  service → API, with the same lazy-singleton construction pattern that
+  fixed the Vercel production startup failure applied from day one.
+- **`Case` model**: `status` (`open`/`in_progress`/`resolved`/`closed`,
+  validated transitions — `closed` reopens only to `open`, forcing explicit
+  re-triage), `priority` (`low`/`medium`/`high`/`critical`, freely
+  settable), `owner`, `tags`, `linked_workspace_ids`, append-only `notes`
+  (`CaseNote`: author, timestamp, content — never edited or deleted), and
+  an open `metadata` extension seam. Not frozen — mutated over its
+  lifetime, mirroring `WorkspaceInvestigation`.
+- **API**: `POST/GET /api/v1/cases`, `GET/PATCH/DELETE
+  /api/v1/cases/{id}`, `POST /api/v1/cases/{id}/workspace` (idempotent
+  link, validates the target investigation exists via the existing
+  `WorkspaceService`), `DELETE /api/v1/cases/{id}/workspace/{workspace_id}`
+  (idempotent unlink), `POST /api/v1/cases/{id}/notes`. An invalid status
+  transition returns `409`, not `422`. `PATCH` (not `PUT`) for partial
+  update — the semantically correct verb, unlike Workspace's own
+  documented `PUT`-as-partial-update choice.
+- **Frontend**: `/cases` (search/filter by status, priority, tag, owner,
+  title; inline case creation) and `/cases/{id}` (status/priority
+  `<select>`, metadata edit toggle, linked-investigations panel reusing
+  the existing `getInvestigation()` client, notes thread). No changes to
+  any Workspace page. Adds `patch()`/`delWithBody()` to the shared
+  `lib/api/client.ts`, and fixes a real gap found during this phase's
+  browser verification: `post()` never mapped HTTP `404` to a friendly
+  message (only `422`) because no prior `POST` endpoint could genuinely
+  404 — Case Management's link/notes endpoints are the first that can, so
+  `post()` now matches `put()`/`patch()`/`del()`'s existing `"Not found."`
+  convention.
+- **Testing**: 159 new backend tests (`backend/tests/cases/`) — models,
+  storage, service (every allowed/disallowed status transition
+  parametrized, priority, filtering, linking against a real
+  `WorkspaceService` collaborator, many-to-many + idempotency guarantees,
+  note ordering/immutability), API contract, and a no-regression suite. 24
+  new frontend tests. Browser-verified end-to-end (27/27 checks, 3
+  consecutive clean runs) against a live backend: create → filter → edit →
+  valid/invalid status transitions (409 confirmed) → link/unlink a real
+  investigation (never mutated) → link-to-nonexistent-investigation error
+  path → notes → delete.
+- **Docs**: `docs/architecture/PHASE-9.0-CASE-MANAGEMENT.md`.
+
+### Added — Phase 8.5: Workspace Platform Stabilization & Freeze
+
+- **Not a feature phase — no behavioral change.** Documents and freezes the
+  contracts Phases 8.0–8.4 already built (`WorkspaceInvestigation`,
+  `Timeline`, `EvidenceGraph`, `InvestigationReport`, and every Workspace
+  API endpoint): stable/required/optional fields, ordering guarantees,
+  identity guarantees (content-addressed vs. random ids), serialization
+  guarantees (byte-identical rebuilds, no wall-clock fields), and
+  compatibility guarantees. See
+  `docs/architecture/WORKSPACE-PLATFORM.md`.
+- **Backward compatibility verified, not invented**: every realistic saved-
+  record shape (no attached output, detection-only, single finding,
+  multiple findings with shared/duplicate evidence, correlation with no
+  summary, and fully populated) was confirmed well-formed across Timeline,
+  Graph, Report, Export, and the API — closing the one previously-untested
+  axis (the full combination of optional sections, through a real HTTP
+  save-then-export round trip) with 36 new tests in
+  `backend/tests/reporting/test_compatibility_matrix.py`.
+- **Performance baseline recorded** for Workspace load/save, Timeline
+  projection, Graph projection, Report projection, and JSON export via a
+  new `backend/tests/workspace/perf.py` harness (mirroring the existing
+  `tests/correlation/perf.py` convention) plus 4 CI smoke tests. Per-finding
+  cost is linear across every measured operation, 5–400 findings; no
+  optimization was needed or performed.
+- **Regression review**: confirmed no analytical logic is duplicated across
+  Timeline, Graph, Report, or the frontend graph adapter — `ReportService`
+  composes `TimelineService`/`GraphService` rather than re-deriving either,
+  and the frontend performs no independent derivation of its own.
+- **Docs**: `docs/architecture/WORKSPACE-PLATFORM.md` (new); this entry.
+
 ### Added — Phase 8.4: Workspace Export & Investigation Reporting
 
 - **New `backend/src/threatlens/reporting/` package** — a pure, deterministic
@@ -185,8 +264,8 @@ All notable changes to ThreatLens are documented here. The project follows
   session against a live backend using a hand-built investigation with a
   correlation observation, confirming correct node/edge counts, relationship
   labels, and no self-loop artifact. Backend suite: **2,668 passed, 1
-  skipped** (was 2,577). Ruff/mypy (strict) clean across 192 source files
-  (was 188). Frontend: 132 Vitest tests passed (was 127).
+  skipped** (was 2,577). Ruff/mypy (strict) clean across 186 source files
+  (was 182). Frontend: 132 Vitest tests passed (was 127).
 - **Docs:** `docs/architecture/PHASE-8.2-EVIDENCE-RELATIONSHIP-GRAPH.md`.
 
 ### Added — Phase 8.1: Investigation Timeline Framework
@@ -304,7 +383,7 @@ All notable changes to ThreatLens are documented here. The project follows
   Playwright browser session against a live backend: search → save → list
   → filter → detail → status update → delete, which is also how the CORS
   bug above was found). Backend suite: **2,496 passed, 1 skipped** (was
-  2,493). Ruff/mypy (strict) clean across 178 source files (was 175).
+  2,493). Ruff/mypy (strict) clean across 178 source files (was 171).
   Frontend: 122 Vitest tests passed (was 104); production build clean with
   both new routes registered.
 - **Docs:** `docs/architecture/PHASE-8.0-INVESTIGATION-WORKSPACE.md`.
