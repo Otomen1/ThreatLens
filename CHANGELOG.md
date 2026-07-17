@@ -6,6 +6,55 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Added — Phase 9.0: Case Management Framework
+
+- **New `backend/src/threatlens/cases/` package** — an operational layer
+  *above* the Workspace platform, not a Workspace change. A `Case`
+  organizes zero or more saved investigations by reference (id only —
+  `linked_workspace_ids`, never a content copy); a Workspace investigation
+  may belong to multiple cases, and Workspace itself has no notion of
+  cases. Mirrors `threatlens.workspace`'s own architecture exactly:
+  models → independent local-file storage (`THREATLENS_CASES_DIR`) →
+  service → API, with the same lazy-singleton construction pattern that
+  fixed the Vercel production startup failure applied from day one.
+- **`Case` model**: `status` (`open`/`in_progress`/`resolved`/`closed`,
+  validated transitions — `closed` reopens only to `open`, forcing explicit
+  re-triage), `priority` (`low`/`medium`/`high`/`critical`, freely
+  settable), `owner`, `tags`, `linked_workspace_ids`, append-only `notes`
+  (`CaseNote`: author, timestamp, content — never edited or deleted), and
+  an open `metadata` extension seam. Not frozen — mutated over its
+  lifetime, mirroring `WorkspaceInvestigation`.
+- **API**: `POST/GET /api/v1/cases`, `GET/PATCH/DELETE
+  /api/v1/cases/{id}`, `POST /api/v1/cases/{id}/workspace` (idempotent
+  link, validates the target investigation exists via the existing
+  `WorkspaceService`), `DELETE /api/v1/cases/{id}/workspace/{workspace_id}`
+  (idempotent unlink), `POST /api/v1/cases/{id}/notes`. An invalid status
+  transition returns `409`, not `422`. `PATCH` (not `PUT`) for partial
+  update — the semantically correct verb, unlike Workspace's own
+  documented `PUT`-as-partial-update choice.
+- **Frontend**: `/cases` (search/filter by status, priority, tag, owner,
+  title; inline case creation) and `/cases/{id}` (status/priority
+  `<select>`, metadata edit toggle, linked-investigations panel reusing
+  the existing `getInvestigation()` client, notes thread). No changes to
+  any Workspace page. Adds `patch()`/`delWithBody()` to the shared
+  `lib/api/client.ts`, and fixes a real gap found during this phase's
+  browser verification: `post()` never mapped HTTP `404` to a friendly
+  message (only `422`) because no prior `POST` endpoint could genuinely
+  404 — Case Management's link/notes endpoints are the first that can, so
+  `post()` now matches `put()`/`patch()`/`del()`'s existing `"Not found."`
+  convention.
+- **Testing**: 159 new backend tests (`backend/tests/cases/`) — models,
+  storage, service (every allowed/disallowed status transition
+  parametrized, priority, filtering, linking against a real
+  `WorkspaceService` collaborator, many-to-many + idempotency guarantees,
+  note ordering/immutability), API contract, and a no-regression suite. 24
+  new frontend tests. Browser-verified end-to-end (27/27 checks, 3
+  consecutive clean runs) against a live backend: create → filter → edit →
+  valid/invalid status transitions (409 confirmed) → link/unlink a real
+  investigation (never mutated) → link-to-nonexistent-investigation error
+  path → notes → delete.
+- **Docs**: `docs/architecture/PHASE-9.0-CASE-MANAGEMENT.md`.
+
 ### Added — Phase 8.5: Workspace Platform Stabilization & Freeze
 
 - **Not a feature phase — no behavioral change.** Documents and freezes the
