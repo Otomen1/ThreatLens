@@ -3,30 +3,40 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   ApiError,
   addCaseNote,
+  addIndicator,
   aiHealth,
   correlationFrameworkStatus,
   createCase,
+  createCollection,
   deleteCase,
+  deleteCollection,
   deleteInvestigation,
   detect,
   explain,
   exposureFrameworkStatus,
   generateDetections,
   getCase,
+  getCollection,
   getInvestigation,
   getInvestigationGraph,
   getInvestigationReport,
   getInvestigationTimeline,
   health,
   identityFrameworkStatus,
+  linkCaseToCollection,
   linkWorkspaceToCase,
+  linkWorkspaceToCollection,
   listCases,
+  listCollections,
   listInvestigations,
   recommendCommunityDetections,
+  removeIndicator,
   saveInvestigation,
+  searchCollections,
   searchCommunityDetections,
   unlinkWorkspaceFromCase,
   updateCase,
+  updateCollection,
   updateInvestigation,
   type InvestigationSummary,
 } from "./api";
@@ -1069,6 +1079,343 @@ describe("addCaseNote", () => {
     const controller = new AbortController();
 
     await addCaseNote(CASE_RECORD.id, "analyst", "note", controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+const COLLECTION_RECORD = {
+  id: "c3b6e4d2-2345-4bcd-8ef0-123456789abc",
+  name: "Silver Fox Campaign",
+  description: null,
+  category: null,
+  tags: [],
+  created_at: "2026-07-17T00:00:00Z",
+  updated_at: "2026-07-17T00:00:00Z",
+  source: "manual",
+  linked_case_ids: [],
+  linked_workspace_ids: [],
+  metadata: {},
+  indicators: [],
+};
+
+describe("createCollection", () => {
+  it("POSTs the request to the collections endpoint and returns the created collection", async () => {
+    const fetchMock = stubFetch(201, COLLECTION_RECORD);
+
+    const result = await createCollection({ name: "Silver Fox Campaign" });
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(/\/collections$/);
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual({ name: "Silver Fox Campaign" });
+    expect(result).toEqual(COLLECTION_RECORD);
+  });
+
+  it("throws ApiError on a non-2xx response", async () => {
+    stubFetch(422, { detail: "bad" });
+    await expect(createCollection({ name: "" })).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(201, COLLECTION_RECORD);
+    const controller = new AbortController();
+
+    await createCollection({ name: "Collection" }, controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("listCollections", () => {
+  it("GETs the plain collections endpoint with no query string", async () => {
+    const fetchMock = stubFetch(200, { collections: [], total: 0 });
+
+    await listCollections();
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(/\/collections$/);
+    expect(init.method).toBe("GET");
+  });
+
+  it("throws ApiError on a non-2xx response", async () => {
+    stubFetch(500, { detail: "boom" });
+    await expect(listCollections()).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(200, { collections: [], total: 0 });
+    const controller = new AbortController();
+
+    await listCollections(controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("searchCollections", () => {
+  it("GETs the collections/search endpoint with no query string when no filters are given", async () => {
+    const fetchMock = stubFetch(200, { collections: [], total: 0 });
+
+    await searchCollections();
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(/\/collections\/search$/);
+    expect(init.method).toBe("GET");
+  });
+
+  it("builds a query string from every given filter", async () => {
+    const fetchMock = stubFetch(200, { collections: [], total: 0 });
+
+    await searchCollections({
+      name: "fox",
+      category: "campaign",
+      indicator_type: "domain",
+      tag: "loader",
+      linked_case_id: "case-1",
+      linked_workspace_id: "ws-1",
+    });
+
+    const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const parsed = new URL(String(url), "http://example.test");
+    expect(parsed.searchParams.get("name")).toBe("fox");
+    expect(parsed.searchParams.get("category")).toBe("campaign");
+    expect(parsed.searchParams.get("indicator_type")).toBe("domain");
+    expect(parsed.searchParams.get("tag")).toBe("loader");
+    expect(parsed.searchParams.get("linked_case_id")).toBe("case-1");
+    expect(parsed.searchParams.get("linked_workspace_id")).toBe("ws-1");
+  });
+
+  it("omits filters that are not provided", async () => {
+    const fetchMock = stubFetch(200, { collections: [], total: 0 });
+
+    await searchCollections({ category: "campaign" });
+
+    const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).not.toContain("name=");
+    expect(String(url)).not.toContain("tag=");
+  });
+
+  it("throws ApiError on a non-2xx response", async () => {
+    stubFetch(500, { detail: "boom" });
+    await expect(searchCollections()).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(200, { collections: [], total: 0 });
+    const controller = new AbortController();
+
+    await searchCollections({}, controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("getCollection", () => {
+  it("GETs the collections/{id} endpoint and returns the full record", async () => {
+    const fetchMock = stubFetch(200, COLLECTION_RECORD);
+
+    const result = await getCollection(COLLECTION_RECORD.id);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(new RegExp(`/collections/${COLLECTION_RECORD.id}$`));
+    expect(init.method).toBe("GET");
+    expect(result).toEqual(COLLECTION_RECORD);
+  });
+
+  it("throws ApiError on a 404", async () => {
+    stubFetch(404, { detail: "not found" });
+    await expect(getCollection("missing")).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(200, COLLECTION_RECORD);
+    const controller = new AbortController();
+
+    await getCollection(COLLECTION_RECORD.id, controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("updateCollection", () => {
+  it("PATCHes the partial update to collections/{id} and returns the updated collection", async () => {
+    const updated = { ...COLLECTION_RECORD, name: "Renamed" };
+    const fetchMock = stubFetch(200, updated);
+
+    const result = await updateCollection(COLLECTION_RECORD.id, { name: "Renamed" });
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(new RegExp(`/collections/${COLLECTION_RECORD.id}$`));
+    expect(init.method).toBe("PATCH");
+    expect(JSON.parse(init.body as string)).toEqual({ name: "Renamed" });
+    expect(result).toEqual(updated);
+  });
+
+  it("throws ApiError on a 404", async () => {
+    stubFetch(404, { detail: "not found" });
+    await expect(updateCollection("missing", { name: "x" })).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(200, COLLECTION_RECORD);
+    const controller = new AbortController();
+
+    await updateCollection(COLLECTION_RECORD.id, { name: "x" }, controller.signal);
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("deleteCollection", () => {
+  it("DELETEs collections/{id} and resolves with no value", async () => {
+    const fetchMock = stubFetch(204, undefined);
+
+    const result = await deleteCollection(COLLECTION_RECORD.id);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(new RegExp(`/collections/${COLLECTION_RECORD.id}$`));
+    expect(init.method).toBe("DELETE");
+    expect(result).toBeUndefined();
+  });
+
+  it("throws ApiError on a 404", async () => {
+    stubFetch(404, { detail: "not found" });
+    await expect(deleteCollection("missing")).rejects.toBeInstanceOf(ApiError);
+  });
+});
+
+describe("addIndicator", () => {
+  it("POSTs the indicator to collections/{id}/indicator and returns the updated collection", async () => {
+    const withIndicator = {
+      ...COLLECTION_RECORD,
+      indicators: [{ type: "domain", value: "evil.com", tags: [] }],
+    };
+    const fetchMock = stubFetch(201, withIndicator);
+
+    const result = await addIndicator(COLLECTION_RECORD.id, {
+      type: "domain",
+      value: "evil.com",
+    });
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(new RegExp(`/collections/${COLLECTION_RECORD.id}/indicator$`));
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual({ type: "domain", value: "evil.com" });
+    expect(result).toEqual(withIndicator);
+  });
+
+  it("throws ApiError on a 404", async () => {
+    stubFetch(404, { detail: "not found" });
+    await expect(
+      addIndicator("missing", { type: "domain", value: "evil.com" }),
+    ).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(201, COLLECTION_RECORD);
+    const controller = new AbortController();
+
+    await addIndicator(
+      COLLECTION_RECORD.id,
+      { type: "domain", value: "evil.com" },
+      controller.signal,
+    );
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("removeIndicator", () => {
+  it("DELETEs collections/{id}/indicator with a JSON body and returns the updated collection", async () => {
+    const fetchMock = stubFetch(200, COLLECTION_RECORD);
+
+    const result = await removeIndicator(COLLECTION_RECORD.id, {
+      type: "domain",
+      value: "evil.com",
+    });
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(new RegExp(`/collections/${COLLECTION_RECORD.id}/indicator$`));
+    expect(init.method).toBe("DELETE");
+    expect(JSON.parse(init.body as string)).toEqual({ type: "domain", value: "evil.com" });
+    expect(result).toEqual(COLLECTION_RECORD);
+  });
+
+  it("throws ApiError on a 404", async () => {
+    stubFetch(404, { detail: "not found" });
+    await expect(
+      removeIndicator("missing", { type: "domain", value: "evil.com" }),
+    ).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("is idempotent-shaped: a 200 with an unchanged collection is a valid resolution", async () => {
+    const fetchMock = stubFetch(200, COLLECTION_RECORD);
+    const result = await removeIndicator(COLLECTION_RECORD.id, {
+      type: "domain",
+      value: "nonexistent.com",
+    });
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(result).toEqual(COLLECTION_RECORD);
+  });
+});
+
+describe("linkWorkspaceToCollection", () => {
+  it("POSTs the workspace id to collections/{id}/workspace and returns the updated collection", async () => {
+    const linked = { ...COLLECTION_RECORD, linked_workspace_ids: [WORKSPACE_RECORD.id] };
+    const fetchMock = stubFetch(200, linked);
+
+    const result = await linkWorkspaceToCollection(COLLECTION_RECORD.id, WORKSPACE_RECORD.id);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(new RegExp(`/collections/${COLLECTION_RECORD.id}/workspace$`));
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual({ workspace_id: WORKSPACE_RECORD.id });
+    expect(result).toEqual(linked);
+  });
+
+  it("throws ApiError on a 404 (nonexistent investigation)", async () => {
+    stubFetch(404, { detail: "not found" });
+    await expect(
+      linkWorkspaceToCollection(COLLECTION_RECORD.id, "missing"),
+    ).rejects.toBeInstanceOf(ApiError);
+  });
+});
+
+describe("linkCaseToCollection", () => {
+  it("POSTs the case id to collections/{id}/case and returns the updated collection", async () => {
+    const linked = { ...COLLECTION_RECORD, linked_case_ids: [CASE_RECORD.id] };
+    const fetchMock = stubFetch(200, linked);
+
+    const result = await linkCaseToCollection(COLLECTION_RECORD.id, CASE_RECORD.id);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(new RegExp(`/collections/${COLLECTION_RECORD.id}/case$`));
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual({ case_id: CASE_RECORD.id });
+    expect(result).toEqual(linked);
+  });
+
+  it("throws ApiError on a 404 (nonexistent case)", async () => {
+    stubFetch(404, { detail: "not found" });
+    await expect(
+      linkCaseToCollection(COLLECTION_RECORD.id, "missing"),
+    ).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("passes the abort signal through to fetch", async () => {
+    const fetchMock = stubFetch(200, COLLECTION_RECORD);
+    const controller = new AbortController();
+
+    await linkCaseToCollection(COLLECTION_RECORD.id, CASE_RECORD.id, controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(init.signal).toBe(controller.signal);

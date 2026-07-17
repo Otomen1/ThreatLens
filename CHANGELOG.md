@@ -6,6 +6,67 @@ All notable changes to ThreatLens are documented here. The project follows
 
 ## [Unreleased]
 
+### Added — Phase 9.1: Intelligence Collections Framework
+
+- **New `backend/src/threatlens/collections/` package** — reusable,
+  analyst-curated sets of threat intelligence ("Silver Fox Campaign",
+  "APT29 Infrastructure", "Internal Blocklist"), sitting alongside Case
+  Management above the Workspace platform. A `Collection` is explicitly
+  **not** an analytical engine, not a `Case`, and not a `Workspace` — it
+  references (never copies) zero or more Workspace investigations and
+  Cases by id. Mirrors `threatlens.cases`'s own architecture: models →
+  independent local-file storage (`THREATLENS_COLLECTIONS_DIR`) → service →
+  API, plus a new `normalize.py` module (a deliberate, documented addition
+  beyond the suggested file layout) for indicator deduplication identity.
+- **`Indicator` model**: 18 types (`ipv4`/`ipv6`/`domain`/`hostname`/`url`/
+  `email`/`sha1`/`sha256`/`md5`/`cve`/`mitre_technique`/`mitre_software`/
+  `mitre_group`/`registry`/`mutex`/`filename`/`process`/`certificate`),
+  `first_seen`/`last_seen`, `confidence` (0–100), `tags`, `source`, `notes`.
+  Identity for deduplication is `(type, normalized_value)` — never a
+  synthetic id (an `Indicator` has none). Re-adding an indicator with a
+  matching identity **merges** into the existing record (widened
+  first/last-seen range, unioned tags, newest non-null
+  confidence/source/notes) rather than creating a duplicate or being
+  rejected.
+- **Normalization**: a pure, deterministic per-type canonicalization
+  (`normalize_indicator_value()`) — IP compression, lowercase domains/
+  hashes, URL scheme/host lowercased with path case preserved, uppercase
+  CVE/MITRE ATT&CK ids. Malformed input never raises; it falls back to a
+  simple case-fold, since Collections store only explicitly provided
+  intelligence and never reject or classify it.
+- **API**: `POST/GET /api/v1/collections`, `GET /api/v1/collections/search`
+  (deterministic filters: name, category, indicator type, tag, linked case,
+  linked workspace), `GET/PATCH/DELETE /api/v1/collections/{id}`,
+  `POST/DELETE /api/v1/collections/{id}/indicator` (add/remove, matched by
+  normalized identity — no indicator id in the URL), `POST
+  /api/v1/collections/{id}/workspace`, `POST /api/v1/collections/{id}/case`
+  (both idempotent, validated against the existing `WorkspaceService`/
+  `CaseService`). `GET /collections`/`.../search` return a slim
+  `CollectionListItem` (an `indicator_count`, not the full list) since a
+  collection's indicators can grow large, unlike a case's small lists;
+  `GET /collections/{id}` returns the full record.
+- **Frontend**: `/collections` (browse or filter by name/category/
+  indicator-type/tag; inline collection creation) and `/collections/{id}`
+  (metadata edit toggle, indicator list with add/remove, linked-
+  investigations and linked-cases panels reusing the existing
+  `getInvestigation()`/`getCase()` clients — link only, no unlink, matching
+  the API). Adds `delWithPayload()` to the shared `lib/api/client.ts` for
+  the indicator-removal endpoint's DELETE-with-JSON-body shape.
+- **Testing**: 197 new backend tests (`backend/tests/intel_collections/` —
+  named to avoid a real stdlib `collections` module name collision in this
+  repo's un-packaged `tests/` root, confirmed empirically) — models,
+  normalization (every type's canonical form), storage, service (every
+  filter, every indicator merge rule individually, idempotent linking
+  against real `WorkspaceService`/`CaseService` collaborators), API
+  contract (including a regression test for the `/collections/search` vs.
+  `/collections/{id}` route-ordering hazard), and a no-regression suite. 30
+  new frontend tests. Browser-verified end-to-end (34/34 checks, 3
+  consecutive clean runs): create → browse/filter → edit → add an indicator
+  → re-add with a different tag (confirms merge) → link a real investigation
+  and case (never mutated) → link-to-nonexistent error path → remove →
+  delete.
+- **Docs**: `docs/architecture/PHASE-9.1-INTELLIGENCE-COLLECTIONS.md`.
+
 ### Added — Phase 9.0: Case Management Framework
 
 - **New `backend/src/threatlens/cases/` package** — an operational layer

@@ -148,3 +148,39 @@ export async function delWithBody<T>(path: string, signal?: AbortSignal): Promis
   }
   return (await res.json()) as T;
 }
+
+/**
+ * DELETE an API path with a JSON request body, returning the parsed JSON
+ * response body — for endpoints that identify what to delete via the body
+ * rather than the path (e.g. removing an indicator from a collection, which
+ * has no synthetic id of its own to put in the URL — identity is
+ * `(type, value)`, given in the request body) and that return the updated
+ * resource rather than a bare `204`.
+ */
+export async function delWithPayload<T>(
+  path: string,
+  body: unknown,
+  signal?: AbortSignal,
+): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal,
+    });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") throw err;
+    throw new ApiError("Could not reach the service.");
+  }
+
+  if (!res.ok) {
+    let message = `Request failed (${res.status}).`;
+    if (res.status === 404) message = "Not found.";
+    if (res.status === 422) message = "That request could not be processed.";
+    throw new ApiError(message, res.status);
+  }
+
+  return (await res.json()) as T;
+}

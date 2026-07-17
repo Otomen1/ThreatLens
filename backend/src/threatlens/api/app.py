@@ -18,6 +18,7 @@ from .health import router as health_router
 from .routes import (
     ai,
     cases,
+    collections,
     correlation,
     detection,
     detection_knowledge,
@@ -28,6 +29,7 @@ from .routes import (
 )
 from .routes.ai import get_ai_service as get_ai_service
 from .routes.cases import get_case_service as get_case_service
+from .routes.collections import get_collection_service as get_collection_service
 from .routes.detection_knowledge import get_knowledge_service as get_knowledge_service
 from .routes.investigation import get_investigation_service as get_investigation_service
 from .routes.workspace import get_graph_service as get_graph_service
@@ -111,6 +113,14 @@ app.include_router(workspace.router)
 # exists; never reads, mutates, or recomputes an investigation's content,
 # and Workspace itself has no notion of cases.
 app.include_router(cases.router)
+
+# Intelligence Collections (Phase 9.1): reusable, analyst-curated sets of
+# threat intelligence (indicators) that may reference zero or more Workspace
+# investigations and zero or more Cases by id. Depends on both services
+# above to confirm a linked id exists; never reads, mutates, or recomputes
+# their content, and neither Workspace nor Case Management has any notion of
+# collections.
+app.include_router(collections.router)
 
 # Downstream, optional AI explanation of a completed investigation.
 app.include_router(ai.router)

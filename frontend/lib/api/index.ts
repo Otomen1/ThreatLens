@@ -19,3 +19,4 @@ export * from "./correlation";
 export * from "./system";
 export * from "./workspace";
 export * from "./cases";
+export * from "./collections";
