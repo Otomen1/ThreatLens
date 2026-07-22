@@ -2,7 +2,7 @@
 
 Pure plumbing over a :class:`~threatlens.workspace.storage.WorkspaceStorage`
 backend: save, load, update, delete, list, and filter saved investigations.
-No investigation logic, no reasoning, no correlation — every field this
+No investigation logic, no reasoning, no correlation â€” every field this
 service touches is either workspace metadata (title, status, tags, ...) or an
 already-computed engine output attached verbatim by the caller.
 """
@@ -34,7 +34,7 @@ class WorkspaceService:
     ) -> WorkspaceInvestigation:
         """Persist a new investigation record; returns it with a fresh id.
 
-        ``id`` is always a fresh ``uuid4()`` — saving the same content twice
+        ``id`` is always a fresh ``uuid4()`` â€” saving the same content twice
         (e.g. re-saving after editing the analyst summary) creates a second,
         distinct record rather than overwriting the first.
         """
@@ -76,11 +76,12 @@ class WorkspaceService:
         Raises :class:`~threatlens.workspace.exceptions.InvestigationNotFoundError`
         if no record exists with that id.
         """
-        existing = self._storage.load(investigation_id)
-        changes = request.model_dump(exclude_unset=True)
-        changes["updated_at"] = now or datetime.now(UTC)
-        updated = existing.model_copy(update=changes)
-        self._storage.save(updated)
+        with self._storage.lock():
+            existing = self._storage.load(investigation_id)
+            changes = request.model_dump(exclude_unset=True)
+            changes["updated_at"] = now or datetime.now(UTC)
+            updated = existing.model_copy(update=changes)
+            self._storage.save(updated)
         return updated
 
     def delete(self, investigation_id: UUID) -> None:
@@ -103,7 +104,7 @@ class WorkspaceService:
         """Every saved investigation matching all given filters, most recently updated first.
 
         Filtering and search are pure in-memory operations over already-persisted
-        metadata — never a database query, never reasoning, never correlation.
+        metadata â€” never a database query, never reasoning, never correlation.
         """
         records = self._storage.list_all()
         if status is not None:
