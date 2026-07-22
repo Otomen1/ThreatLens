@@ -3,15 +3,20 @@
 Each subsystem's endpoints live in their own router under ``api/routes/``
 (plus the standalone ``health`` and ``system`` routers) and are mounted here.
 This module builds the FastAPI app, configures CORS, and includes every
-router — it holds no route handlers or business logic of its own.
+router â€” it holds no route handlers or business logic of its own.
 """
 
 from __future__ import annotations
 
 import os
+import hmac
+import time
+from collections import defaultdict, deque
+from threading import Lock
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from ..system import build_system_router
 from .health import router as health_router
@@ -45,11 +50,24 @@ except ModuleNotFoundError:
 else:
     load_dotenv()
 
+_API_KEY = os.getenv("THREATLENS_API_KEY", "").strip()
+_RATE_LIMIT = int(os.getenv("THREATLENS_RATE_LIMIT_PER_MINUTE", "60")) if _API_KEY else 0
+_RATE_BUCKETS: defaultdict[str, deque[float]] = defaultdict(deque)
+_RATE_LOCK = Lock()
+_PUBLIC_PATHS = {
+    "/health",
+    "/ready",
+    "/version",
+    "/api/v1/health",
+    "/api/v1/ready",
+    "/api/v1/version",
+}
+
 app = FastAPI(
     title="ThreatLens API",
     version="1.0.0",
     description=(
-        "ThreatLens Core Platform v1.0 — deterministic entity detection, "
+        "ThreatLens Core Platform v1.0 â€” deterministic entity detection, "
         "threat-intelligence and knowledge investigation, reasoning, and "
         "optional downstream AI explanation."
     ),
@@ -75,8 +93,36 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.middleware("http")
+async def protect_api(request: Request, call_next):
+    """Protect deployed API instances when an API key is configured.
+
+    Local development remains unchanged when ``THREATLENS_API_KEY`` is unset;
+    deployed instances should always set it through the platform secret store.
+    Health probes stay public, while all other API routes require the key and
+    are rate-limited per client IP.
+    """
+    path = request.url.path
+    if _API_KEY and path.startswith("/api/v1") and path not in _PUBLIC_PATHS:
+        supplied = request.headers.get("x-api-key", "")
+        if not hmac.compare_digest(supplied, _API_KEY):
+            return JSONResponse(status_code=401, content={"detail": "Invalid API key"})
+
+        if _RATE_LIMIT > 0:
+            now = time.monotonic()
+            client = request.client.host if request.client else "unknown"
+            with _RATE_LOCK:
+                bucket = _RATE_BUCKETS[client]
+                while bucket and now - bucket[0] >= 60:
+                    bucket.popleft()
+                if len(bucket) >= _RATE_LIMIT:
+                    return JSONResponse(status_code=429, content={"detail": "Rate limit exceeded"})
+                bucket.append(now)
+    return await call_next(request)
+
 # Operational-readiness endpoints. Mounted at the root (``/health``, ``/ready``,
-# ``/version``, …) for infrastructure probes hitting the backend directly, and
+# ``/version``, â€¦) for infrastructure probes hitting the backend directly, and
 # again under ``/api/v1`` so a same-origin frontend reaches them through the
 # existing API base. Every endpoint is read-only (see ``api/health.py``).
 app.include_router(health_router)
@@ -84,9 +130,9 @@ app.include_router(health_router, prefix="/api/v1")
 
 # Operational Dashboard (read-only): system health, API consumption, and
 # configuration status for administrators/developers. Isolated from the
-# investigation path — see docs/architecture/PHASE-OPERATIONAL-DASHBOARD-V1.md.
+# investigation path â€” see docs/architecture/PHASE-OPERATIONAL-DASHBOARD-V1.md.
 # Reads the same singleton DetectionRegistry / DetectionKnowledgeService their
-# own routers below already built — never a second copy.
+# own routers below already built â€” never a second copy.
 app.include_router(
     build_system_router(
         detection_registry=detection.detection_registry,
@@ -99,7 +145,7 @@ app.include_router(
 app.include_router(investigation.router)
 
 # Investigation Workspace: a persistence layer over completed investigations
-# (save/load/update/delete/list), plus two read-only, derived sibling views —
+# (save/load/update/delete/list), plus two read-only, derived sibling views â€”
 # an investigation timeline (Phase 8.1) and an evidence relationship graph
 # (Phase 8.2). Consumes existing outputs; never generates them and never
 # touches the analytical pipeline above.
