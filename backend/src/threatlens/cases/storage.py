@@ -1,6 +1,6 @@
 """Storage abstraction for Case Management (Phase 9.0).
 
-Mirrors :mod:`threatlens.workspace.storage` exactly — the brief is explicit:
+Mirrors :mod:`threatlens.workspace.storage` exactly â€” the brief is explicit:
 "Reuse existing storage approach. Do NOT redesign storage." Cases persist
 independently of Workspace: a separate root directory, a separate
 :class:`CaseStorage` interface, and a separate :class:`LocalFileStorage`
@@ -11,11 +11,13 @@ depend on the other's.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from contextlib import AbstractContextManager
 from pathlib import Path
 from uuid import UUID
 
 from pydantic import ValidationError
 
+from ..storage_lock import file_lock
 from .exceptions import CaseNotFoundError, CaseStorageError
 from .models import Case
 
@@ -51,13 +53,17 @@ class CaseStorage(ABC):
     def exists(self, case_id: UUID) -> bool:
         """Whether a record exists for ``case_id``."""
 
+    @abstractmethod
+    def lock(self) -> AbstractContextManager[None]:
+        """Acquire the storage-wide transaction lock."""
+
 
 class LocalFileStorage(CaseStorage):
-    """One JSON file per case under ``root`` — ``{id}.json``.
+    """One JSON file per case under ``root`` â€” ``{id}.json``.
 
     Writes are atomic (write to a temp file, then rename) so a crash mid-write
     never leaves a half-written record. ``list_all`` skips any file that fails
-    to parse rather than failing the whole listing — a single corrupt record
+    to parse rather than failing the whole listing â€” a single corrupt record
     should not make every other case unreachable; ``load`` (a request for one
     specific id) still raises on that same corruption.
     """
@@ -110,3 +116,6 @@ class LocalFileStorage(CaseStorage):
 
     def exists(self, case_id: UUID) -> bool:
         return self._path(case_id).exists()
+
+    def lock(self) -> AbstractContextManager[None]:
+        return file_lock(self._root / ".transaction.lock")
