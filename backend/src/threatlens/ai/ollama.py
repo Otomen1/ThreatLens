@@ -1,10 +1,10 @@
-"""The Ollama provider — the first concrete AI explanation provider.
+"""The Ollama provider â€” the first concrete AI explanation provider.
 
 Calls a local/remote Ollama server's ``/api/chat`` with a deterministic prompt
 (``temperature=0``, ``format=json``) built from the InvestigationSummary, then
 parses, schema-validates, and **grounds** the result: any explanation that
 references a finding id or recommendation not present in the summary is dropped.
-The model cannot, therefore, introduce findings, evidence, or recommendations —
+The model cannot, therefore, introduce findings, evidence, or recommendations â€”
 grounding is enforced in code, not merely requested in the prompt.
 
 Every failure path returns a structured ``timeout`` / ``unavailable`` /
@@ -160,12 +160,29 @@ class OllamaProvider(AIProvider):
                 "findings/recommendations were removed."
             )
 
+        # Free-form model prose is intentionally not returned: it cannot be
+        # proven grounded by checking IDs alone. Keep summaries deterministic
+        # and derive them only from the validated investigation object.
+        finding_count = len(summary.findings)
+        executive_summary = (
+            f"Investigation completed for {summary.entity_type.value} "
+            f"{summary.entity_value!r}; {finding_count} finding(s) were produced "
+            "by the deterministic engine."
+        )
+        technical_summary = " ".join(
+            [
+                f"Engine version: {summary.engine_version}.",
+                "Findings: "
+                + ("; ".join(f"{f.id}: {f.title}" for f in summary.findings) or "none."),
+            ]
+        )
+
         return AIExplanation(
             status=AIStatus.OK,
             provider=self.name,
             model=self._model,
-            executive_summary=raw.executive_summary.strip(),
-            technical_summary=raw.technical_summary.strip(),
+            executive_summary=executive_summary,
+            technical_summary=technical_summary,
             finding_explanations=findings,
             recommendation_explanations=recommendations,
             limitations=limitations,
@@ -174,7 +191,7 @@ class OllamaProvider(AIProvider):
     def _fail(self, status: AIStatus, reason: str) -> AIExplanation:
         """Log the raw reason server-side and return a friendly structured result.
 
-        The reason is for operators (logs) only — it is never surfaced to the
+        The reason is for operators (logs) only â€” it is never surfaced to the
         analyst; the frontend renders its own curated, non-alarming copy.
         """
         logger.warning(
