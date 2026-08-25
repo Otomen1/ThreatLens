@@ -123,6 +123,10 @@ export default function DashboardPage() {
             <Kpi label="Detection rules" value={state.usage.detection_engineering.generated_total} detail={`${state.usage.detection_engineering.avg_generation_ms ?? "—"} ms avg`} />
             <Kpi label="Configured sources" value={state.config.threat_intelligence.filter((item) => item.configured).length} detail={`${state.config.threat_intelligence.length} total providers`} />
           </div>
+          {(() => {
+            const warnings = state.health.services.filter((service) => service.status === "degraded" || service.status === "offline");
+            return warnings.length > 0 ? <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-300/90" role="status"><span className="font-semibold">Attention needed:</span> {warnings.map((warning) => `${warning.display_name} (${warning.status})`).join(" · ")}</div> : null;
+          })()}
           <DashboardTabs
             idPrefix="dashboard"
             activeKey={activeTab}

@@ -70,6 +70,14 @@ export function ProviderCard({ provider, evidence }: Props) {
           ))}
         </div>
       )}
+      {!expanded && provider.error && (
+        <div className="mx-4 mb-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-300/80">
+          {provider.error.message} · expand for details
+        </div>
+      )}
+      {!expanded && previewItems.length === 0 && !provider.error && provider.status !== "ok" && (
+        <p className="px-4 pb-3 text-xs text-zinc-500">{statusLabel(provider.status)} — no evidence returned.</p>
+      )}
 
       {/* Expanded details */}
       {expanded && (

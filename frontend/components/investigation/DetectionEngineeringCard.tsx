@@ -139,9 +139,10 @@ export function DetectionEngineeringCard({ summary }: Props) {
             <p className="text-sm text-zinc-400 animate-pulse pt-3">Generating detection package…</p>
           )}
           {!loading && failed && (
-            <p className="text-sm text-zinc-400 pt-3">
-              The detection package could not be generated. The investigation above is unaffected.
-            </p>
+            <div className="flex items-center justify-between gap-3 pt-3">
+              <p className="text-sm text-zinc-400">Could not generate detections. The assessment above is unaffected.</p>
+              <button onClick={() => { setFailed(false); setData(null); setExpanded(false); setTimeout(() => void toggle(), 0); }} className="shrink-0 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700">Retry</button>
+            </div>
           )}
           {!loading && !failed && data && (
             <PackageView

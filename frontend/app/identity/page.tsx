@@ -88,8 +88,9 @@ export default function IdentityPage() {
             </dl>
 
             <p className="text-xs text-zinc-600 leading-relaxed pt-2 border-t border-zinc-800">
-              This is an architecture preview. No provider data is available yet — provider
-              integrations (Have I Been Pwned, Entra ID, Okta, …) arrive in a future phase.
+              Identity lookups are available for configured providers. Use the main investigation
+              search with an email address to request identity context; missing credentials are
+              reported as provider status, never as a security verdict.
             </p>
           </div>
         )}

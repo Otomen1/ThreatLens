@@ -8,6 +8,9 @@ const links = [
   ["/workspace", "Workspace"],
   ["/cases", "Cases"],
   ["/dashboard", "Dashboard"],
+  ["/exposure", "Exposure"],
+  ["/identity", "Identity"],
+  ["/correlation", "Correlation"],
 ] as const;
 
 export function AppNav() {

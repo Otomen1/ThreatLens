@@ -84,9 +84,8 @@ export default function CorrelationPage() {
             </dl>
 
             <p className="text-xs text-zinc-600 leading-relaxed pt-2 border-t border-zinc-800">
-              This is an architecture preview. The engine ships a small seed rule set and is not yet
-              wired into an investigation — deterministic correlation of findings arrives in a future
-              phase.
+              Correlation is included as additive context on completed investigations. It connects
+              existing findings and never changes severity, confidence, or priority.
             </p>
           </div>
         )}
