@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field, field_validator
 from ..entities.models import Entity
 from ..entities.types import EntityType
 from ..exposure import ExposureSummary
+from ..correlation import CorrelationSummary
 from ..providers import AggregatedResult
 from ..reasoning import InvestigationSummary, Severity
 from ..workspace import WorkspaceStatus
@@ -65,6 +66,10 @@ class InvestigationResponse(BaseModel):
     threat_intelligence: AggregatedResult
     knowledge: AggregatedResult
     investigation_summary: InvestigationSummary
+    # Additive downstream projections. These do not alter the frozen reasoning
+    # summary; they make the completed investigation useful as one response.
+    exposure: ExposureSummary | None = None
+    correlation: CorrelationSummary | None = None
 
 
 class ExposureProviderStatusInfo(BaseModel):

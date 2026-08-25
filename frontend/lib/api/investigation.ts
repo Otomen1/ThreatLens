@@ -222,12 +222,59 @@ export interface InvestigationSummary {
   generated_at: string;
 }
 
+export interface InvestigationExposureFinding {
+  provider: string;
+  provider_display_name: string | null;
+  entity_type: EntityType;
+  entity_value: string;
+  status: string;
+  error: { message: string; retryable: boolean; detail: string | null } | null;
+  category: string | null;
+  summary: string;
+  evidence: { type: string; summary: string; value: string | null; observed_at: string | null; data: Record<string, unknown> }[];
+  assets: { asset_type: string; value: string; first_seen: string | null; last_seen: string | null; attributes: Record<string, unknown> }[];
+  references: { title: string; url: string; description: string | null }[];
+  fetched_at: string | null;
+}
+
+export interface InvestigationExposureSummary {
+  entity_type: EntityType;
+  entity_value: string;
+  findings: InvestigationExposureFinding[];
+  references: { title: string; url: string; description: string | null }[];
+  statistics: { providers_queried: number; providers_ok: number; total_findings: number; total_assets: number; categories: string[] };
+  metadata: { entity_type: EntityType; entity_value: string; generated_at: string; framework_version: string };
+}
+
+export interface CorrelationObservation {
+  id: string;
+  rule_id: string;
+  category: string;
+  title: string;
+  summary: string;
+  subject_type: EntityType;
+  subject_value: string;
+  source_finding_ids: string[];
+}
+
+export interface CorrelationSummary {
+  id: string;
+  entity_type: EntityType;
+  entity_value: string;
+  observations: CorrelationObservation[];
+  matches: { rule_id: string; category: string; observation_ids: string[] }[];
+  statistics: { rules_evaluated: number; rules_matched: number; total_observations: number; source_finding_count: number; categories: string[] };
+  metadata: { entity_type: EntityType; entity_value: string; generated_at: string; framework_version: string; source_engine_version: string };
+}
+
 export interface InvestigationResponse {
   investigation_id: string;
   entity: Entity;
   threat_intelligence: AggregatedResult;
   knowledge: AggregatedResult;
   investigation_summary: InvestigationSummary;
+  exposure: InvestigationExposureSummary | null;
+  correlation: CorrelationSummary | null;
 }
 
 /** Classify a query into a normalized entity (detection only). */

@@ -9,12 +9,16 @@ the work.
 
 from __future__ import annotations
 
+import asyncio
 import time
 from typing import Annotated
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends
 
+from ...correlation import CorrelationService
+from ...exposure import ExposureService
+from ...exposure import build_default_registry as build_exposure_registry
 from ...investigation import InvestigationService
 from ...providers import build_default_router
 from ...reasoning import reason
@@ -32,6 +36,8 @@ router = APIRouter()
 _investigation_service = InvestigationService(
     build_default_router(), build_default_reference_router()
 )
+_exposure_service = ExposureService(build_exposure_registry())
+_correlation_service = CorrelationService()
 
 
 def get_investigation_service() -> InvestigationService:
@@ -68,6 +74,12 @@ async def investigate_entity(
     threat_intelligence, knowledge = await service.investigate(entity)
     _duration_ms = elapsed_ms(_start)
     investigation_summary = reason(entity, threat_intelligence, knowledge)
+    # These are additive downstream views. Exposure remains descriptive and
+    # correlation consumes the frozen summary without changing its findings.
+    exposure, correlation = await asyncio.gather(
+        _exposure_service.investigate(entity),
+        asyncio.to_thread(_correlation_service.correlate, investigation_summary),
+    )
     record_investigation(
         metrics_registry,
         threat_intelligence=threat_intelligence,
@@ -81,4 +93,6 @@ async def investigate_entity(
         threat_intelligence=threat_intelligence,
         knowledge=knowledge,
         investigation_summary=investigation_summary,
+        exposure=exposure,
+        correlation=correlation,
     )

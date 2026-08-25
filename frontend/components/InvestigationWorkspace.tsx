@@ -20,6 +20,7 @@ import { RecommendationRollup } from "./investigation/RecommendationRollup";
 import { ReferenceSection } from "./investigation/ReferenceSection";
 import { RelationshipSection } from "./investigation/RelationshipSection";
 import { ThreatSummaryCard } from "./investigation/ThreatSummaryCard";
+import { ContextSignalsCard } from "./investigation/ContextSignalsCard";
 
 interface Props {
   data: InvestigationResponse;
@@ -29,6 +30,7 @@ interface Props {
 export function InvestigationWorkspace({ data, timestamp }: Props) {
   const { entity, threat_intelligence, knowledge, investigation_id } = data;
   const summary = data.investigation_summary;
+  const { exposure, correlation } = data;
 
   const hasTI = threat_intelligence.providers.length > 0;
   const hasKB = knowledge.providers.length > 0;
@@ -78,6 +80,8 @@ export function InvestigationWorkspace({ data, timestamp }: Props) {
 
       {/* ── 2. Investigation assessment (reasoning headline) ──────── */}
       {summary && <InvestigationSummaryCard summary={summary} />}
+
+      <ContextSignalsCard exposure={exposure} correlation={correlation} />
 
       {/* ── 3. Recommendations (rollup, priority-ordered) ─────────── */}
       {summary && <RecommendationRollup recommendations={summary.recommendations} />}

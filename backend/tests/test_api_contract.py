@@ -51,6 +51,16 @@ def test_investigate_top_level_contract() -> None:
     }.issubset(body)
 
 
+def test_investigate_includes_additive_context_projections() -> None:
+    body = _investigate("T1059")
+    assert body["exposure"] is not None
+    assert body["correlation"] is not None
+    assert {"findings", "statistics", "metadata"}.issubset(body["exposure"])
+    assert {"observations", "matches", "statistics", "metadata"}.issubset(
+        body["correlation"]
+    )
+
+
 def test_detect_top_level_contract() -> None:
     response = client.post("/api/v1/detect", json={"query": "8.8.8.8"})
     assert response.status_code == 200
