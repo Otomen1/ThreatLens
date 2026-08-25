@@ -22,6 +22,8 @@ from ...reporting import InvestigationReport, ReportService
 from ...timeline import Timeline, TimelineService
 from ...workspace import (
     InvestigationNotFoundError,
+    InvestigationComparison,
+    compare,
     LocalFileStorage,
     SQLiteWorkspaceStorage,
     SaveInvestigationRequest,
@@ -231,6 +233,19 @@ def get_investigation_report(
     except InvestigationNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return report.build(record)
+
+
+@router.get("/api/v1/workspace/{investigation_id}/compare/{other_id}", response_model=InvestigationComparison)
+def compare_investigations(
+    investigation_id: UUID,
+    other_id: UUID,
+    service: Annotated[WorkspaceService, Depends(get_workspace_service)],
+) -> InvestigationComparison:
+    """Compare two saved investigation snapshots deterministically."""
+    try:
+        return compare(service.get(investigation_id), service.get(other_id))
+    except InvestigationNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @router.put("/api/v1/workspace/{investigation_id}", response_model=WorkspaceInvestigation)

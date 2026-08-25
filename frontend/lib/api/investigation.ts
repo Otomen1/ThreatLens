@@ -256,6 +256,12 @@ export interface InvestigationResponse {
   investigation_summary: InvestigationSummary;
   exposure: ExposureSummary | null;
   correlation: CorrelationSummary | null;
+  identity: {
+    entity_type: EntityType;
+    entity_value: string;
+    findings: { provider: string; status: string; summary: string; evidence: unknown[]; assets: unknown[] }[];
+    statistics: { providers_queried: number; providers_ok: number; total_findings: number; total_assets: number; categories: string[] };
+  } | null;
 }
 
 /** Classify a query into a normalized entity (detection only). */

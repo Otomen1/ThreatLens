@@ -59,6 +59,8 @@ def test_investigate_includes_additive_context_projections() -> None:
     assert {"observations", "matches", "statistics", "metadata"}.issubset(
         body["correlation"]
     )
+    assert body["identity"] is not None
+    assert {"findings", "statistics"}.issubset(body["identity"])
 
 
 def test_detect_top_level_contract() -> None:

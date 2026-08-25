@@ -16,6 +16,7 @@ from ..entities.models import Entity
 from ..entities.types import EntityType
 from ..exposure import ExposureSummary
 from ..correlation import CorrelationSummary
+from ..identity import IdentitySummary
 from ..providers import AggregatedResult
 from ..reasoning import InvestigationSummary, Severity
 from ..workspace import WorkspaceStatus
@@ -70,6 +71,7 @@ class InvestigationResponse(BaseModel):
     # summary; they make the completed investigation useful as one response.
     exposure: ExposureSummary | None = None
     correlation: CorrelationSummary | None = None
+    identity: IdentitySummary | None = None
 
 
 class ExposureProviderStatusInfo(BaseModel):
@@ -113,6 +115,7 @@ class IdentityFrameworkStatus(BaseModel):
     message: str
     framework_version: str
     providers_registered: int
+    summary: IdentitySummary | None = None
 
 
 class CorrelationFrameworkStatus(BaseModel):

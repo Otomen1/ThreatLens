@@ -16,6 +16,7 @@ authentication (single-user, self-hosted).
 from __future__ import annotations
 
 from .config import WorkspaceSettings
+from .comparison import FindingChange, InvestigationComparison, compare
 from .exceptions import (
     InvestigationNotFoundError,
     WorkspaceError,
@@ -43,6 +44,9 @@ __all__ = [
     "WorkspaceInvestigation",
     "WorkspaceService",
     "WorkspaceSettings",
+    "FindingChange",
+    "InvestigationComparison",
+    "compare",
     "WorkspaceStatus",
     "WorkspaceStorage",
     "WorkspaceStorageError",

@@ -91,4 +91,8 @@ def build_default_registry() -> IdentityRegistry:
     registers here exactly as ``exposure.registry.build_default_registry``
     registers Shodan/Censys/GreyNoise, without changing this function's shape.
     """
-    return IdentityRegistry()
+    from .providers import HibpProvider
+
+    registry = IdentityRegistry()
+    registry.register(HibpProvider())
+    return registry

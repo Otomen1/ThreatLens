@@ -11,3 +11,6 @@ exactly as ``exposure/providers/`` wires concrete Exposure providers and
 from __future__ import annotations
 
 __all__: list[str] = []
+from .hibp import HibpProvider
+
+__all__ = ["HibpProvider"]

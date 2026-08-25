@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from typing import Annotated
+from fastapi import APIRouter, Query
 
 from ...identity import IDENTITY_FRAMEWORK_VERSION
 from ...identity import build_default_registry as build_identity_registry
-from ..schemas import IdentityFrameworkStatus
+from ...identity import IdentityService
+from ...search import detect
+from ..schemas import IdentityFrameworkStatus, MAX_QUERY_LENGTH
 
 router = APIRouter()
 
@@ -17,10 +20,13 @@ router = APIRouter()
 # providers; a later phase registers the first (HIBP, Entra ID, …). See
 # docs/architecture/PHASE-6.0-IDENTITY-FRAMEWORK.md.
 _identity_registry = build_identity_registry()
+_identity_service = IdentityService(_identity_registry)
 
 
 @router.get("/api/v1/identity", response_model=IdentityFrameworkStatus)
-def identity_framework_status() -> IdentityFrameworkStatus:
+async def identity_framework_status(
+    value: Annotated[str | None, Query(max_length=MAX_QUERY_LENGTH)] = None,
+) -> IdentityFrameworkStatus:
     """Report Identity Intelligence Framework status (Phase 6.0 — framework only).
 
     A pure readiness probe: framework version and registered-provider count.
@@ -30,10 +36,14 @@ def identity_framework_status() -> IdentityFrameworkStatus:
     optional lookup exactly as exposure did. Never integrated into
     ``/investigate``.
     """
+    summary = None
+    if value is not None and value.strip():
+        summary = await _identity_service.investigate(detect(value))
     count = len(_identity_registry)
     return IdentityFrameworkStatus(
         status="ready",
         message="No providers configured" if count == 0 else f"{count} provider(s) registered",
         framework_version=IDENTITY_FRAMEWORK_VERSION,
         providers_registered=count,
+        summary=summary,
     )

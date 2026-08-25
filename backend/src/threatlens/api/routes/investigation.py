@@ -20,6 +20,8 @@ from ...correlation import CorrelationService
 from ...exposure import ExposureService
 from ...exposure import build_default_registry as build_exposure_registry
 from ...investigation import InvestigationService
+from ...identity import IdentityService
+from ...identity import build_default_registry as build_identity_registry
 from ...providers import build_default_router
 from ...reasoning import reason
 from ...reference import build_default_reference_router
@@ -38,6 +40,7 @@ _investigation_service = InvestigationService(
 )
 _exposure_service = ExposureService(build_exposure_registry())
 _correlation_service = CorrelationService()
+_identity_service = IdentityService(build_identity_registry())
 
 
 def get_investigation_service() -> InvestigationService:
@@ -76,9 +79,10 @@ async def investigate_entity(
     investigation_summary = reason(entity, threat_intelligence, knowledge)
     # These are additive downstream views. Exposure remains descriptive and
     # correlation consumes the frozen summary without changing its findings.
-    exposure, correlation = await asyncio.gather(
+    exposure, correlation, identity = await asyncio.gather(
         _exposure_service.investigate(entity),
         asyncio.to_thread(_correlation_service.correlate, investigation_summary),
+        _identity_service.investigate(entity),
     )
     record_investigation(
         metrics_registry,
@@ -95,4 +99,5 @@ async def investigate_entity(
         investigation_summary=investigation_summary,
         exposure=exposure,
         correlation=correlation,
+        identity=identity,
     )
