@@ -11,6 +11,8 @@ unmodified.
 from __future__ import annotations
 
 import asyncio
+import os
+from typing import Any
 
 from ..entities.models import Entity
 from .models import ExposureSummary
@@ -31,8 +33,10 @@ version."""
 class ExposureService:
     """Orchestrates concurrent exposure-provider lookups for one entity."""
 
-    def __init__(self, registry: ExposureRegistry) -> None:
+    def __init__(self, registry: ExposureRegistry, *, max_concurrency: int | None = None) -> None:
         self._registry = registry
+        configured = max_concurrency or int(os.getenv("THREATLENS_PROVIDER_CONCURRENCY", "8"))
+        self._semaphore = asyncio.Semaphore(max(1, configured))
 
     async def investigate(self, entity: Entity) -> ExposureSummary:
         """Look up ``entity``'s exposure across every routed provider.
@@ -41,7 +45,11 @@ class ExposureService:
         contributes its status, not an exception, and never blocks another.
         """
         providers = self._registry.route(entity)
-        findings = await asyncio.gather(*(p.safe_lookup(entity) for p in providers))
+        async def lookup(provider: Any) -> Any:
+            async with self._semaphore:
+                return await provider.safe_lookup(entity)
+
+        findings = await asyncio.gather(*(lookup(p) for p in providers))
         return merge_findings(
             findings,
             entity_type=entity.type,

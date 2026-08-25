@@ -9,6 +9,8 @@ without coupling the two frameworks or requiring sequential execution.
 from __future__ import annotations
 
 import asyncio
+import os
+from typing import Any
 
 from ..entities.models import Entity
 from ..providers import AggregatedResult, ProviderRouter, aggregate
@@ -18,9 +20,21 @@ from ..reference import ReferenceRouter
 class InvestigationService:
     """Orchestrates concurrent TI + Reference lookup for one entity."""
 
-    def __init__(self, ti_router: ProviderRouter, ref_router: ReferenceRouter) -> None:
+    def __init__(
+        self,
+        ti_router: ProviderRouter,
+        ref_router: ReferenceRouter,
+        *,
+        max_concurrency: int | None = None,
+    ) -> None:
         self._ti_router = ti_router
         self._ref_router = ref_router
+        configured = max_concurrency or int(os.getenv("THREATLENS_PROVIDER_CONCURRENCY", "8"))
+        self._semaphore = asyncio.Semaphore(max(1, configured))
+
+    async def _lookup(self, provider: Any, entity: Entity, *, reference: bool) -> Any:
+        async with self._semaphore:
+            return await (provider.safe_lookup(entity) if reference else provider.safe_search(entity))
 
     async def investigate(self, entity: Entity) -> tuple[AggregatedResult, AggregatedResult]:
         """Run all routed providers concurrently; return (threat_intelligence, knowledge).
@@ -33,8 +47,8 @@ class InvestigationService:
         ti_providers = self._ti_router.route(entity)
         ref_providers = self._ref_router.route(entity)
 
-        ti_coros = [p.safe_search(entity) for p in ti_providers]
-        ref_coros = [p.safe_lookup(entity) for p in ref_providers]
+        ti_coros = [self._lookup(p, entity, reference=False) for p in ti_providers]
+        ref_coros = [self._lookup(p, entity, reference=True) for p in ref_providers]
 
         all_results = await asyncio.gather(*ti_coros, *ref_coros)
 

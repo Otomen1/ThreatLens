@@ -107,3 +107,10 @@ def test_health() -> None:
     # The liveness probe stays backward-compatible (status == "ok") while the
     # richer operational fields are covered in tests/test_health.py.
     assert res.json()["status"] == "ok"
+
+
+def test_api_emits_request_id_and_accepts_trace_id() -> None:
+    supplied = "12345678-1234-4234-8234-123456789abc"
+    res = client.get("/api/v1/health", headers={"x-request-id": supplied})
+    assert res.status_code == 200
+    assert res.headers["x-request-id"] == supplied

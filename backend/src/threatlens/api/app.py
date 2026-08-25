@@ -10,7 +10,10 @@ from __future__ import annotations
 
 import os
 import hmac
+import json
+import logging
 import time
+from uuid import UUID, uuid4
 from collections import defaultdict, deque
 from threading import Lock
 
@@ -93,6 +96,36 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+_logger = logging.getLogger("threatlens.api")
+
+
+def _request_id(value: str | None) -> str:
+    """Accept a caller trace id only when it is a valid UUID; otherwise mint one."""
+    try:
+        return str(UUID(value or ""))
+    except ValueError:
+        return str(uuid4())
+
+
+@app.middleware("http")
+async def request_context(request: Request, call_next):
+    """Attach one trace id to every response and emit one structured log line."""
+    request_id = _request_id(request.headers.get("x-request-id"))
+    request.state.request_id = request_id
+    started = time.perf_counter()
+    response = await call_next(request)
+    elapsed_ms = round((time.perf_counter() - started) * 1000, 2)
+    response.headers["x-request-id"] = request_id
+    _logger.info(json.dumps({
+        "event": "http_request",
+        "request_id": request_id,
+        "method": request.method,
+        "path": request.url.path,
+        "status": response.status_code,
+        "duration_ms": elapsed_ms,
+    }, separators=(",", ":")))
+    return response
+
 
 @app.middleware("http")
 async def protect_api(request: Request, call_next):
@@ -167,9 +200,9 @@ app.include_router(detection.router)
 app.include_router(detection_knowledge.router)
 
 # Exposure Intelligence, Identity Intelligence, and the Investigation
-# Correlation Engine: three separate, isolated frameworks, each a pure
-# readiness probe today (Exposure additionally runs a real lookup). None is
-# integrated into ``/investigate``.
+# Correlation Engine: separate frameworks. Exposure and correlation are also
+# attached as additive context to ``/investigate``; neither changes the frozen
+# reasoning summary.
 app.include_router(exposure.router)
 app.include_router(identity.router)
 app.include_router(correlation.router)
