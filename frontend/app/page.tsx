@@ -11,6 +11,7 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<InvestigationResponse | null>(null);
   const [timestamp, setTimestamp] = useState("");
+  const [stage, setStage] = useState("Preparing investigation…");
   const abortRef = useRef<AbortController | null>(null);
 
   // Cancel any in-flight request on unmount.
@@ -26,10 +27,13 @@ export default function HomePage() {
     abortRef.current = controller;
 
     setLoading(true);
+    setStage("Detecting indicator…");
     setError(null);
     setResult(null);
     try {
+      setStage("Querying intelligence sources…");
       const res = await investigate(trimmed, controller.signal);
+      setStage("Building evidence assessment…");
       setResult(res);
       setTimestamp(new Date().toLocaleString("en-US", {
         month: "short", day: "numeric", year: "numeric",
@@ -120,6 +124,7 @@ export default function HomePage() {
               {loading ? "Searching…" : "Search"}
             </button>
           </div>
+          {loading && <p className="mt-2 text-center text-[11px] text-zinc-600" role="status">{stage}</p>}
         </div>
 
         {/* Error */}

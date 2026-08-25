@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
 import { SystemStatus } from "@/components/SystemStatus";
+import { AppNav } from "@/components/AppNav";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -34,6 +35,7 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans bg-zinc-950 text-white antialiased`}>
         <SystemStatus />
+        <AppNav />
         {children}
       </body>
     </html>

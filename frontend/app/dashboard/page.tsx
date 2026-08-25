@@ -116,6 +116,13 @@ export default function DashboardPage() {
         )}
 
         {state.kind === "ready" && (
+          <>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" aria-label="Operational summary">
+            <Kpi label="Investigations" value={state.usage.investigations.executed} detail={`${state.usage.investigations.avg_duration_ms ?? "—"} ms avg`} />
+            <Kpi label="Avg findings" value={state.usage.investigations.avg_findings ?? "—"} detail={`${state.usage.investigations.avg_confidence ?? "—"} confidence`} />
+            <Kpi label="Detection rules" value={state.usage.detection_engineering.generated_total} detail={`${state.usage.detection_engineering.avg_generation_ms ?? "—"} ms avg`} />
+            <Kpi label="Configured sources" value={state.config.threat_intelligence.filter((item) => item.configured).length} detail={`${state.config.threat_intelligence.length} total providers`} />
+          </div>
           <DashboardTabs
             idPrefix="dashboard"
             activeKey={activeTab}
@@ -138,8 +145,13 @@ export default function DashboardPage() {
               },
             ]}
           />
+          </>
         )}
       </div>
     </main>
   );
+}
+
+function Kpi({ label, value, detail }: { label: string; value: string | number; detail: string }) {
+  return <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4"><p className="text-[10px] uppercase tracking-wider text-zinc-600">{label}</p><p className="text-2xl font-semibold text-white mt-2">{value}</p><p className="text-[11px] text-zinc-500 mt-1">{detail}</p></div>;
 }
