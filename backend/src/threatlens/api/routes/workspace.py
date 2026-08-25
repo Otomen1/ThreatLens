@@ -23,6 +23,7 @@ from ...timeline import Timeline, TimelineService
 from ...workspace import (
     InvestigationNotFoundError,
     LocalFileStorage,
+    SQLiteWorkspaceStorage,
     SaveInvestigationRequest,
     UpdateInvestigationRequest,
     WorkspaceInvestigation,
@@ -76,7 +77,12 @@ def get_workspace_service() -> WorkspaceService:
     global _workspace_service
     if _workspace_service is None:
         settings = WorkspaceSettings.from_env()
-        _workspace_service = WorkspaceService(LocalFileStorage(settings.storage_dir))
+        storage = (
+            SQLiteWorkspaceStorage(settings.database_path)
+            if settings.storage_backend == "sqlite"
+            else LocalFileStorage(settings.storage_dir)
+        )
+        _workspace_service = WorkspaceService(storage)
     return _workspace_service
 
 

@@ -30,11 +30,13 @@ from .models import (
 )
 from .service import WorkspaceService
 from .storage import LocalFileStorage, WorkspaceStorage
+from .sqlite_storage import SQLiteWorkspaceStorage
 
 __all__ = [
     "WORKSPACE_FRAMEWORK_VERSION",
     "InvestigationNotFoundError",
     "LocalFileStorage",
+    "SQLiteWorkspaceStorage",
     "SaveInvestigationRequest",
     "UpdateInvestigationRequest",
     "WorkspaceError",

@@ -36,6 +36,7 @@ from .schemas import (
 )
 from .service import CaseService
 from .storage import CaseStorage, LocalFileStorage
+from .sqlite_storage import SQLiteCaseStorage
 
 __all__ = [
     "CASE_FRAMEWORK_VERSION",
@@ -55,5 +56,6 @@ __all__ = [
     "InvalidStatusTransitionError",
     "LinkWorkspaceRequest",
     "LocalFileStorage",
+    "SQLiteCaseStorage",
     "UpdateCaseRequest",
 ]

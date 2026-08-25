@@ -29,6 +29,7 @@ from ...cases import (
     InvalidStatusTransitionError,
     LinkWorkspaceRequest,
     LocalFileStorage,
+    SQLiteCaseStorage,
     UpdateCaseRequest,
 )
 from ...workspace.exceptions import InvestigationNotFoundError
@@ -62,7 +63,12 @@ def get_case_service() -> CaseService:
     global _case_service
     if _case_service is None:
         settings = CaseSettings.from_env()
-        _case_service = CaseService(LocalFileStorage(settings.storage_dir), get_workspace_service())
+        storage = (
+            SQLiteCaseStorage(settings.database_path)
+            if settings.storage_backend == "sqlite"
+            else LocalFileStorage(settings.storage_dir)
+        )
+        _case_service = CaseService(storage, get_workspace_service())
     return _case_service
 
 
