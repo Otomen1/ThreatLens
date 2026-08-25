@@ -3,6 +3,8 @@
 // module builds on the Entity/InvestigationSummary types defined here.
 
 import { postQuery } from "./client";
+import type { CorrelationSummary } from "./workspace";
+import type { ExposureSummary } from "./exposure";
 
 export type EntityType =
   | "ipv4"
@@ -246,34 +248,13 @@ export interface InvestigationExposureSummary {
   metadata: { entity_type: EntityType; entity_value: string; generated_at: string; framework_version: string };
 }
 
-export interface CorrelationObservation {
-  id: string;
-  rule_id: string;
-  category: string;
-  title: string;
-  summary: string;
-  subject_type: EntityType;
-  subject_value: string;
-  source_finding_ids: string[];
-}
-
-export interface CorrelationSummary {
-  id: string;
-  entity_type: EntityType;
-  entity_value: string;
-  observations: CorrelationObservation[];
-  matches: { rule_id: string; category: string; observation_ids: string[] }[];
-  statistics: { rules_evaluated: number; rules_matched: number; total_observations: number; source_finding_count: number; categories: string[] };
-  metadata: { entity_type: EntityType; entity_value: string; generated_at: string; framework_version: string; source_engine_version: string };
-}
-
 export interface InvestigationResponse {
   investigation_id: string;
   entity: Entity;
   threat_intelligence: AggregatedResult;
   knowledge: AggregatedResult;
   investigation_summary: InvestigationSummary;
-  exposure: InvestigationExposureSummary | null;
+  exposure: ExposureSummary | null;
   correlation: CorrelationSummary | null;
 }
 
