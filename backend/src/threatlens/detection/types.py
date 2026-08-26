@@ -5,8 +5,8 @@ and templates. Mirrors the style of ``reasoning.models`` and ``providers.types``
 ordinal severities are ``IntEnum`` (comparable), everything else is ``StrEnum``
 (stable, display-friendly, JSON-native).
 
-The framework ships no generators in this phase; these enums define the space the
-future Sigma / YARA / Suricata / Snort / SIEM generators register into.
+The framework exposes languages supported by registered generators and keeps
+additional platform dialects available for future extensions.
 """
 
 from __future__ import annotations

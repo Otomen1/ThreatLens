@@ -58,7 +58,8 @@ class DetectionTarget(BaseModel):
 class DetectionValidation(BaseModel):
     """The result of validating an artifact against its toolchain.
 
-    ``UNVALIDATED`` in this phase — validators are extension points only.
+    Offline shape/syntax validation is supported for Sigma and YARA. Platform
+    parsers remain extension points for target-specific validation.
     """
 
     model_config = ConfigDict(frozen=True)
@@ -97,8 +98,8 @@ class DetectionArtifact(BaseModel):
 
     ``id`` is deterministic and content-addressed (see
     ``detection.engine.compute_artifact_id``): it hashes only stable values —
-    never timestamps, never AI output. ``content`` is the rule text and is empty
-    until a concrete generator (later phase) fills it. ``severity`` is copied from
+    never timestamps, never AI output. ``content`` is generated rule text when a
+    registered generator supports the target. ``severity`` is copied from
     the originating finding, never recomputed.
     """
 
@@ -148,8 +149,8 @@ class DetectionPackage(BaseModel):
     """The Detection Engine's output for one investigation.
 
     ``id`` is content-addressed and stable across runs (timestamp-independent).
-    ``artifacts`` is empty in this phase (no generators are registered); the shape
-    is final so the API and UI already understand a fully-populated package.
+    ``artifacts`` contains output from registered generators when the source
+    findings are suitable; it may be empty when no generator applies.
     """
 
     model_config = ConfigDict(frozen=True)

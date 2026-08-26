@@ -66,6 +66,7 @@ from .types import (
     DetectionSeverity,
     DetectionValidationStatus,
 )
+from .validation import validate_artifact, validate_package
 
 __all__ = [
     "DETECTION_ENGINE_VERSION",
@@ -103,4 +104,6 @@ __all__ = [
     "compute_artifact_id",
     "compute_package_id",
     "generate",
+    "validate_artifact",
+    "validate_package",
 ]

@@ -250,13 +250,20 @@ IPv4 only — GreyNoise's own API scope, not a ThreatLens choice. Reports intern
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `IDENTITY_ENABLED` | `false` | Master switch — reserved; Phase 6.0 ships zero providers, so no code path reads it yet (each future provider self-configures). |
+| `IDENTITY_ENABLED` | `false` | Master switch — reserved; the optional HIBP provider self-configures from its provider key. |
 | `IDENTITY_CACHE_ENABLED` | `true` | Reserved — no cache is wired into `IdentityService` itself yet (a future provider caches its own lookups). |
 | `IDENTITY_CACHE_TTL` | `3600` | Reserved cache TTL (seconds). |
 | `IDENTITY_TIMEOUT` | `10` | Reserved per-lookup timeout (seconds). |
 | `IDENTITY_RATE_LIMIT_PER_MINUTE` | *(unset)* | Reserved rate limit. |
 
-Phase 6.0 is framework only — no providers, no secrets. Provider credentials (Have I Been Pwned, Entra ID, Okta, …) belong to each provider's own settings in a later phase.
+The identity framework currently includes an optional Have I Been Pwned provider. Set `HIBP_API_KEY` to enable descriptive breach lookup; without it, the provider returns a structured unauthorized result.
+
+### Backend — persistence
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `THREATLENS_STORAGE_BACKEND` | `file` | Selects `file` storage or the optional local `sqlite` backend. |
+| `THREATLENS_DATABASE_PATH` | `data/threatlens.db` | SQLite database path when the SQLite backend is selected. |
 
 ### Backend — Investigation Workspace (Phase 8.0)
 
@@ -264,7 +271,7 @@ Phase 6.0 is framework only — no providers, no secrets. Provider credentials (
 |---|---|---|
 | `THREATLENS_WORKSPACE_DIR` | `data/workspace` | Local directory for saved-investigation JSON files (`LocalFileStorage`). Created lazily on the first workspace request (not at process/import time), so a misconfigured or unwritable path only affects workspace endpoints — every other route keeps working. |
 
-No authentication, no database — single-user, self-hosted, per the phase brief. See [`docs/architecture/PHASE-8.0-INVESTIGATION-WORKSPACE.md`](docs/architecture/PHASE-8.0-INVESTIGATION-WORKSPACE.md).
+No authentication — single-user, self-hosted, per the phase brief. File storage remains the default; SQLite can be selected with the persistence variables above. See [`docs/architecture/PHASE-8.0-INVESTIGATION-WORKSPACE.md`](docs/architecture/PHASE-8.0-INVESTIGATION-WORKSPACE.md).
 
 **Serverless/Vercel deployments:** the project root is read-only everywhere except `/tmp`, so the default `data/workspace` cannot be created there. `frontend/vercel.json` sets `THREATLENS_WORKSPACE_DIR=/tmp/threatlens/workspace` for the deployed function so the Workspace API works out of the box — but **`/tmp` on Vercel is ephemeral**: it is wiped between cold starts/deployments and is not shared across concurrent function instances, so saved investigations are not durably persisted in that configuration. This makes the existing `LocalFileStorage` abstraction *deployment-compatible* on Vercel, not durable; a database-backed `WorkspaceStorage` implementation (swappable behind the same interface, no service/API changes) remains future work for anyone who needs saved investigations to survive a redeploy.
 
