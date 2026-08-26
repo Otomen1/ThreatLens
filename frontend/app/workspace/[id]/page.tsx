@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   getInvestigation,
+  generateDetections,
   getInvestigationGraph,
   getInvestigationReport,
   getInvestigationTimeline,
@@ -68,6 +69,13 @@ export default function WorkspaceDetailPage() {
     }
   }
 
+  async function generateAndSaveDetections() {
+    if (state.kind !== "ready" || !state.record.investigation_summary) return;
+    const detection_package = await generateDetections(state.record.investigation_summary);
+    const record = await updateInvestigation(state.record.id, { detection_package });
+    setState({ kind: "ready", record });
+  }
+
   return (
     <main className="min-h-screen px-4 py-10 sm:py-14">
       <div className="w-full max-w-4xl mx-auto space-y-4">
@@ -95,7 +103,7 @@ export default function WorkspaceDetailPage() {
 
         {state.kind === "ready" && (
           <>
-            <DetailHeader record={state.record} onStatusChange={changeStatus} />
+            <DetailHeader record={state.record} onStatusChange={changeStatus} onGenerate={generateAndSaveDetections} />
 
             {state.record.investigation_summary && (
               <>
@@ -136,11 +144,14 @@ export default function WorkspaceDetailPage() {
 function DetailHeader({
   record,
   onStatusChange,
+  onGenerate,
 }: {
   record: WorkspaceInvestigation;
   onStatusChange: (status: WorkspaceStatus) => void;
+  onGenerate: () => Promise<void>;
 }) {
   const [exporting, setExporting] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   async function exportJson() {
     setExporting(true);
@@ -153,6 +164,11 @@ function DetailHeader({
     } finally {
       setExporting(false);
     }
+  }
+
+  async function generate() {
+    setGenerating(true);
+    try { await onGenerate(); } finally { setGenerating(false); }
   }
 
   return (
@@ -187,6 +203,9 @@ function DetailHeader({
           label={exporting ? "Exporting…" : "Export JSON"}
           onClick={exportJson}
         />
+        {record.investigation_summary && !record.detection_package && (
+          <IconButton label={generating ? "Generating…" : "Generate detections"} onClick={generate} />
+        )}
       </div>
 
       {record.summary && <p className="text-sm text-zinc-400">{record.summary}</p>}
