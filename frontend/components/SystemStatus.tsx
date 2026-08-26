@@ -50,7 +50,7 @@ export function SystemStatus() {
   const { dotClass, label, title } = describe(state);
 
   return (
-    <div className="fixed top-4 right-4 z-50">
+    <div className="fixed top-[4.5rem] right-4 z-30 sm:top-16">
       <Link href="/dashboard" title={`${title} — View Operational Dashboard`}>
         <div
           className="flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/70 px-3 py-1.5 backdrop-blur-sm hover:border-zinc-700 transition-colors"
