@@ -67,8 +67,8 @@ class WorkspaceInvestigation(BaseModel):
     ``investigation_summary``, ``detection_package``, and
     ``correlation_summary`` are all optional: the workspace does not require
     every downstream engine to have run before a record can be saved, and
-    Correlation in particular is not yet wired into ``/investigate`` (Phase
-    7.x), so it will typically be absent until a later phase.
+    Correlation is attached by the current investigation API when available,
+    while the field remains optional for backward-compatible saved records.
     """
 
     id: UUID

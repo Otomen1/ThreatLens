@@ -17,7 +17,7 @@ from ..timing import elapsed_ms
 router = APIRouter()
 
 # The Detection Engineering registry is a downstream, deterministic consumer of
-# the InvestigationSummary. Built once; empty in Phase 4.0 (no generators yet).
+# the InvestigationSummary. Built once from the registered deterministic generators.
 # Not underscore-prefixed: the Operational Dashboard's system router reads the
 # same instance (see api/app.py).
 detection_registry = build_detection_registry()
@@ -33,9 +33,8 @@ def create_detections(summary: InvestigationSummary) -> DetectionPackage:
     findings, confidence, severity, priority, recommendations, or relationships,
     and it has no access to providers or AI.
 
-    In Phase 4.0 no generators are registered, so the package is well-formed but
-    carries no artifacts (``is_empty``). The endpoint and contract already exist
-    so future generators light up without an API change.
+    The package may be empty when findings cannot produce platform-specific
+    detections; otherwise it contains artifacts from the registered generators.
     """
     _start = time.perf_counter()
     package = generate_detections(summary, registry=detection_registry)

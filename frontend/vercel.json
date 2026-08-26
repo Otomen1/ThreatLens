@@ -3,7 +3,9 @@
   "outputDirectory": ".next",
   "framework": "nextjs",
   "env": {
-    "THREATLENS_WORKSPACE_DIR": "/tmp/threatlens/workspace"
+    "THREATLENS_WORKSPACE_DIR": "/tmp/threatlens/workspace",
+    "THREATLENS_STORAGE_BACKEND": "sqlite",
+    "THREATLENS_DATABASE_PATH": "/tmp/threatlens.db"
   },
   "functions": {
     "api/index.py": {
