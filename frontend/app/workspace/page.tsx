@@ -94,8 +94,8 @@ export default function WorkspacePage() {
             Investigation Workspace
           </h1>
           <p className="text-zinc-500 text-sm mt-1">
-            Saved investigations — stored locally, searchable, and filterable. Nothing here is
-            recomputed; every record is a snapshot of a completed investigation.
+            Saved investigations — stored in the configured database, searchable, and filterable.
+            Nothing here is recomputed; every record is a snapshot of a completed investigation.
           </p>
         </header>
 
