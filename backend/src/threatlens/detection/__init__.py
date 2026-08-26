@@ -69,6 +69,7 @@ from .types import (
     DetectionValidationStatus,
 )
 from .validation import test_sigma_rule, validate_artifact, validate_package
+from .versioning import DetectionVersion, changed_fields, create_version, version_digest
 
 __all__ = [
     "DETECTION_ENGINE_VERSION",
@@ -89,6 +90,7 @@ __all__ = [
     "DetectionTemplate",
     "DetectionValidation",
     "DetectionValidationStatus",
+    "DetectionVersion",
     "DetectionValidator",
     "DuplicateDetectionGeneratorError",
     "DuplicateDetectionTemplateError",
@@ -112,4 +114,7 @@ __all__ = [
     "validate_artifact",
     "validate_package",
     "test_sigma_rule",
+    "changed_fields",
+    "create_version",
+    "version_digest",
 ]
