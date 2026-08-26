@@ -64,6 +64,8 @@ export default function WorkspacePage() {
     }
   }, [query, status, severity]);
 
+  const hasFilters = Boolean(query || status || severity);
+
   useEffect(() => {
     load();
     return () => abortRef.current?.abort();
@@ -133,13 +135,12 @@ export default function WorkspacePage() {
               </option>
             ))}
           </select>
+          {hasFilters && <button type="button" onClick={() => { setQuery(""); setStatus(""); setSeverity(""); }} className="rounded-xl border border-zinc-800 px-3 py-2 text-sm text-zinc-400 hover:bg-zinc-900">Clear filters</button>}
         </div>
 
-        {state.kind === "loading" && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-center text-sm text-zinc-500">
-            Loading saved investigations…
-          </div>
-        )}
+        {state.kind === "ready" && state.items.length > 0 && <WorkspaceSummary items={state.items} />}
+
+        {state.kind === "loading" && <LoadingState />}
 
         {state.kind === "error" && (
           <div
@@ -152,7 +153,7 @@ export default function WorkspacePage() {
 
         {state.kind === "ready" && state.items.length === 0 && (
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-center text-sm text-zinc-500">
-            No saved investigations yet. Run a search and use “Save to Workspace”.
+            {hasFilters ? "No investigations match these filters." : "No saved investigations yet. Run a search and use “Save to Workspace”."}
           </div>
         )}
 
@@ -170,6 +171,20 @@ export default function WorkspacePage() {
       </div>
     </main>
   );
+}
+
+function LoadingState() {
+  return <div className="space-y-2" aria-label="Loading saved investigations"><div className="h-16 animate-pulse rounded-2xl border border-zinc-800 bg-zinc-900" /><div className="h-16 animate-pulse rounded-2xl border border-zinc-800 bg-zinc-900" /><div className="h-16 animate-pulse rounded-2xl border border-zinc-800 bg-zinc-900" /></div>;
+}
+
+function WorkspaceSummary({ items }: { items: WorkspaceListItem[] }) {
+  const high = items.filter((item) => item.severity !== null && item.severity >= 3).length;
+  const open = items.filter((item) => item.status === "open" || item.status === "in_progress").length;
+  return <div className="grid grid-cols-2 gap-2 sm:grid-cols-4"><SummaryCard label="Visible investigations" value={items.length} /><SummaryCard label="Open / active" value={open} /><SummaryCard label="High priority" value={high} /><SummaryCard label="Archived" value={items.filter((item) => item.status === "archived").length} /></div>;
+}
+
+function SummaryCard({ label, value }: { label: string; value: number }) {
+  return <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 px-3 py-2.5"><p className="text-[11px] text-zinc-500">{label}</p><p className="mt-1 text-xl font-semibold text-zinc-100">{value}</p></div>;
 }
 
 function InvestigationRow({
