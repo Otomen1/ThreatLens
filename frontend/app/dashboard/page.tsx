@@ -123,6 +123,11 @@ export default function DashboardPage() {
             <Kpi label="Detection rules" value={state.usage.detection_engineering.generated_total} detail={`${state.usage.detection_engineering.avg_generation_ms ?? "—"} ms avg`} />
             <Kpi label="Configured sources" value={state.config.threat_intelligence.filter((item) => item.configured).length} detail={`${state.config.threat_intelligence.length} total providers`} />
           </div>
+          <div className="grid gap-3 lg:grid-cols-3">
+            <ServiceOverview services={state.health.services} />
+            <DetectionOverview data={state.usage.detection_engineering} />
+            <QuickLinks />
+          </div>
           {(() => {
             const warnings = state.health.services.filter((service) => service.status === "degraded" || service.status === "offline");
             return warnings.length > 0 ? <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-300/90" role="status"><span className="font-semibold">Attention needed:</span> {warnings.map((warning) => `${warning.display_name} (${warning.status})`).join(" · ")}</div> : null;
@@ -158,4 +163,17 @@ export default function DashboardPage() {
 
 function Kpi({ label, value, detail }: { label: string; value: string | number; detail: string }) {
   return <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4"><p className="text-[10px] uppercase tracking-wider text-zinc-600">{label}</p><p className="text-2xl font-semibold text-white mt-2">{value}</p><p className="text-[11px] text-zinc-500 mt-1">{detail}</p></div>;
+}
+
+function ServiceOverview({ services }: { services: SystemHealthResponse["services"] }) {
+  return <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4"><div className="flex items-center justify-between"><h2 className="text-sm font-semibold text-zinc-200">Service health</h2><span className="text-[11px] text-zinc-500">{services.filter((item) => item.status === "healthy").length}/{services.length} healthy</span></div><div className="mt-3 space-y-2">{services.slice(0, 4).map((service) => <div key={service.name} className="flex items-center justify-between gap-2 text-xs"><span className="truncate text-zinc-400">{service.display_name}</span><span className={`rounded-full px-2 py-0.5 text-[10px] ${service.status === "healthy" ? "bg-emerald-500/10 text-emerald-300" : service.status === "disabled" ? "bg-zinc-800 text-zinc-500" : "bg-amber-500/10 text-amber-300"}`}>{service.status}</span></div>)}</div></section>;
+}
+
+function DetectionOverview({ data }: { data: UsageResponse["detection_engineering"] }) {
+  const formats = Object.entries(data.by_language).sort(([, a], [, b]) => b - a).slice(0, 4);
+  return <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4"><div className="flex items-center justify-between"><h2 className="text-sm font-semibold text-zinc-200">Detection output</h2><Link href="/detections" className="text-[11px] text-sky-400 hover:underline">Open workspace</Link></div>{formats.length ? <div className="mt-3 space-y-2">{formats.map(([language, count]) => <div key={language} className="flex items-center justify-between text-xs"><span className="font-mono text-zinc-400">{language}</span><span className="text-zinc-200">{count}</span></div>)}</div> : <p className="mt-3 text-xs text-zinc-500">No detections generated yet.</p>}</section>;
+}
+
+function QuickLinks() {
+  return <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4"><h2 className="text-sm font-semibold text-zinc-200">Quick access</h2><div className="mt-3 grid gap-2"><Link href="/workspace" className="rounded-lg border border-zinc-800 bg-zinc-950/40 px-3 py-2 text-xs text-zinc-400 hover:border-zinc-700 hover:text-zinc-200">Investigation Workspace <span className="float-right">→</span></Link><Link href="/detections" className="rounded-lg border border-zinc-800 bg-zinc-950/40 px-3 py-2 text-xs text-zinc-400 hover:border-zinc-700 hover:text-zinc-200">Detection Workspace <span className="float-right">→</span></Link></div></section>;
 }
