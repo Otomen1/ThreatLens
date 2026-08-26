@@ -19,6 +19,8 @@ export default function DetectionsPage() {
   const [expandAll, setExpandAll] = useState(false);
   const [expandSignal, setExpandSignal] = useState(0);
   const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -55,6 +57,15 @@ export default function DetectionsPage() {
     return [...grouped.values()].sort((a, b) => a.title.localeCompare(b.title));
   }, [rules]);
   const languages = [...new Set(records.flatMap((r) => r.detection_package?.languages ?? []))];
+  const pageCount = Math.max(1, Math.ceil(groups.length / pageSize));
+  const visibleGroups = groups.slice((page - 1) * pageSize, page * pageSize);
+  useEffect(() => setPage(1), [language, severity, iocType, reviewStatus, query]);
+
+  function exportRules() {
+    const payload = rules.map(({ investigationId, investigationTitle, ...rule }) => ({ investigationId, investigationTitle, ...rule }));
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "threatlens-detections.json"; link.click(); URL.revokeObjectURL(link.href);
+  }
 
   return (
     <main className="min-h-screen px-4 py-10 sm:py-14">
@@ -76,10 +87,11 @@ export default function DetectionsPage() {
         {state === "loading" && <Panel>Loading generated detections…</Panel>}
         {state === "error" && <Panel>Could not load saved detections. Check that the Workspace API is available.</Panel>}
         {state === "ready" && rules.length === 0 && <Panel>No generated detections match this view. Generate detections from an investigation, then save it to the Workspace.</Panel>}
-        {state === "ready" && groups.length > 0 && <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-zinc-500">{groups.length} IOC{groups.length === 1 ? "" : "s"} · {rules.length} generated rule{rules.length === 1 ? "" : "s"} · {rules.filter((rule) => rule.review_status === "approved").length} approved</p><div className="flex gap-2"><button type="button" onClick={() => { setExpandAll(true); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Expand all</button><button type="button" onClick={() => { setExpandAll(false); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Collapse all</button></div></div>}
+        {state === "ready" && groups.length > 0 && <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-zinc-500">{groups.length} IOC{groups.length === 1 ? "" : "s"} · {rules.length} generated rule{rules.length === 1 ? "" : "s"} · {rules.filter((rule) => rule.review_status === "approved").length} approved</p><div className="flex flex-wrap gap-2"><button type="button" onClick={exportRules} className="rounded-lg border border-sky-500/30 px-3 py-1.5 text-xs text-sky-300 hover:bg-sky-500/10">Export filtered JSON</button><button type="button" onClick={() => { setExpandAll(true); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Expand all</button><button type="button" onClick={() => { setExpandAll(false); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Collapse all</button></div></div>}
         <div className="grid gap-3">
-          {groups.map((group) => <IocGroup key={group.key} group={group} expandAll={expandAll} expandSignal={expandSignal} onUpdated={(record) => setRecords((items) => items.map((item) => item.id === record.id ? record : item))} />)}
+          {visibleGroups.map((group) => <IocGroup key={group.key} group={group} expandAll={expandAll} expandSignal={expandSignal} onUpdated={(record) => setRecords((items) => items.map((item) => item.id === record.id ? record : item))} />)}
         </div>
+        {state === "ready" && pageCount > 1 && <div className="flex items-center justify-between border-t border-zinc-800 pt-4"><button type="button" disabled={page === 1} onClick={() => setPage((value) => value - 1)} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 disabled:opacity-40">Previous</button><span className="text-xs text-zinc-500">Page {page} of {pageCount}</span><button type="button" disabled={page === pageCount} onClick={() => setPage((value) => value + 1)} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 disabled:opacity-40">Next</button></div>}
       </div>
     </main>
   );
@@ -122,12 +134,21 @@ function IocGroup({ group, expandAll, expandSignal, onUpdated }: { group: RuleGr
 function RuleCard({ rule, onUpdated }: { rule: Rule; onUpdated: (record: WorkspaceInvestigation) => void }) {
   const [sample, setSample] = useState('{"event_type":"process_start","Image":"powershell.exe"}');
   const [testResult, setTestResult] = useState<string | null>(null);
+  const [note, setNote] = useState(rule.review_note ?? "");
+  const [noteSaved, setNoteSaved] = useState(false);
   async function review(status: DetectionReviewStatus) {
     const record = await getInvestigation(rule.investigationId);
     if (!record.detection_package) return;
     const pkg = { ...record.detection_package, artifacts: record.detection_package.artifacts.map((item) => item.id === rule.id ? { ...item, review_status: status, reviewed_at: new Date().toISOString(), reviewed_by: "local-analyst" } : item) };
     const updated = await updateInvestigation(record.id, { detection_package: pkg });
     onUpdated(updated);
+  }
+  async function saveNote() {
+    const record = await getInvestigation(rule.investigationId);
+    if (!record.detection_package) return;
+    const pkg = { ...record.detection_package, artifacts: record.detection_package.artifacts.map((item) => item.id === rule.id ? { ...item, review_note: note } : item) };
+    const updated = await updateInvestigation(record.id, { detection_package: pkg });
+    onUpdated(updated); setNoteSaved(true); setTimeout(() => setNoteSaved(false), 1800);
   }
   function download() {
     const blob = new Blob([rule.content], { type: "text/plain" });
@@ -152,6 +173,7 @@ function RuleCard({ rule, onUpdated }: { rule: Rule; onUpdated: (record: Workspa
       {rule.description && <p className="text-sm text-zinc-400">{rule.description}</p>}
       <pre className="max-h-[420px] overflow-auto rounded-xl border border-zinc-800 bg-zinc-950 p-4 font-mono text-xs leading-5 text-zinc-300">{rule.content || "No rule content was generated."}</pre>
       <div className="flex flex-wrap gap-2"><button onClick={() => navigator.clipboard?.writeText(rule.content)} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800">Copy rule</button><button onClick={download} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800">Download</button><button onClick={() => review("reviewed")} className="rounded-lg border border-sky-500/30 px-3 py-1.5 text-xs text-sky-300 hover:bg-sky-500/10">Mark reviewed</button><button onClick={() => review("approved")} className="rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs text-emerald-300 hover:bg-emerald-500/10">Approve</button><button onClick={() => review("rejected")} className="rounded-lg border border-red-500/30 px-3 py-1.5 text-xs text-red-300 hover:bg-red-500/10">Reject</button></div>
+      <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3"><label htmlFor={`note-${rule.id}`} className="text-xs font-medium text-zinc-300">Analyst note</label><textarea id={`note-${rule.id}`} value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="Record tuning decisions, exceptions, or review context…" className="mt-2 w-full rounded-lg border border-zinc-800 bg-zinc-900 p-2 text-xs text-zinc-300 placeholder-zinc-600" /><button type="button" onClick={saveNote} className="mt-2 rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800">{noteSaved ? "Saved" : "Save note"}</button></div>
       <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3"><p className="text-xs font-medium text-zinc-300">Offline sample test</p><p className="mt-1 text-[11px] text-zinc-600">One JSON log per line. This never contacts a SIEM.</p><textarea value={sample} onChange={(e) => setSample(e.target.value)} rows={3} className="mt-2 w-full rounded-lg border border-zinc-800 bg-zinc-900 p-2 font-mono text-xs text-zinc-300" /><button onClick={runTest} className="mt-2 rounded-lg border border-indigo-500/30 px-3 py-1.5 text-xs text-indigo-300 hover:bg-indigo-500/10">Test samples</button>{testResult && <p className="mt-2 text-xs text-zinc-400">{testResult}</p>}</div>
     </div>
   </details>;
