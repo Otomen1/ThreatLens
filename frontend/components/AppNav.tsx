@@ -41,7 +41,7 @@ export function AppNav() {
             return <Link key={href} href={href} className={`shrink-0 rounded-lg px-3 py-1.5 text-xs transition-colors ${active ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900"}`}>{label}</Link>;
           })}
         </div>
-        {signedIn ? <button onClick={signOut} className="ml-auto shrink-0 rounded-lg px-3 py-1.5 text-xs text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200">Sign out</button> : <Link href="/login" className="ml-auto shrink-0 rounded-lg px-3 py-1.5 text-xs text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200">Sign in</Link>}
+        {signedIn ? <button type="button" onClick={signOut} className="ml-auto shrink-0 rounded-lg px-3 py-1.5 text-xs text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200">Sign out</button> : <Link href="/login" className="ml-auto shrink-0 rounded-lg px-3 py-1.5 text-xs text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200">Sign in</Link>}
       </div>
     </nav>
   );
