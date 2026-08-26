@@ -13,6 +13,7 @@ from .otx import OTXProvider
 from .registry import ProviderRegistry
 from .router import ProviderRouter
 from .urlhaus import UrlhausProvider
+from .virustotal import VirusTotalProvider
 
 
 def build_default_registry() -> ProviderRegistry:
@@ -22,6 +23,7 @@ def build_default_registry() -> ProviderRegistry:
     registry.register(UrlhausProvider())
     registry.register(AbuseIPDBProvider())
     registry.register(OTXProvider())
+    registry.register(VirusTotalProvider())
     return registry
 
 
