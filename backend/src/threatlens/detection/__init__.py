@@ -67,7 +67,7 @@ from .types import (
     DetectionReviewStatus,
     DetectionValidationStatus,
 )
-from .validation import validate_artifact, validate_package
+from .validation import test_sigma_rule, validate_artifact, validate_package
 
 __all__ = [
     "DETECTION_ENGINE_VERSION",
@@ -108,4 +108,5 @@ __all__ = [
     "generate",
     "validate_artifact",
     "validate_package",
+    "test_sigma_rule",
 ]

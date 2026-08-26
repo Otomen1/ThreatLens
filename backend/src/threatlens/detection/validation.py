@@ -8,6 +8,34 @@ from .models import DetectionArtifact, DetectionValidation
 from .types import DetectionLanguage, DetectionValidationStatus
 
 
+def test_sigma_rule(content: str, sample_logs: tuple[dict[str, object], ...]) -> tuple[bool, int, tuple[str, ...]]:
+    """Validate a Sigma rule and evaluate simple selectors against JSON logs."""
+    try:
+        import yaml
+        document = yaml.safe_load(content)
+    except Exception as exc:
+        return False, 0, (f"Sigma YAML could not be parsed: {exc}",)
+    if not isinstance(document, dict) or not isinstance(document.get("detection"), dict):
+        return False, 0, ("Sigma detection must be a mapping",)
+    detection = document["detection"]
+    condition = detection.get("condition", "")
+    selectors = {name: value for name, value in detection.items() if name != "condition"}
+    if not isinstance(condition, str) or not selectors:
+        return False, 0, ("Sigma detection needs selectors and a condition",)
+    matched = 0
+    for log in sample_logs:
+        hits = [name for name, selector in selectors.items() if _selector_matches(selector, log)]
+        if condition.strip() in hits or condition.strip() == " or ".join(hits) or ("all of" in condition and len(hits) == len(selectors)):
+            matched += 1
+    return True, matched, ()
+
+
+def _selector_matches(selector: object, log: dict[str, object]) -> bool:
+    if not isinstance(selector, dict):
+        return False
+    return all(any(str(log.get(field, "")).lower() == str(value).lower() for field in (field_name, field_name.lower())) for field_name, value in selector.items())
+
+
 def validate_artifact(artifact: DetectionArtifact) -> DetectionValidation:
     """Check artifact shape and supported syntax basics without network access."""
     messages: list[str] = []

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { getInvestigation, listInvestigations, updateInvestigation, type DetectionArtifact, type DetectionReviewStatus, type WorkspaceInvestigation } from "@/lib/api";
+import { getInvestigation, listInvestigations, testDetection, updateInvestigation, type DetectionArtifact, type DetectionReviewStatus, type WorkspaceInvestigation } from "@/lib/api";
 import { detectionLanguageLabel, detectionSeverityClass, detectionSeverityLabel, artifactFilename } from "@/lib/detection";
 
 type Rule = DetectionArtifact & { investigationId: string; investigationTitle: string };
@@ -67,6 +67,8 @@ function Panel({ children }: { children: ReactNode }) {
 }
 
 function RuleCard({ rule, onUpdated }: { rule: Rule; onUpdated: (record: WorkspaceInvestigation) => void }) {
+  const [sample, setSample] = useState('{"event_type":"process_start","Image":"powershell.exe"}');
+  const [testResult, setTestResult] = useState<string | null>(null);
   async function review(status: DetectionReviewStatus) {
     const record = await getInvestigation(rule.investigationId);
     if (!record.detection_package) return;
@@ -77,6 +79,13 @@ function RuleCard({ rule, onUpdated }: { rule: Rule; onUpdated: (record: Workspa
   function download() {
     const blob = new Blob([rule.content], { type: "text/plain" });
     const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = artifactFilename(rule); link.click(); URL.revokeObjectURL(link.href);
+  }
+  async function runTest() {
+    try {
+      const logs = sample.split("\n").filter(Boolean).map((line) => JSON.parse(line) as Record<string, unknown>);
+      const result = await testDetection(rule.language, rule.content, logs);
+      setTestResult(result.messages.join(" ") || `${result.matched_logs}/${result.total_logs} sample log(s) matched.`);
+    } catch { setTestResult("Enter one valid JSON log per line."); }
   }
   return <details className="group rounded-2xl border border-zinc-800 bg-zinc-900">
     <summary className="flex cursor-pointer list-none flex-wrap items-center gap-2 p-4">
@@ -90,6 +99,7 @@ function RuleCard({ rule, onUpdated }: { rule: Rule; onUpdated: (record: Workspa
       {rule.description && <p className="text-sm text-zinc-400">{rule.description}</p>}
       <pre className="max-h-[420px] overflow-auto rounded-xl border border-zinc-800 bg-zinc-950 p-4 font-mono text-xs leading-5 text-zinc-300">{rule.content || "No rule content was generated."}</pre>
       <div className="flex flex-wrap gap-2"><button onClick={() => navigator.clipboard?.writeText(rule.content)} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800">Copy rule</button><button onClick={download} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800">Download</button><button onClick={() => review("reviewed")} className="rounded-lg border border-sky-500/30 px-3 py-1.5 text-xs text-sky-300 hover:bg-sky-500/10">Mark reviewed</button><button onClick={() => review("approved")} className="rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs text-emerald-300 hover:bg-emerald-500/10">Approve</button><button onClick={() => review("rejected")} className="rounded-lg border border-red-500/30 px-3 py-1.5 text-xs text-red-300 hover:bg-red-500/10">Reject</button></div>
+      <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3"><p className="text-xs font-medium text-zinc-300">Offline sample test</p><p className="mt-1 text-[11px] text-zinc-600">One JSON log per line. This never contacts a SIEM.</p><textarea value={sample} onChange={(e) => setSample(e.target.value)} rows={3} className="mt-2 w-full rounded-lg border border-zinc-800 bg-zinc-900 p-2 font-mono text-xs text-zinc-300" /><button onClick={runTest} className="mt-2 rounded-lg border border-indigo-500/30 px-3 py-1.5 text-xs text-indigo-300 hover:bg-indigo-500/10">Test samples</button>{testResult && <p className="mt-2 text-xs text-zinc-400">{testResult}</p>}</div>
     </div>
   </details>;
 }

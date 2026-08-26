@@ -119,3 +119,8 @@ export function generateDetections(
 ): Promise<DetectionPackage> {
   return post<DetectionPackage>("/detections", summary, signal);
 }
+
+export interface DetectionTestResponse { valid: boolean; matched_logs: number; total_logs: number; messages: string[]; }
+export function testDetection(language: DetectionLanguage, content: string, sample_logs: Record<string, unknown>[], signal?: AbortSignal): Promise<DetectionTestResponse> {
+  return post<DetectionTestResponse>("/detections/test", { language, content, sample_logs }, signal);
+}
