@@ -34,3 +34,12 @@ The audit tables are in `supabase/migrations/202608270001_detection_audit.sql`.
 Apply migrations through the Supabase migration workflow. Review the row-level
 security policy and add the project’s user/organization boundary before exposing
 these tables directly to browser clients.
+
+## Rule history
+
+Review, note, exclusion, restore, and saved combined-rule changes append an
+immutable snapshot to the artifact metadata as `version_history`. The Detection
+Workspace shows recorded versions and can export each prior rule body. This
+works before a SIEM is available. The Supabase audit tables remain the durable
+server-side follow-up once authenticated user or organization ownership is
+available in workspace storage.

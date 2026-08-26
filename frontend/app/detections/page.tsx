@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { getInvestigation, listInvestigations, testDetection, updateInvestigation, type DetectionArtifact, type DetectionReviewStatus, type WorkspaceInvestigation } from "@/lib/api";
 import { detectionLanguageLabel, detectionSeverityClass, detectionSeverityLabel, artifactFilename } from "@/lib/detection";
+import { readDetectionVersions, versionHistoryExportName, withDetectionVersion } from "@/lib/detectionVersioning";
 
 type Rule = DetectionArtifact & { investigationId: string; investigationTitle: string };
 type RuleGroup = { key: string; title: string; investigationId: string; investigationTitle: string; rules: Rule[] };
@@ -92,7 +93,9 @@ export default function DetectionsPage() {
     const record = await getInvestigation(selected[0].investigationId); if (!record.detection_package) return;
     const id = `det_combined_${hashText(`${type}|${values.join("|")}`)}`;
     const artifact = { id, language: "sigma", target: { language: "sigma", platform: "generic" }, title: `Combined ${type} IOC match (${values.length})`, description: `Analyst-composed Sigma rule for ${values.length} selected ${type} indicators.`, content, severity: Math.max(...selected.flatMap((group) => group.rules.map((rule) => rule.severity))), category, capabilities: ["ioc_match"], source_finding_ids: selected.flatMap((group) => group.rules.flatMap((rule) => rule.source_finding_ids)), references: [], validation: { status: "valid", validator: "threatlens-sigma-composer", messages: [] }, review_status: "draft", review_note: "Analyst-composed draft; verify against the target schema.", reviewed_at: null, reviewed_by: null, rule_id: id, metadata: { generator: "analyst-composer", combined: "true", version: "1", source_iocs: values.join(",") } } as unknown as DetectionArtifact;
-    const pkg = { ...record.detection_package, artifacts: [...record.detection_package.artifacts.filter((item) => item.id !== id), artifact] };
+    const previous = record.detection_package.artifacts.find((item) => item.id === id);
+    const versioned = previous ? withDetectionVersion(previous, artifact) : artifact;
+    const pkg = { ...record.detection_package, artifacts: [...record.detection_package.artifacts.filter((item) => item.id !== id), versioned] };
     const updated = await updateInvestigation(record.id, { detection_package: pkg });
     setRecords((items) => items.map((item) => item.id === updated.id ? updated : item)); setSelectedGroups(new Set()); window.alert("Combined Sigma rule saved as a draft for review.");
   }
@@ -174,17 +177,22 @@ function RuleCard({ rule, onUpdated }: { rule: Rule; onUpdated: (record: Workspa
   const [testResult, setTestResult] = useState<string | null>(null);
   const [note, setNote] = useState(rule.review_note ?? "");
   const [noteSaved, setNoteSaved] = useState(false);
+  const versions = readDetectionVersions(rule);
+  function downloadVersion(version: number, content: string) {
+    const blob = new Blob([content], { type: "text/plain" });
+    const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = versionHistoryExportName(rule, version); link.click(); URL.revokeObjectURL(link.href);
+  }
   async function review(status: DetectionReviewStatus) {
     const record = await getInvestigation(rule.investigationId);
     if (!record.detection_package) return;
-    const pkg = { ...record.detection_package, artifacts: record.detection_package.artifacts.map((item) => item.id === rule.id ? { ...item, review_status: status, reviewed_at: new Date().toISOString(), reviewed_by: "local-analyst" } : item) };
+    const pkg = { ...record.detection_package, artifacts: record.detection_package.artifacts.map((item) => item.id === rule.id ? withDetectionVersion(item, { ...item, review_status: status, reviewed_at: new Date().toISOString(), reviewed_by: "local-analyst" }) : item) };
     const updated = await updateInvestigation(record.id, { detection_package: pkg });
     onUpdated(updated);
   }
   async function saveNote() {
     const record = await getInvestigation(rule.investigationId);
     if (!record.detection_package) return;
-    const pkg = { ...record.detection_package, artifacts: record.detection_package.artifacts.map((item) => item.id === rule.id ? { ...item, review_note: note } : item) };
+    const pkg = { ...record.detection_package, artifacts: record.detection_package.artifacts.map((item) => item.id === rule.id ? withDetectionVersion(item, { ...item, review_note: note }) : item) };
     const updated = await updateInvestigation(record.id, { detection_package: pkg });
     onUpdated(updated); setNoteSaved(true); setTimeout(() => setNoteSaved(false), 1800);
   }
@@ -192,7 +200,7 @@ function RuleCard({ rule, onUpdated }: { rule: Rule; onUpdated: (record: Workspa
     const record = await getInvestigation(rule.investigationId);
     if (!record.detection_package) return;
     const excluded = rule.metadata?.excluded === "true";
-    const pkg = { ...record.detection_package, artifacts: record.detection_package.artifacts.map((item) => item.id === rule.id ? { ...item, metadata: { ...item.metadata, ...(excluded ? { excluded: "false", exclusion_reason: "" } : { excluded: "true", exclusion_reason: "Analyst excluded from detection workspace" }) } } : item) };
+    const pkg = { ...record.detection_package, artifacts: record.detection_package.artifacts.map((item) => item.id === rule.id ? withDetectionVersion(item, { ...item, metadata: { ...item.metadata, ...(excluded ? { excluded: "false", exclusion_reason: "" } : { excluded: "true", exclusion_reason: "Analyst excluded from detection workspace" }) } }) : item) };
     onUpdated(await updateInvestigation(record.id, { detection_package: pkg }));
   }
   function download() {
@@ -217,6 +225,7 @@ function RuleCard({ rule, onUpdated }: { rule: Rule; onUpdated: (record: Workspa
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-500"><span>From <Link className="text-zinc-300 hover:underline" href={`/workspace/${rule.investigationId}`}>{rule.investigationTitle}</Link></span><span>{rule.validation.status} · {rule.review_status}</span></div>
       {rule.description && <p className="text-sm text-zinc-400">{rule.description}</p>}
       <pre className="max-h-[420px] overflow-auto rounded-xl border border-zinc-800 bg-zinc-950 p-4 font-mono text-xs leading-5 text-zinc-300">{rule.content || "No rule content was generated."}</pre>
+      {versions.length > 0 && <details className="rounded-xl border border-zinc-800 bg-zinc-950 p-3"><summary className="cursor-pointer text-xs font-medium text-zinc-300">Version history ({versions.length})</summary><div className="mt-3 space-y-2">{versions.map((version) => <div key={version.version} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zinc-800 p-2 text-xs"><span className="text-zinc-400">v{version.version} · {version.changed_fields.join(", ")} · {new Date(version.created_at).toLocaleString()}</span><button type="button" onClick={() => downloadVersion(version.version, version.content)} className="rounded border border-zinc-700 px-2 py-1 text-zinc-300 hover:bg-zinc-800">Export v{version.version}</button></div>)}</div></details>}
       <div className="flex flex-wrap gap-2"><button type="button" onClick={() => navigator.clipboard?.writeText(rule.content)} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800">Copy rule</button><button type="button" onClick={download} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800">Download</button><button type="button" onClick={toggleExclusion} className="rounded-lg border border-amber-500/30 px-3 py-1.5 text-xs text-amber-300 hover:bg-amber-500/10">{rule.metadata?.excluded === "true" ? "Restore" : "Exclude"}</button><button type="button" onClick={() => review("reviewed")} className="rounded-lg border border-sky-500/30 px-3 py-1.5 text-xs text-sky-300 hover:bg-sky-500/10">Mark reviewed</button><button type="button" onClick={() => review("approved")} className="rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs text-emerald-300 hover:bg-emerald-500/10">Approve</button><button type="button" onClick={() => review("rejected")} className="rounded-lg border border-red-500/30 px-3 py-1.5 text-xs text-red-300 hover:bg-red-500/10">Reject</button></div>
       <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3"><label htmlFor={`note-${rule.id}`} className="text-xs font-medium text-zinc-300">Analyst note</label><textarea id={`note-${rule.id}`} value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="Record tuning decisions, exceptions, or review context…" className="mt-2 w-full rounded-lg border border-zinc-800 bg-zinc-900 p-2 text-xs text-zinc-300 placeholder-zinc-600" /><button type="button" onClick={saveNote} className="mt-2 rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800">{noteSaved ? "Saved" : "Save note"}</button></div>
       <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3"><p className="text-xs font-medium text-zinc-300">Offline sample test</p><p className="mt-1 text-[11px] text-zinc-600">One JSON log per line. This never contacts a SIEM.</p><textarea value={sample} onChange={(e) => setSample(e.target.value)} rows={3} className="mt-2 w-full rounded-lg border border-zinc-800 bg-zinc-900 p-2 font-mono text-xs text-zinc-300" /><button onClick={runTest} className="mt-2 rounded-lg border border-indigo-500/30 px-3 py-1.5 text-xs text-indigo-300 hover:bg-indigo-500/10">Test samples</button>{testResult && <p className="mt-2 text-xs text-zinc-400">{testResult}</p>}</div>
