@@ -105,6 +105,8 @@ export default function WorkspaceDetailPage() {
           <>
             <DetailHeader record={state.record} onStatusChange={changeStatus} onGenerate={generateAndSaveDetections} />
 
+            <DetailMetrics record={state.record} />
+
             {state.record.investigation_summary && (
               <>
                 <InvestigationSummaryCard summary={state.record.investigation_summary} />
@@ -152,6 +154,7 @@ function DetailHeader({
 }) {
   const [exporting, setExporting] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState(false);
 
   async function exportJson() {
     setExporting(true);
@@ -168,7 +171,8 @@ function DetailHeader({
 
   async function generate() {
     setGenerating(true);
-    try { await onGenerate(); } finally { setGenerating(false); }
+    setGenerationError(false);
+    try { await onGenerate(); } catch { setGenerationError(true); } finally { setGenerating(false); }
   }
 
   return (
@@ -208,6 +212,8 @@ function DetailHeader({
         )}
       </div>
 
+      {generationError && <p role="alert" className="text-xs text-red-300">Detections could not be generated. Please try again.</p>}
+
       {record.summary && <p className="text-sm text-zinc-400">{record.summary}</p>}
 
       <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-zinc-800">
@@ -232,6 +238,17 @@ function DetailHeader({
       </div>
     </div>
   );
+}
+
+function DetailMetrics({ record }: { record: WorkspaceInvestigation }) {
+  const summary = record.investigation_summary;
+  const detections = record.detection_package;
+  const status = detections ? `${detections.artifacts.length} rules generated` : summary ? "Ready to generate" : "Not available";
+  return <div className="grid grid-cols-2 gap-2 sm:grid-cols-4"><Metric label="Findings" value={summary ? summary.findings.length : "—"} /><Metric label="Recommendations" value={summary ? summary.recommendations.length : "—"} /><Metric label="Detections" value={status} /><Metric label="Status" value={record.status.replace("_", " ")} /></div>;
+}
+
+function Metric({ label, value }: { label: string; value: string | number }) {
+  return <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 px-3 py-2.5"><p className="text-[11px] text-zinc-500">{label}</p><p className="mt-1 truncate text-sm font-medium capitalize text-zinc-200">{value}</p></div>;
 }
 
 /**
