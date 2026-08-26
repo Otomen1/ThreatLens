@@ -32,12 +32,14 @@ from .models import (
 from .service import WorkspaceService
 from .storage import LocalFileStorage, WorkspaceStorage
 from .sqlite_storage import SQLiteWorkspaceStorage
+from .postgres_storage import PostgresWorkspaceStorage
 
 __all__ = [
     "WORKSPACE_FRAMEWORK_VERSION",
     "InvestigationNotFoundError",
     "LocalFileStorage",
     "SQLiteWorkspaceStorage",
+    "PostgresWorkspaceStorage",
     "SaveInvestigationRequest",
     "UpdateInvestigationRequest",
     "WorkspaceError",

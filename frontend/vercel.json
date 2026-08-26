@@ -4,8 +4,7 @@
   "framework": "nextjs",
   "env": {
     "THREATLENS_WORKSPACE_DIR": "/tmp/threatlens/workspace",
-    "THREATLENS_STORAGE_BACKEND": "sqlite",
-    "THREATLENS_DATABASE_PATH": "/tmp/threatlens.db"
+    "THREATLENS_STORAGE_BACKEND": "postgres"
   },
   "functions": {
     "api/index.py": {

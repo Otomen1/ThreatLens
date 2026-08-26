@@ -26,6 +26,7 @@ from ...workspace import (
     compare,
     LocalFileStorage,
     SQLiteWorkspaceStorage,
+    PostgresWorkspaceStorage,
     SaveInvestigationRequest,
     UpdateInvestigationRequest,
     WorkspaceInvestigation,
@@ -82,6 +83,8 @@ def get_workspace_service() -> WorkspaceService:
         storage = (
             SQLiteWorkspaceStorage(settings.database_path)
             if settings.storage_backend == "sqlite"
+            else PostgresWorkspaceStorage()
+            if settings.storage_backend == "postgres"
             else LocalFileStorage(settings.storage_dir)
         )
         _workspace_service = WorkspaceService(storage)
