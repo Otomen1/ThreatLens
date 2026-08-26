@@ -81,6 +81,21 @@ export default function DetectionsPage() {
     const content = [`title: ThreatLens selected IOC match`, `status: experimental`, `logsource:`, `  category: ${category}`, `detection:`, `  selection:`, `    ${field}: [${values.map((value) => JSON.stringify(value)).join(", ")}]`, `  condition: selection`, ``].join("\n");
     const blob = new Blob([content], { type: "text/yaml" }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "threatlens-selected-iocs.yml"; link.click(); URL.revokeObjectURL(link.href);
   }
+  async function saveSelectedSigma() {
+    const selected = groups.filter((group) => selectedGroups.has(group.key));
+    const types = new Set(selected.map((group) => getIocType(group.title)));
+    if (selected.length < 2 || types.size !== 1) { window.alert("Select at least two IOCs of the same type."); return; }
+    const type = [...types][0]; const values = selected.map((group) => group.title.split(":").slice(1).join(":").trim()).filter(Boolean);
+    const field = type === "domain" ? "query" : type === "ip" ? "dst_ip" : type === "url" ? "c-uri|contains" : "Hashes|contains";
+    const category = type === "domain" ? "dns" : type === "ip" ? "network" : type === "url" ? "http" : "file";
+    const content = [`title: ThreatLens selected IOC match`, `status: experimental`, `logsource:`, `  category: ${type === "domain" ? "dns" : type === "ip" ? "firewall" : type === "url" ? "proxy" : "process_creation"}`, `detection:`, `  selection:`, `    ${field}: [${values.map((value) => JSON.stringify(value)).join(", ")}]`, `  condition: selection`, ``].join("\n");
+    const record = await getInvestigation(selected[0].investigationId); if (!record.detection_package) return;
+    const id = `det_combined_${hashText(`${type}|${values.join("|")}`)}`;
+    const artifact = { id, language: "sigma", target: { language: "sigma", platform: "generic" }, title: `Combined ${type} IOC match (${values.length})`, description: `Analyst-composed Sigma rule for ${values.length} selected ${type} indicators.`, content, severity: Math.max(...selected.flatMap((group) => group.rules.map((rule) => rule.severity))), category, capabilities: ["ioc_match"], source_finding_ids: selected.flatMap((group) => group.rules.flatMap((rule) => rule.source_finding_ids)), references: [], validation: { status: "valid", validator: "threatlens-sigma-composer", messages: [] }, review_status: "draft", review_note: "Analyst-composed draft; verify against the target schema.", reviewed_at: null, reviewed_by: null, rule_id: id, metadata: { generator: "analyst-composer", combined: "true", version: "1", source_iocs: values.join(",") } } as unknown as DetectionArtifact;
+    const pkg = { ...record.detection_package, artifacts: [...record.detection_package.artifacts.filter((item) => item.id !== id), artifact] };
+    const updated = await updateInvestigation(record.id, { detection_package: pkg });
+    setRecords((items) => items.map((item) => item.id === updated.id ? updated : item)); setSelectedGroups(new Set()); window.alert("Combined Sigma rule saved as a draft for review.");
+  }
 
   return (
     <main className="min-h-screen px-4 py-10 sm:py-14">
@@ -103,7 +118,7 @@ export default function DetectionsPage() {
         {state === "loading" && <Panel>Loading generated detections…</Panel>}
         {state === "error" && <Panel>Could not load saved detections. Check that the Workspace API is available.</Panel>}
         {state === "ready" && rules.length === 0 && <Panel>No generated detections match this view. Generate detections from an investigation, then save it to the Workspace.</Panel>}
-        {state === "ready" && groups.length > 0 && <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-zinc-500">{groups.length} IOC{groups.length === 1 ? "" : "s"} · {rules.length} generated rule{rules.length === 1 ? "" : "s"} · {rules.filter((rule) => rule.review_status === "approved").length} approved</p><div className="flex flex-wrap gap-2"><button type="button" onClick={exportRules} className="rounded-lg border border-sky-500/30 px-3 py-1.5 text-xs text-sky-300 hover:bg-sky-500/10">Export filtered JSON</button>{selectedGroups.size > 1 && <button type="button" onClick={exportSelectedSigma} className="rounded-lg border border-indigo-500/30 px-3 py-1.5 text-xs text-indigo-300 hover:bg-indigo-500/10">Export selected Sigma</button>}<button type="button" onClick={() => { setExpandAll(true); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Expand all</button><button type="button" onClick={() => { setExpandAll(false); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Collapse all</button></div></div>}
+        {state === "ready" && groups.length > 0 && <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-zinc-500">{groups.length} IOC{groups.length === 1 ? "" : "s"} · {rules.length} generated rule{rules.length === 1 ? "" : "s"} · {rules.filter((rule) => rule.review_status === "approved").length} approved</p><div className="flex flex-wrap gap-2"><button type="button" onClick={exportRules} className="rounded-lg border border-sky-500/30 px-3 py-1.5 text-xs text-sky-300 hover:bg-sky-500/10">Export filtered JSON</button>{selectedGroups.size > 1 && <><button type="button" onClick={exportSelectedSigma} className="rounded-lg border border-indigo-500/30 px-3 py-1.5 text-xs text-indigo-300 hover:bg-indigo-500/10">Export selected Sigma</button><button type="button" onClick={saveSelectedSigma} className="rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs text-emerald-300 hover:bg-emerald-500/10">Save combined draft</button></>}<button type="button" onClick={() => { setExpandAll(true); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Expand all</button><button type="button" onClick={() => { setExpandAll(false); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Collapse all</button></div></div>}
         <div className="grid gap-3">
           {visibleGroups.map((group) => <IocGroup key={group.key} group={group} selected={selectedGroups.has(group.key)} onSelect={(checked) => setSelectedGroups((current) => { const next = new Set(current); checked ? next.add(group.key) : next.delete(group.key); return next; })} expandAll={expandAll} expandSignal={expandSignal} onUpdated={(record) => setRecords((items) => items.map((item) => item.id === record.id ? record : item))} />)}
         </div>
@@ -124,6 +139,12 @@ function getIocType(title: string): string {
   if (value.includes("url")) return "url";
   if (value.includes("hash")) return "hash";
   return "other";
+}
+
+function hashText(value: string): string {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) hash = Math.imul(hash ^ value.charCodeAt(index), 16777619);
+  return (hash >>> 0).toString(16).padStart(8, "0");
 }
 
 function IocGroup({ group, selected, onSelect, expandAll, expandSignal, onUpdated }: { group: RuleGroup; selected: boolean; onSelect: (checked: boolean) => void; expandAll: boolean; expandSignal: number; onUpdated: (record: WorkspaceInvestigation) => void }) {
