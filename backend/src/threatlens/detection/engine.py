@@ -124,7 +124,16 @@ def generate(
 
     artifacts: list[DetectionArtifact] = []
     for generator in reg.generators:
-        artifacts.extend(generator.generate(summary))
+        # A faulty optional generator must not take down the complete package.
+        # Generators are expected to be total, but this boundary keeps one
+        # extension from compromising the deterministic core.
+        try:
+            artifacts.extend(generator.generate(summary))
+        except Exception:
+            continue
+    # A custom registry may return the same artifact twice; identity-based
+    # deduplication keeps package counts and exports trustworthy.
+    artifacts = list({artifact.id: artifact for artifact in artifacts}.values())
     artifacts = _ordered(artifacts)
 
     source_finding_ids = tuple(finding.id for finding in summary.findings)

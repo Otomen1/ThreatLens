@@ -59,7 +59,20 @@ def validate_artifact(artifact: DetectionArtifact) -> DetectionValidation:
         if artifact.content.count("{") != artifact.content.count("}"):
             messages.append("YARA braces are unbalanced")
     elif artifact.content.strip():
-        messages.append("syntax validation requires the target platform parser")
+        required = {
+            DetectionLanguage.SPLUNK_SPL: ("index=",),
+            DetectionLanguage.SENTINEL_KQL: ("| where",),
+            DetectionLanguage.ELASTIC_ESQL: ("FROM ", "WHERE "),
+            DetectionLanguage.CHRONICLE_YARA_L: ("rule ", "events:", "condition:"),
+            DetectionLanguage.QRADAR_AQL: ("SELECT ", "FROM "),
+        }.get(artifact.language, ())
+        for token in required:
+            if token not in artifact.content:
+                messages.append(f"missing required token '{token.strip()}'")
+        if artifact.content.count("{") != artifact.content.count("}"):
+            messages.append("braces are unbalanced")
+        if not required and not messages:
+            messages.append("syntax validation requires the target platform parser")
     return DetectionValidation(
         status=DetectionValidationStatus.VALID if not messages else DetectionValidationStatus.INVALID,
         validator="threatlens.offline",
