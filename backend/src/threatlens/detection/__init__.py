@@ -20,6 +20,7 @@ YARA, no AI, no rule generation; those arrive in later phases (see
 from __future__ import annotations
 
 from .config import DetectionSettings
+from .exclusions import DetectionExclusion, apply_exclusions
 from .engine import (
     DETECTION_ENGINE_VERSION,
     compute_artifact_id,
@@ -72,6 +73,7 @@ from .validation import test_sigma_rule, validate_artifact, validate_package
 __all__ = [
     "DETECTION_ENGINE_VERSION",
     "DetectionArtifact",
+    "DetectionExclusion",
     "DetectionCapability",
     "DetectionCategory",
     "DetectionGenerator",
@@ -101,6 +103,7 @@ __all__ = [
     "TemplateRegistry",
     "YaraGenerator",
     "apply_template",
+    "apply_exclusions",
     "build_default_registry",
     "build_default_template_registry",
     "compute_artifact_id",
