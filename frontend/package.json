@@ -12,6 +12,8 @@
   "dependencies": {
     "@xyflow/react": "^12.11.2",
     "next": "^16.2.9",
+    "@supabase/ssr": "^0.7.0",
+    "@supabase/supabase-js": "^2.57.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
