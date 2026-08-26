@@ -13,6 +13,11 @@ export default function DetectionsPage() {
   const [records, setRecords] = useState<WorkspaceInvestigation[]>([]);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [language, setLanguage] = useState("all");
+  const [severity, setSeverity] = useState("all");
+  const [iocType, setIocType] = useState("all");
+  const [reviewStatus, setReviewStatus] = useState("all");
+  const [expandAll, setExpandAll] = useState(false);
+  const [expandSignal, setExpandSignal] = useState(0);
   const [query, setQuery] = useState("");
 
   useEffect(() => {
@@ -35,7 +40,10 @@ export default function DetectionsPage() {
       ...artifact, investigationId: record.id, investigationTitle: record.title,
     })),
   ).filter((rule) => language === "all" || rule.language === language)
-    .filter((rule) => `${rule.title} ${rule.description} ${rule.content}`.toLowerCase().includes(query.toLowerCase().trim())), [records, language, query]);
+    .filter((rule) => severity === "all" || rule.severity === Number(severity))
+    .filter((rule) => iocType === "all" || getIocType(rule.title) === iocType)
+    .filter((rule) => reviewStatus === "all" || rule.review_status === reviewStatus)
+    .filter((rule) => `${rule.title} ${rule.description} ${rule.content}`.toLowerCase().includes(query.toLowerCase().trim())), [records, language, severity, iocType, reviewStatus, query]);
   const groups = useMemo<RuleGroup[]>(() => {
     const grouped = new Map<string, RuleGroup>();
     for (const rule of rules) {
@@ -61,13 +69,16 @@ export default function DetectionsPage() {
           <select value={language} onChange={(e) => setLanguage(e.target.value)} aria-label="Filter by detection language" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none">
             <option value="all">All languages</option>{languages.map((item) => <option key={item} value={item}>{detectionLanguageLabel(item)}</option>)}
           </select>
+          <select value={severity} onChange={(e) => setSeverity(e.target.value)} aria-label="Filter by severity" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value="all">All severities</option>{[4, 3, 2, 1, 0].map((item) => <option key={item} value={item}>{detectionSeverityLabel(item)}</option>)}</select>
+          <select value={iocType} onChange={(e) => setIocType(e.target.value)} aria-label="Filter by IOC type" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value="all">All IOC types</option><option value="domain">Domains</option><option value="ip">IP addresses</option><option value="url">URLs</option><option value="hash">File hashes</option></select>
+          <select value={reviewStatus} onChange={(e) => setReviewStatus(e.target.value)} aria-label="Filter by review status" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value="all">All review statuses</option><option value="unreviewed">Unreviewed</option><option value="reviewed">Reviewed</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
         </div>
         {state === "loading" && <Panel>Loading generated detections…</Panel>}
         {state === "error" && <Panel>Could not load saved detections. Check that the Workspace API is available.</Panel>}
         {state === "ready" && rules.length === 0 && <Panel>No generated detections match this view. Generate detections from an investigation, then save it to the Workspace.</Panel>}
-        {state === "ready" && groups.length > 0 && <p className="text-xs text-zinc-500">{groups.length} IOC{groups.length === 1 ? "" : "s"} · {rules.length} generated rule{rules.length === 1 ? "" : "s"}</p>}
+        {state === "ready" && groups.length > 0 && <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-zinc-500">{groups.length} IOC{groups.length === 1 ? "" : "s"} · {rules.length} generated rule{rules.length === 1 ? "" : "s"} · {rules.filter((rule) => rule.review_status === "approved").length} approved</p><div className="flex gap-2"><button type="button" onClick={() => { setExpandAll(true); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Expand all</button><button type="button" onClick={() => { setExpandAll(false); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Collapse all</button></div></div>}
         <div className="grid gap-3">
-          {groups.map((group) => <IocGroup key={group.key} group={group} onUpdated={(record) => setRecords((items) => items.map((item) => item.id === record.id ? record : item))} />)}
+          {groups.map((group) => <IocGroup key={group.key} group={group} expandAll={expandAll} expandSignal={expandSignal} onUpdated={(record) => setRecords((items) => items.map((item) => item.id === record.id ? record : item))} />)}
         </div>
       </div>
     </main>
@@ -78,11 +89,22 @@ function Panel({ children }: { children: ReactNode }) {
   return <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-8 text-center text-sm text-zinc-500">{children}</div>;
 }
 
-function IocGroup({ group, onUpdated }: { group: RuleGroup; onUpdated: (record: WorkspaceInvestigation) => void }) {
+function getIocType(title: string): string {
+  const value = title.toLowerCase();
+  if (value.includes("domain")) return "domain";
+  if (value.includes("ip address")) return "ip";
+  if (value.includes("url")) return "url";
+  if (value.includes("hash")) return "hash";
+  return "other";
+}
+
+function IocGroup({ group, expandAll, expandSignal, onUpdated }: { group: RuleGroup; expandAll: boolean; expandSignal: number; onUpdated: (record: WorkspaceInvestigation) => void }) {
+  const [open, setOpen] = useState(group.rules.length === 1);
+  useEffect(() => { if (expandSignal > 0) setOpen(expandAll); }, [expandAll, expandSignal]);
   const languages = [...new Set(group.rules.map((rule) => detectionLanguageLabel(rule.language)))];
   const highest = group.rules.reduce((value, rule) => Math.max(value, Number(rule.severity)), 0);
   const severity = highest;
-  return <details className="group rounded-2xl border border-zinc-800 bg-zinc-900" open={group.rules.length === 1}>
+  return <details className="group rounded-2xl border border-zinc-800 bg-zinc-900" open={open} onToggle={(event) => setOpen(event.currentTarget.open)}>
     <summary className="flex cursor-pointer list-none flex-wrap items-center gap-2 p-4">
       <span className="flex-1 text-sm font-medium text-white">{group.title}</span>
       <span className="text-xs text-zinc-500">{group.rules.length} format{group.rules.length === 1 ? "" : "s"}</span>
