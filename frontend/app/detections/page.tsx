@@ -7,6 +7,7 @@ import { getInvestigation, listInvestigations, testDetection, updateInvestigatio
 import { detectionLanguageLabel, detectionSeverityClass, detectionSeverityLabel, artifactFilename } from "@/lib/detection";
 
 type Rule = DetectionArtifact & { investigationId: string; investigationTitle: string };
+type RuleGroup = { key: string; title: string; investigationId: string; investigationTitle: string; rules: Rule[] };
 
 export default function DetectionsPage() {
   const [records, setRecords] = useState<WorkspaceInvestigation[]>([]);
@@ -35,6 +36,16 @@ export default function DetectionsPage() {
     })),
   ).filter((rule) => language === "all" || rule.language === language)
     .filter((rule) => `${rule.title} ${rule.description} ${rule.content}`.toLowerCase().includes(query.toLowerCase().trim())), [records, language, query]);
+  const groups = useMemo<RuleGroup[]>(() => {
+    const grouped = new Map<string, RuleGroup>();
+    for (const rule of rules) {
+      const key = `${rule.investigationId}:${rule.title}`;
+      const existing = grouped.get(key);
+      if (existing) existing.rules.push(rule);
+      else grouped.set(key, { key, title: rule.title, investigationId: rule.investigationId, investigationTitle: rule.investigationTitle, rules: [rule] });
+    }
+    return [...grouped.values()].sort((a, b) => a.title.localeCompare(b.title));
+  }, [rules]);
   const languages = [...new Set(records.flatMap((r) => r.detection_package?.languages ?? []))];
 
   return (
@@ -54,8 +65,9 @@ export default function DetectionsPage() {
         {state === "loading" && <Panel>Loading generated detections…</Panel>}
         {state === "error" && <Panel>Could not load saved detections. Check that the Workspace API is available.</Panel>}
         {state === "ready" && rules.length === 0 && <Panel>No generated detections match this view. Generate detections from an investigation, then save it to the Workspace.</Panel>}
+        {state === "ready" && groups.length > 0 && <p className="text-xs text-zinc-500">{groups.length} IOC{groups.length === 1 ? "" : "s"} · {rules.length} generated rule{rules.length === 1 ? "" : "s"}</p>}
         <div className="grid gap-3">
-          {rules.map((rule) => <RuleCard key={`${rule.investigationId}-${rule.id}`} rule={rule} onUpdated={(record) => setRecords((items) => items.map((item) => item.id === record.id ? record : item))} />)}
+          {groups.map((group) => <IocGroup key={group.key} group={group} onUpdated={(record) => setRecords((items) => items.map((item) => item.id === record.id ? record : item))} />)}
         </div>
       </div>
     </main>
@@ -64,6 +76,25 @@ export default function DetectionsPage() {
 
 function Panel({ children }: { children: ReactNode }) {
   return <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-8 text-center text-sm text-zinc-500">{children}</div>;
+}
+
+function IocGroup({ group, onUpdated }: { group: RuleGroup; onUpdated: (record: WorkspaceInvestigation) => void }) {
+  const languages = [...new Set(group.rules.map((rule) => detectionLanguageLabel(rule.language)))];
+  const highest = group.rules.reduce((value, rule) => Math.max(value, Number(rule.severity)), 0);
+  const severity = highest;
+  return <details className="group rounded-2xl border border-zinc-800 bg-zinc-900" open={group.rules.length === 1}>
+    <summary className="flex cursor-pointer list-none flex-wrap items-center gap-2 p-4">
+      <span className="flex-1 text-sm font-medium text-white">{group.title}</span>
+      <span className="text-xs text-zinc-500">{group.rules.length} format{group.rules.length === 1 ? "" : "s"}</span>
+      <span className="hidden text-xs text-zinc-600 sm:inline">{languages.join(" · ")}</span>
+      <span className={`rounded border px-2 py-0.5 text-[10px] ${detectionSeverityClass(severity)}`}>{detectionSeverityLabel(severity)}</span>
+      <span className="text-zinc-600 group-open:rotate-180">⌄</span>
+    </summary>
+    <div className="space-y-2 border-t border-zinc-800 p-3">
+      <p className="px-1 text-xs text-zinc-500">From <Link className="text-zinc-300 hover:underline" href={`/workspace/${group.investigationId}`}>{group.investigationTitle}</Link></p>
+      {group.rules.map((rule) => <RuleCard key={`${rule.investigationId}-${rule.id}`} rule={rule} onUpdated={onUpdated} />)}
+    </div>
+  </details>;
 }
 
 function RuleCard({ rule, onUpdated }: { rule: Rule; onUpdated: (record: WorkspaceInvestigation) => void }) {
