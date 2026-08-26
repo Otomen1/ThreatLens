@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/browser";
 
 const links = [
   ["/", "Search"],
@@ -16,6 +18,18 @@ const links = [
 
 export function AppNav() {
   const pathname = usePathname();
+  const [signedIn, setSignedIn] = useState(false);
+  useEffect(() => {
+    const client = createClient();
+    client.auth.getUser().then(({ data }) => setSignedIn(Boolean(data.user)));
+    const { data: subscription } = client.auth.onAuthStateChange((_event, session) => setSignedIn(Boolean(session?.user)));
+    return () => subscription.subscription.unsubscribe();
+  }, []);
+
+  async function signOut() {
+    await createClient().auth.signOut();
+    window.location.assign("/");
+  }
   return (
     <nav className="sticky top-0 z-40 border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur" aria-label="Primary navigation">
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center gap-5">
@@ -26,7 +40,7 @@ export function AppNav() {
             return <Link key={href} href={href} className={`shrink-0 rounded-lg px-3 py-1.5 text-xs transition-colors ${active ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900"}`}>{label}</Link>;
           })}
         </div>
-        <Link href="/login" className="ml-auto shrink-0 rounded-lg px-3 py-1.5 text-xs text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200">Sign in</Link>
+        {signedIn ? <button onClick={signOut} className="ml-auto shrink-0 rounded-lg px-3 py-1.5 text-xs text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200">Sign out</button> : <Link href="/login" className="ml-auto shrink-0 rounded-lg px-3 py-1.5 text-xs text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200">Sign in</Link>}
       </div>
     </nav>
   );
