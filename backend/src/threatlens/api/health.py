@@ -53,7 +53,11 @@ _AI_PROBE_TIMEOUT = 3.0
 # the two single-key providers are mapped explicitly. Kept beside the providers
 # it monitors; a provider requiring auth with no key present is "unconfigured".
 _ABUSE_CH_PROVIDERS = frozenset({"malwarebazaar", "urlhaus"})
-_DIRECT_KEY_ENV = {"abuseipdb": "ABUSEIPDB_API_KEY", "otx": "OTX_API_KEY"}
+_DIRECT_KEY_ENV = {
+    "abuseipdb": "ABUSEIPDB_API_KEY",
+    "otx": "OTX_API_KEY",
+    "virustotal": "VIRUSTOTAL_API_KEY",
+}
 
 # Build provenance is read from the environment (set by CI/deploy); absent in
 # local/dev, where it reports ``null`` rather than shelling out to git.
