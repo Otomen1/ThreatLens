@@ -24,6 +24,7 @@ from .types import (
     DetectionLanguage,
     DetectionSeverity,
     DetectionValidationStatus,
+    DetectionReviewStatus,
 )
 
 # --------------------------------------------------------------------------- #
@@ -117,6 +118,10 @@ class DetectionArtifact(BaseModel):
     source_finding_ids: tuple[str, ...] = ()
     references: tuple[DetectionReference, ...] = ()
     validation: DetectionValidation = DetectionValidation()
+    review_status: DetectionReviewStatus = DetectionReviewStatus.DRAFT
+    review_note: str = ""
+    reviewed_at: datetime | None = None
+    reviewed_by: str | None = None
     rule_id: str | None = None
     metadata: dict[str, str] = Field(default_factory=dict)
 

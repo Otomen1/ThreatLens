@@ -97,3 +97,13 @@ class DetectionValidationStatus(StrEnum):
     INVALID = "invalid"
     UNSUPPORTED = "unsupported"
     SKIPPED = "skipped"
+
+
+class DetectionReviewStatus(StrEnum):
+    """Analyst lifecycle state for a generated artifact."""
+
+    DRAFT = "draft"
+    REVIEWED = "reviewed"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    DEPRECATED = "deprecated"

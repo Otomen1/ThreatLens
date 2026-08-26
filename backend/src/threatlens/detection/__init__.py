@@ -64,6 +64,7 @@ from .types import (
     DetectionCategory,
     DetectionLanguage,
     DetectionSeverity,
+    DetectionReviewStatus,
     DetectionValidationStatus,
 )
 from .validation import validate_artifact, validate_package
@@ -77,6 +78,7 @@ __all__ = [
     "DetectionLanguage",
     "DetectionMetadata",
     "DetectionPackage",
+    "DetectionReviewStatus",
     "DetectionReference",
     "DetectionRegistry",
     "DetectionSettings",

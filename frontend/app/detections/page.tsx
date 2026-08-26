@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { getInvestigation, listInvestigations, type DetectionArtifact, type WorkspaceInvestigation } from "@/lib/api";
+import { getInvestigation, listInvestigations, updateInvestigation, type DetectionArtifact, type DetectionReviewStatus, type WorkspaceInvestigation } from "@/lib/api";
 import { detectionLanguageLabel, detectionSeverityClass, detectionSeverityLabel, artifactFilename } from "@/lib/detection";
 
 type Rule = DetectionArtifact & { investigationId: string; investigationTitle: string };
@@ -55,7 +55,7 @@ export default function DetectionsPage() {
         {state === "error" && <Panel>Could not load saved detections. Check that the Workspace API is available.</Panel>}
         {state === "ready" && rules.length === 0 && <Panel>No generated detections match this view. Generate detections from an investigation, then save it to the Workspace.</Panel>}
         <div className="grid gap-3">
-          {rules.map((rule) => <RuleCard key={`${rule.investigationId}-${rule.id}`} rule={rule} />)}
+          {rules.map((rule) => <RuleCard key={`${rule.investigationId}-${rule.id}`} rule={rule} onUpdated={(record) => setRecords((items) => items.map((item) => item.id === record.id ? record : item))} />)}
         </div>
       </div>
     </main>
@@ -66,7 +66,14 @@ function Panel({ children }: { children: ReactNode }) {
   return <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-8 text-center text-sm text-zinc-500">{children}</div>;
 }
 
-function RuleCard({ rule }: { rule: Rule }) {
+function RuleCard({ rule, onUpdated }: { rule: Rule; onUpdated: (record: WorkspaceInvestigation) => void }) {
+  async function review(status: DetectionReviewStatus) {
+    const record = await getInvestigation(rule.investigationId);
+    if (!record.detection_package) return;
+    const pkg = { ...record.detection_package, artifacts: record.detection_package.artifacts.map((item) => item.id === rule.id ? { ...item, review_status: status, reviewed_at: new Date().toISOString(), reviewed_by: "local-analyst" } : item) };
+    const updated = await updateInvestigation(record.id, { detection_package: pkg });
+    onUpdated(updated);
+  }
   function download() {
     const blob = new Blob([rule.content], { type: "text/plain" });
     const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = artifactFilename(rule); link.click(); URL.revokeObjectURL(link.href);
@@ -79,10 +86,10 @@ function RuleCard({ rule }: { rule: Rule }) {
       <span className="text-zinc-600 group-open:rotate-180">⌄</span>
     </summary>
     <div className="border-t border-zinc-800 p-4 space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-500"><span>From <Link className="text-zinc-300 hover:underline" href={`/workspace/${rule.investigationId}`}>{rule.investigationTitle}</Link></span><span>{rule.validation.status}</span></div>
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-500"><span>From <Link className="text-zinc-300 hover:underline" href={`/workspace/${rule.investigationId}`}>{rule.investigationTitle}</Link></span><span>{rule.validation.status} · {rule.review_status}</span></div>
       {rule.description && <p className="text-sm text-zinc-400">{rule.description}</p>}
       <pre className="max-h-[420px] overflow-auto rounded-xl border border-zinc-800 bg-zinc-950 p-4 font-mono text-xs leading-5 text-zinc-300">{rule.content || "No rule content was generated."}</pre>
-      <div className="flex gap-2"><button onClick={() => navigator.clipboard?.writeText(rule.content)} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800">Copy rule</button><button onClick={download} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800">Download</button></div>
+      <div className="flex flex-wrap gap-2"><button onClick={() => navigator.clipboard?.writeText(rule.content)} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800">Copy rule</button><button onClick={download} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800">Download</button><button onClick={() => review("reviewed")} className="rounded-lg border border-sky-500/30 px-3 py-1.5 text-xs text-sky-300 hover:bg-sky-500/10">Mark reviewed</button><button onClick={() => review("approved")} className="rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs text-emerald-300 hover:bg-emerald-500/10">Approve</button><button onClick={() => review("rejected")} className="rounded-lg border border-red-500/30 px-3 py-1.5 text-xs text-red-300 hover:bg-red-500/10">Reject</button></div>
     </div>
   </details>;
 }

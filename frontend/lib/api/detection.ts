@@ -46,6 +46,8 @@ export type DetectionValidationStatus =
   | "unsupported"
   | "skipped";
 
+export type DetectionReviewStatus = "draft" | "reviewed" | "approved" | "rejected" | "deprecated";
+
 export interface DetectionReference {
   title: string;
   url: string | null;
@@ -78,6 +80,10 @@ export interface DetectionArtifact {
   source_finding_ids: string[];
   references: DetectionReference[];
   validation: DetectionValidation;
+  review_status: DetectionReviewStatus;
+  review_note: string;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
   rule_id: string | null;
   metadata: Record<string, string>;
 }
