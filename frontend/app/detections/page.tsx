@@ -69,6 +69,18 @@ export default function DetectionsPage() {
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "threatlens-detections.json"; link.click(); URL.revokeObjectURL(link.href);
   }
+  function exportSelectedSigma() {
+    const selected = groups.filter((group) => selectedGroups.has(group.key));
+    const types = new Set(selected.map((group) => getIocType(group.title)));
+    if (types.size !== 1) { window.alert("Select IOCs of the same type to create a combined Sigma rule."); return; }
+    const type = [...types][0];
+    const values = selected.map((group) => group.title.split(":").slice(1).join(":").trim()).filter(Boolean);
+    if (values.length < 2) return;
+    const field = type === "domain" ? "query" : type === "ip" ? "dst_ip" : type === "url" ? "c-uri|contains" : "Hashes|contains";
+    const category = type === "domain" ? "dns" : type === "ip" ? "firewall" : type === "url" ? "proxy" : "process_creation";
+    const content = [`title: ThreatLens selected IOC match`, `status: experimental`, `logsource:`, `  category: ${category}`, `detection:`, `  selection:`, `    ${field}: [${values.map((value) => JSON.stringify(value)).join(", ")}]`, `  condition: selection`, ``].join("\n");
+    const blob = new Blob([content], { type: "text/yaml" }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "threatlens-selected-iocs.yml"; link.click(); URL.revokeObjectURL(link.href);
+  }
 
   return (
     <main className="min-h-screen px-4 py-10 sm:py-14">
@@ -91,9 +103,9 @@ export default function DetectionsPage() {
         {state === "loading" && <Panel>Loading generated detections…</Panel>}
         {state === "error" && <Panel>Could not load saved detections. Check that the Workspace API is available.</Panel>}
         {state === "ready" && rules.length === 0 && <Panel>No generated detections match this view. Generate detections from an investigation, then save it to the Workspace.</Panel>}
-        {state === "ready" && groups.length > 0 && <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-zinc-500">{groups.length} IOC{groups.length === 1 ? "" : "s"} · {rules.length} generated rule{rules.length === 1 ? "" : "s"} · {rules.filter((rule) => rule.review_status === "approved").length} approved</p><div className="flex flex-wrap gap-2"><button type="button" onClick={exportRules} className="rounded-lg border border-sky-500/30 px-3 py-1.5 text-xs text-sky-300 hover:bg-sky-500/10">Export filtered JSON</button><button type="button" onClick={() => { setExpandAll(true); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Expand all</button><button type="button" onClick={() => { setExpandAll(false); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Collapse all</button></div></div>}
+        {state === "ready" && groups.length > 0 && <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-zinc-500">{groups.length} IOC{groups.length === 1 ? "" : "s"} · {rules.length} generated rule{rules.length === 1 ? "" : "s"} · {rules.filter((rule) => rule.review_status === "approved").length} approved</p><div className="flex flex-wrap gap-2"><button type="button" onClick={exportRules} className="rounded-lg border border-sky-500/30 px-3 py-1.5 text-xs text-sky-300 hover:bg-sky-500/10">Export filtered JSON</button>{selectedGroups.size > 1 && <button type="button" onClick={exportSelectedSigma} className="rounded-lg border border-indigo-500/30 px-3 py-1.5 text-xs text-indigo-300 hover:bg-indigo-500/10">Export selected Sigma</button>}<button type="button" onClick={() => { setExpandAll(true); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Expand all</button><button type="button" onClick={() => { setExpandAll(false); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Collapse all</button></div></div>}
         <div className="grid gap-3">
-          {visibleGroups.map((group) => <IocGroup key={group.key} group={group} expandAll={expandAll} expandSignal={expandSignal} onUpdated={(record) => setRecords((items) => items.map((item) => item.id === record.id ? record : item))} />)}
+          {visibleGroups.map((group) => <IocGroup key={group.key} group={group} selected={selectedGroups.has(group.key)} onSelect={(checked) => setSelectedGroups((current) => { const next = new Set(current); checked ? next.add(group.key) : next.delete(group.key); return next; })} expandAll={expandAll} expandSignal={expandSignal} onUpdated={(record) => setRecords((items) => items.map((item) => item.id === record.id ? record : item))} />)}
         </div>
         {state === "ready" && pageCount > 1 && <div className="flex items-center justify-between border-t border-zinc-800 pt-4"><button type="button" disabled={page === 1} onClick={() => setPage((value) => value - 1)} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 disabled:opacity-40">Previous</button><span className="text-xs text-zinc-500">Page {page} of {pageCount}</span><button type="button" disabled={page === pageCount} onClick={() => setPage((value) => value + 1)} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 disabled:opacity-40">Next</button></div>}
       </div>
@@ -114,7 +126,7 @@ function getIocType(title: string): string {
   return "other";
 }
 
-function IocGroup({ group, expandAll, expandSignal, onUpdated }: { group: RuleGroup; expandAll: boolean; expandSignal: number; onUpdated: (record: WorkspaceInvestigation) => void }) {
+function IocGroup({ group, selected, onSelect, expandAll, expandSignal, onUpdated }: { group: RuleGroup; selected: boolean; onSelect: (checked: boolean) => void; expandAll: boolean; expandSignal: number; onUpdated: (record: WorkspaceInvestigation) => void }) {
   const [open, setOpen] = useState(group.rules.length === 1);
   useEffect(() => { if (expandSignal > 0) setOpen(expandAll); }, [expandAll, expandSignal]);
   const languages = [...new Set(group.rules.map((rule) => detectionLanguageLabel(rule.language)))];
@@ -122,6 +134,7 @@ function IocGroup({ group, expandAll, expandSignal, onUpdated }: { group: RuleGr
   const severity = highest;
   return <details className="group rounded-2xl border border-zinc-800 bg-zinc-900" open={open} onToggle={(event) => setOpen(event.currentTarget.open)}>
     <summary className="flex cursor-pointer list-none flex-wrap items-center gap-2 p-4">
+      <input type="checkbox" checked={selected} onChange={(event) => onSelect(event.target.checked)} onClick={(event) => event.stopPropagation()} aria-label={`Select ${group.title} for combined Sigma export`} />
       <span className="flex-1 text-sm font-medium text-white">{group.title}</span>
       <span className="text-xs text-zinc-500">{group.rules.length} format{group.rules.length === 1 ? "" : "s"}</span>
       <span className="hidden text-xs text-zinc-600 sm:inline">{languages.join(" · ")}</span>
