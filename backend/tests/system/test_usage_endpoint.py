@@ -42,7 +42,7 @@ def mock_investigation() -> Iterator[MagicMock]:
 def test_lists_every_configured_ti_and_kb_provider_even_with_zero_requests() -> None:
     body = client.get("/api/v1/system/usage").json()
     ti_names = {p["name"] for p in body["threat_intelligence"]}
-    assert ti_names == {"malwarebazaar", "urlhaus", "abuseipdb", "otx"}
+    assert ti_names == {"malwarebazaar", "urlhaus", "abuseipdb", "otx", "virustotal"}
     for provider in body["threat_intelligence"]:
         assert provider["requests"] == 0
         assert provider["success_rate"] is None

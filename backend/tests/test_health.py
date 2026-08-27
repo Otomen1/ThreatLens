@@ -87,8 +87,8 @@ class TestProviders:
     def test_lists_all_ti_providers(self) -> None:
         body = client.get("/health/providers").json()
         names = {p["name"] for p in body["providers"]}
-        assert names == {"malwarebazaar", "urlhaus", "abuseipdb", "otx"}
-        assert body["total"] == 4
+        assert names == {"malwarebazaar", "urlhaus", "abuseipdb", "otx", "virustotal"}
+        assert body["total"] == 5
         for provider in body["providers"]:
             assert provider["entity_types"]  # each declares supported types
             assert isinstance(provider["requires_auth"], bool)
@@ -98,9 +98,10 @@ class TestProviders:
         monkeypatch.setenv("ABUSE_CH_AUTH_KEY", "k")  # covers malwarebazaar + urlhaus
         monkeypatch.setenv("ABUSEIPDB_API_KEY", "k")
         monkeypatch.setenv("OTX_API_KEY", "k")
+        monkeypatch.setenv("VIRUSTOTAL_API_KEY", "k")
         body = client.get("/health/providers").json()
         assert body["status"] == "ok"
-        assert body["configured"] == 4
+        assert body["configured"] == 5
         assert all(p["configured"] for p in body["providers"])
 
     def test_degraded_when_keys_missing(self, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -110,6 +111,7 @@ class TestProviders:
             "URLHAUS_AUTH_KEY",
             "ABUSEIPDB_API_KEY",
             "OTX_API_KEY",
+            "VIRUSTOTAL_API_KEY",
         ):
             monkeypatch.delenv(var, raising=False)
         body = client.get("/health/providers").json()

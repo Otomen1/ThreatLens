@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { CommunityRule, RuleMatch } from "./api";
+import type { CommunityRule, RuleMatch, RuleMatchType } from "./api";
 import {
   communityRuleFilename,
   groupMatchesByLanguage,
@@ -14,7 +14,7 @@ import {
 
 describe("matchTypeLabel", () => {
   it("labels each match strength", () => {
-    expect(["exact", "partial", "related", "none"].map(matchTypeLabel)).toEqual([
+    expect(["exact", "partial", "related", "none"].map((type) => matchTypeLabel(type as RuleMatchType))).toEqual([
       "Exact match",
       "Partial match",
       "Related",

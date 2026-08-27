@@ -17,10 +17,10 @@ def test_returns_200_and_ready_status() -> None:
     assert body["status"] == "ready"
 
 
-def test_reports_zero_providers_in_phase_6_0() -> None:
+def test_reports_registered_provider() -> None:
     body = client.get("/api/v1/identity").json()
-    assert body["providers_registered"] == 0
-    assert body["message"] == "No providers configured"
+    assert body["providers_registered"] == 1
+    assert body["message"] == "1 provider(s) registered"
 
 
 def test_reports_framework_version() -> None:
@@ -30,7 +30,9 @@ def test_reports_framework_version() -> None:
 
 def test_response_shape_is_exactly_the_documented_fields() -> None:
     body = client.get("/api/v1/identity").json()
-    assert set(body) == {"status", "message", "framework_version", "providers_registered"}
+    assert set(body) == {
+        "status", "message", "framework_version", "providers_registered", "summary"
+    }
 
 
 def test_is_a_pure_get_with_no_query_params_required() -> None:

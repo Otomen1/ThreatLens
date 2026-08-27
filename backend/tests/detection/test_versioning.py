@@ -9,6 +9,7 @@ def artifact(**updates: object) -> DetectionArtifact:
     base = {
         "id": "det_test",
         "language": DetectionLanguage.SIGMA,
+        "target": {"language": DetectionLanguage.SIGMA, "platform": "generic"},
         "title": "Test rule",
         "content": "title: test\n",
         "metadata": {"engine_version": "1.0", "mapping_version": "default"},

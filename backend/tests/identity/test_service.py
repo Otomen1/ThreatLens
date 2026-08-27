@@ -12,7 +12,7 @@ from threatlens.identity.models import (
     IdentityStatus,
 )
 from threatlens.identity.provider import IdentityProvider
-from threatlens.identity.registry import IdentityRegistry, build_default_registry
+from threatlens.identity.registry import IdentityRegistry
 from threatlens.identity.service import IDENTITY_FRAMEWORK_VERSION, IdentityService
 
 
@@ -66,14 +66,14 @@ class _FakeFailingProvider(IdentityProvider):
 
 class TestEmptyRegistry:
     async def test_investigate_returns_well_formed_empty_summary(self) -> None:
-        service = IdentityService(build_default_registry())
+        service = IdentityService(IdentityRegistry())
         summary = await service.investigate(_entity())
         assert summary.findings == []
         assert summary.statistics.providers_queried == 0
         assert summary.metadata.framework_version == IDENTITY_FRAMEWORK_VERSION
 
     async def test_entity_type_and_value_are_preserved(self) -> None:
-        service = IdentityService(build_default_registry())
+        service = IdentityService(IdentityRegistry())
         summary = await service.investigate(_entity(EntityType.DOMAIN, "example.com"))
         assert summary.entity_type == EntityType.DOMAIN
         assert summary.entity_value == "example.com"

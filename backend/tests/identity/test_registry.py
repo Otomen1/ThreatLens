@@ -116,8 +116,8 @@ class TestRouting:
         assert registry.route(_entity()) == ()
 
 
-def test_build_default_registry_is_empty() -> None:
-    """Phase 6.0 ships zero providers; the default registry reflects that."""
+def test_build_default_registry_contains_hibp() -> None:
+    """The default registry wires the optional HIBP identity provider."""
     registry = build_default_registry()
-    assert len(registry) == 0
-    assert registry.providers == ()
+    assert len(registry) == 1
+    assert [provider.metadata.name for provider in registry.providers] == ["hibp"]

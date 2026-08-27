@@ -25,13 +25,13 @@ _REF_ROUTER = build_default_reference_router()
 
 # Expected provider routing per entity type (ground truth probed from the engine).
 _EXPECTED_TI: dict[EntityType, frozenset[str]] = {
-    EntityType.IPV4: frozenset({"abuseipdb", "otx"}),
-    EntityType.IPV6: frozenset({"abuseipdb", "otx"}),
-    EntityType.DOMAIN: frozenset({"urlhaus", "otx"}),
-    EntityType.URL: frozenset({"urlhaus", "otx"}),
-    EntityType.MD5: frozenset({"malwarebazaar", "otx"}),
-    EntityType.SHA1: frozenset({"malwarebazaar", "otx"}),
-    EntityType.SHA256: frozenset({"malwarebazaar", "otx"}),
+    EntityType.IPV4: frozenset({"abuseipdb", "otx", "virustotal"}),
+    EntityType.IPV6: frozenset({"abuseipdb", "otx", "virustotal"}),
+    EntityType.DOMAIN: frozenset({"urlhaus", "otx", "virustotal"}),
+    EntityType.URL: frozenset({"urlhaus", "otx", "virustotal"}),
+    EntityType.MD5: frozenset({"malwarebazaar", "otx", "virustotal"}),
+    EntityType.SHA1: frozenset({"malwarebazaar", "otx", "virustotal"}),
+    EntityType.SHA256: frozenset({"malwarebazaar", "otx", "virustotal"}),
 }
 _EXPECTED_REF: dict[EntityType, frozenset[str]] = {
     EntityType.CVE: frozenset({"nvd"}),

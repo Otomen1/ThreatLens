@@ -24,6 +24,7 @@ def test_configured_true_when_keys_present(monkeypatch: pytest.MonkeyPatch) -> N
     monkeypatch.setenv("ABUSE_CH_AUTH_KEY", "k")
     monkeypatch.setenv("ABUSEIPDB_API_KEY", "k")
     monkeypatch.setenv("OTX_API_KEY", "k")
+    monkeypatch.setenv("VIRUSTOTAL_API_KEY", "k")
     body = client.get("/api/v1/system/config").json()
     assert all(p["configured"] for p in body["threat_intelligence"])
 
@@ -35,6 +36,7 @@ def test_configured_false_when_keys_absent(monkeypatch: pytest.MonkeyPatch) -> N
         "URLHAUS_AUTH_KEY",
         "ABUSEIPDB_API_KEY",
         "OTX_API_KEY",
+        "VIRUSTOTAL_API_KEY",
     ):
         monkeypatch.delenv(var, raising=False)
     body = client.get("/api/v1/system/config").json()

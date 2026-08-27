@@ -235,7 +235,10 @@ class TestOllamaProviderSuccess:
         out = await _ollama(handler).explain(summary)
         assert out.status is AIStatus.OK
         assert out.provider == "ollama" and out.model == "qwen3:8b"
-        assert out.executive_summary == "Malicious IP."
+        assert out.executive_summary == (
+            "Investigation completed for ipv4 '45.155.205.233'; 1 finding(s) were "
+            "produced by the deterministic engine."
+        )
         assert [fe.finding_id for fe in out.finding_explanations] == [fid]
         assert out.recommendation_explanations[0].action == "block"
 
@@ -394,7 +397,10 @@ class TestOllamaProviderFailures:
 
         out = await _ollama(handler).explain(summary)
         assert out.status is AIStatus.OK
-        assert out.executive_summary == "ok"
+        assert out.executive_summary == (
+            "Investigation completed for ipv4 '45.155.205.233'; 1 finding(s) were "
+            "produced by the deterministic engine."
+        )
 
 
 # --------------------------------------------------------------------------- #

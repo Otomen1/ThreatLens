@@ -26,7 +26,9 @@ class DetectionVersion:
     approved: bool = False
 
 
-def changed_fields(previous: DetectionArtifact | None, current: DetectionArtifact) -> tuple[str, ...]:
+def changed_fields(
+    previous: DetectionArtifact | None, current: DetectionArtifact
+) -> tuple[str, ...]:
     """Return stable field names changed between two artifact snapshots."""
     if previous is None:
         return ("created",)
@@ -45,10 +47,14 @@ def create_version(
     """Create an immutable audit snapshot from an artifact."""
     if version < 1:
         raise ValueError("detection versions start at 1")
-    if previous is not None and previous.review_status.value == "approved" and previous.content != current.content:
+    if (
+        previous is not None
+        and previous.review_status.value == "approved"
+        and previous.content != current.content
+        and previous.id == current.id
+    ):
         # Approved artifacts can be superseded, but not mutated in place.
-        if previous.id == current.id:
-            raise ValueError("approved detection versions are immutable")
+        raise ValueError("approved detection versions are immutable")
     return DetectionVersion(
         version=version,
         artifact_id=current.id,
