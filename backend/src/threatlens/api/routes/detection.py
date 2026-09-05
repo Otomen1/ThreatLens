@@ -8,9 +8,9 @@ from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
 from ...detection import DetectionPackage, test_sigma_rule
-from ...detection.types import DetectionLanguage
 from ...detection import build_default_registry as build_detection_registry
 from ...detection import generate as generate_detections
+from ...detection.types import DetectionLanguage
 from ...reasoning import InvestigationSummary
 from ...system import registry as metrics_registry
 from ...system.record import record_detection_generation
@@ -31,6 +31,7 @@ class DetectionTestResponse(BaseModel):
     total_logs: int
     messages: list[str] = Field(default_factory=list)
 
+
 # The Detection Engineering registry is a downstream, deterministic consumer of
 # the InvestigationSummary. Built once from the registered deterministic generators.
 # Not underscore-prefixed: the Operational Dashboard's system router reads the
@@ -42,9 +43,19 @@ detection_registry = build_detection_registry()
 def test_detection(request: DetectionTestRequest) -> DetectionTestResponse:
     """Offline rule test; never contacts a SIEM or external provider."""
     if request.language is not DetectionLanguage.SIGMA:
-        return DetectionTestResponse(valid=False, matched_logs=0, total_logs=len(request.sample_logs), messages=["Offline sample matching currently supports Sigma JSON logs only."])
+        return DetectionTestResponse(
+            valid=False,
+            matched_logs=0,
+            total_logs=len(request.sample_logs),
+            messages=["Offline sample matching currently supports Sigma JSON logs only."],
+        )
     valid, matched, messages = test_sigma_rule(request.content, tuple(request.sample_logs))
-    return DetectionTestResponse(valid=valid, matched_logs=matched, total_logs=len(request.sample_logs), messages=list(messages))
+    return DetectionTestResponse(
+        valid=valid,
+        matched_logs=matched,
+        total_logs=len(request.sample_logs),
+        messages=list(messages),
+    )
 
 
 @router.post("/api/v1/detections", response_model=DetectionPackage)

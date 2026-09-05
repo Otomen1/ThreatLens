@@ -11,6 +11,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from ...reasoning import InvestigationSummary
+from ..field_mappings import QRADAR_FIELDS
 from ..models import DetectionArtifact, DetectionTarget, DetectionTemplate
 from ..registry import DetectionGenerator
 from ..templates import TemplateRegistry
@@ -35,14 +36,17 @@ TemplateRegistry().register(_TEMPLATE)
 
 def _body(obs: sc.Observable) -> str:
     v = sc.aql(obs.value)
+    fields = QRADAR_FIELDS.for_kind(obs.kind)
     if obs.kind == "ip":
         return (
-            "SELECT QIDNAME(qid) AS event, sourceip, destinationip, username "
-            f"FROM events WHERE sourceip = '{v}' OR destinationip = '{v}' LAST 7 DAYS"
+            f"SELECT QIDNAME(qid) AS event, {fields[0]}, {fields[1]}, username "
+            f"FROM {QRADAR_FIELDS.event_source} "
+            f"WHERE {fields[0]} = '{v}' OR {fields[1]} = '{v}' LAST 7 DAYS"
         )
+    payload = fields[0]
     return (
-        "SELECT QIDNAME(qid) AS event, sourceip, destinationip, UTF8(payload) AS payload "
-        f"FROM events WHERE UTF8(payload) ILIKE '%{v}%' LAST 7 DAYS"
+        f"SELECT QIDNAME(qid) AS event, sourceip, destinationip, UTF8({payload}) AS payload "
+        f"FROM {QRADAR_FIELDS.event_source} WHERE UTF8({payload}) ILIKE '%{v}%' LAST 7 DAYS"
     )
 
 
@@ -84,6 +88,8 @@ class QRadarGenerator(DetectionGenerator):
                 findings=groups[obs],
                 generated_at_iso=ts,
                 render=_render,
+                mapping_profile=QRADAR_FIELDS.name,
+                mapping_version=QRADAR_FIELDS.version,
             )
             for obs in sorted(groups, key=lambda o: (o.kind, o.value))
         ]

@@ -25,10 +25,12 @@ from ...cases import (
     CaseService,
     CaseSettings,
     CaseStatus,
+    CaseStorage,
     CreateCaseRequest,
     InvalidStatusTransitionError,
     LinkWorkspaceRequest,
     LocalFileStorage,
+    PostgresCaseStorage,
     SQLiteCaseStorage,
     UpdateCaseRequest,
 )
@@ -63,11 +65,13 @@ def get_case_service() -> CaseService:
     global _case_service
     if _case_service is None:
         settings = CaseSettings.from_env()
-        storage = (
-            SQLiteCaseStorage(settings.database_path)
-            if settings.storage_backend == "sqlite"
-            else LocalFileStorage(settings.storage_dir)
-        )
+        storage: CaseStorage
+        if settings.storage_backend == "postgres":
+            storage = PostgresCaseStorage()
+        elif settings.storage_backend == "sqlite":
+            storage = SQLiteCaseStorage(settings.database_path)
+        else:
+            storage = LocalFileStorage(settings.storage_dir)
         _case_service = CaseService(storage, get_workspace_service())
     return _case_service
 

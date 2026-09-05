@@ -85,7 +85,7 @@ export default function CasesPage() {
           </h1>
           <p className="text-zinc-500 text-sm mt-1">
             Operational cases that organize saved Workspace investigations by reference. A case
-            never duplicates an investigation's content.
+            never duplicates an investigation&apos;s content.
           </p>
         </header>
 

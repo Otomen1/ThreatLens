@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from typing import Annotated
+
 from fastapi import APIRouter, Query
 
-from ...identity import IDENTITY_FRAMEWORK_VERSION
+from ...identity import IDENTITY_FRAMEWORK_VERSION, IdentityService
 from ...identity import build_default_registry as build_identity_registry
-from ...identity import IdentityService
 from ...search import detect
-from ..schemas import IdentityFrameworkStatus, MAX_QUERY_LENGTH
+from ..schemas import MAX_QUERY_LENGTH, IdentityFrameworkStatus
 
 router = APIRouter()
 

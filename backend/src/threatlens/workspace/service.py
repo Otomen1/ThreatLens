@@ -29,6 +29,27 @@ class WorkspaceService:
     def __init__(self, storage: WorkspaceStorage) -> None:
         self._storage = storage
 
+    def snapshot(self) -> list[WorkspaceInvestigation]:
+        """Return all persisted records for a portable backup."""
+        return self._storage.list_all()
+
+    def merge_snapshot(self, records: list[WorkspaceInvestigation]) -> tuple[int, int, int]:
+        """Safely add or update newer records without deleting existing data."""
+        added = updated = skipped = 0
+        with self._storage.lock():
+            for record in records:
+                if not self._storage.exists(record.id):
+                    self._storage.save(record)
+                    added += 1
+                    continue
+                current = self._storage.load(record.id)
+                if record.updated_at > current.updated_at:
+                    self._storage.save(record)
+                    updated += 1
+                else:
+                    skipped += 1
+        return added, updated, skipped
+
     def save(
         self, request: SaveInvestigationRequest, *, now: datetime | None = None
     ) -> WorkspaceInvestigation:

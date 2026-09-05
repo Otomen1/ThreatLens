@@ -58,8 +58,8 @@ def test_corpus_covers_every_generator() -> None:
     assert produced == _EXPECTED_GENERATORS
 
 
-def test_engine_is_frozen_at_v1() -> None:
-    assert DETECTION_ENGINE_VERSION == "1.0"
+def test_engine_is_frozen_at_v1_1() -> None:
+    assert DETECTION_ENGINE_VERSION == "1.1"
 
 
 # --------------------------------------------------------------------------- #

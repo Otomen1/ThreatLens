@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from ...reasoning import InvestigationSummary
+from ..field_mappings import SENTINEL_FIELDS
 from ..models import DetectionArtifact, DetectionTarget, DetectionTemplate
 from ..registry import DetectionGenerator
 from ..templates import TemplateRegistry
@@ -35,20 +36,22 @@ TemplateRegistry().register(_TEMPLATE)
 def _body(obs: sc.Observable) -> str:
     v = sc.dq(obs.value)
     kind = obs.kind
+    fields = SENTINEL_FIELDS.for_kind(kind)
     if kind == "ip":
         return (
-            f'CommonSecurityLog\n| where SourceIP == "{v}" or DestinationIP == "{v}"\n'
-            "| project TimeGenerated, DeviceVendor, SourceIP, DestinationIP"
+            f"{SENTINEL_FIELDS.event_source}\n"
+            f'| where {fields[0]} == "{v}" or {fields[1]} == "{v}"\n'
+            f"| project TimeGenerated, DeviceVendor, {fields[0]}, {fields[1]}"
         )
     if kind == "domain":
         return (
-            f'DnsEvents\n| where Name =~ "{v}"\n'
-            "| project TimeGenerated, Computer, Name, IPAddresses"
+            f'DnsEvents\n| where {fields[0]} =~ "{v}"\n'
+            f"| project TimeGenerated, Computer, {fields[0]}, IPAddresses"
         )
     if kind == "url":
         return (
-            f'CommonSecurityLog\n| where RequestURL has "{v}"\n'
-            "| project TimeGenerated, SourceIP, RequestURL"
+            f'{SENTINEL_FIELDS.event_source}\n| where {fields[0]} has "{v}"\n'
+            f"| project TimeGenerated, SourceIP, {fields[0]}"
         )
     if kind == "hash":
         field = obs.subtype.upper()
@@ -111,6 +114,8 @@ class SentinelGenerator(DetectionGenerator):
                 findings=groups[obs],
                 generated_at_iso=ts,
                 render=_render,
+                mapping_profile=SENTINEL_FIELDS.name,
+                mapping_version=SENTINEL_FIELDS.version,
             )
             for obs in sorted(groups, key=lambda o: (o.kind, o.value))
         ]

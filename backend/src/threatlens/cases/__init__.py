@@ -27,6 +27,7 @@ from .models import (
     CasePriority,
     CaseStatus,
 )
+from .postgres_storage import PostgresCaseStorage
 from .schemas import (
     AddNoteRequest,
     CaseListResponse,
@@ -35,8 +36,8 @@ from .schemas import (
     UpdateCaseRequest,
 )
 from .service import CaseService
-from .storage import CaseStorage, LocalFileStorage
 from .sqlite_storage import SQLiteCaseStorage
+from .storage import CaseStorage, LocalFileStorage
 
 __all__ = [
     "CASE_FRAMEWORK_VERSION",
@@ -57,5 +58,6 @@ __all__ = [
     "LinkWorkspaceRequest",
     "LocalFileStorage",
     "SQLiteCaseStorage",
+    "PostgresCaseStorage",
     "UpdateCaseRequest",
 ]

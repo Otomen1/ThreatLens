@@ -6,13 +6,12 @@ model while SQLite supplies durable atomic storage, indexing, and transactions.
 
 from __future__ import annotations
 
+import json
 import sqlite3
+from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime
-import json
 from pathlib import Path
-from typing import Iterator
-
 
 SCHEMA_VERSION = 1
 
@@ -47,7 +46,9 @@ def migrate(db: sqlite3.Connection) -> None:
         actor TEXT NOT NULL, action TEXT NOT NULL, resource_type TEXT NOT NULL,
         resource_id TEXT, detail TEXT NOT NULL
     )""")
-    db.execute("CREATE INDEX IF NOT EXISTS idx_audit_resource ON audit_events(resource_type, resource_id)")
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_audit_resource ON audit_events(resource_type, resource_id)"
+    )
 
 
 def record_audit(
@@ -60,8 +61,17 @@ def record_audit(
 ) -> None:
     """Append a durable audit event for a storage mutation."""
     db.execute(
-        "INSERT INTO audit_events(occurred_at, actor, action, resource_type, resource_id, detail) VALUES (?, ?, ?, ?, ?, ?)",
-        (datetime.now(UTC).isoformat(), "system", action, resource_type, resource_id, json.dumps(detail or {})),
+        """INSERT INTO audit_events(
+        occurred_at, actor, action, resource_type, resource_id, detail
+        ) VALUES (?, ?, ?, ?, ?, ?)""",
+        (
+            datetime.now(UTC).isoformat(),
+            "system",
+            action,
+            resource_type,
+            resource_id,
+            json.dumps(detail or {}),
+        ),
     )
 
 

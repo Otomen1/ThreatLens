@@ -45,9 +45,7 @@ async def build_usage(
     from ..api.health import ai_health, knowledge_health, providers_health
 
     ti = providers_health()
-    ti_usage = [
-        _provider_usage(item, metrics.ti_providers.get(item.name)) for item in ti.providers
-    ]
+    ti_usage = [_provider_usage(item, metrics.ti_providers.get(item.name)) for item in ti.providers]
 
     kb = knowledge_health()
     kb_usage = [_knowledge_usage(item, metrics.kb_providers.get(item.name)) for item in kb.datasets]
@@ -73,6 +71,8 @@ async def build_usage(
     detection_usage = DetectionEngineeringUsage(
         generated_total=sum(metrics.detection_by_language.values()),
         by_language=dict(metrics.detection_by_language),
+        generation_failures=sum(metrics.detection_generation_issues.values()),
+        failures_by_generator=dict(metrics.detection_generation_issues),
         avg_generation_ms=metrics.detection_generation_ms.average,
         last_generated_at=metrics.detection_last_generated_at,
     )

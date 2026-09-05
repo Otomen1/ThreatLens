@@ -198,9 +198,7 @@ def test_informational_and_bad_hash_skipped(
 
 
 @pytest.mark.parametrize(("gen_cls", "name", "lang", "tokens"), _GENERATORS, ids=_IDS)
-def test_metadata_is_complete(
-    gen_cls: Any, name: str, lang: str, tokens: tuple[str, ...]
-) -> None:
+def test_metadata_is_complete(gen_cls: Any, name: str, lang: str, tokens: tuple[str, ...]) -> None:
     artifact = _rules(gen_cls(), [_finding(fid="fnd_x", relationships=[_attack("T1071")])])[0]
     assert set(artifact.metadata) >= _REQUIRED_META
     assert artifact.metadata["detection_id"] == artifact.id

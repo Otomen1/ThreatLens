@@ -12,6 +12,7 @@ from collections.abc import Sequence
 
 from ... import __version__ as THREATLENS_VERSION
 from ...reasoning import InvestigationSummary
+from ..field_mappings import CHRONICLE_FIELDS
 from ..models import DetectionArtifact, DetectionTarget, DetectionTemplate
 from ..registry import DetectionGenerator
 from ..templates import TemplateRegistry
@@ -37,19 +38,21 @@ TemplateRegistry().register(_TEMPLATE)
 def _events(obs: sc.Observable) -> str:
     v = sc.dq(obs.value)
     kind = obs.kind
+    fields = CHRONICLE_FIELDS.for_kind(kind)
     if kind == "ip":
-        return f'$e.principal.ip = "{v}" or $e.target.ip = "{v}"'
+        return f'$e.{fields[0]} = "{v}" or $e.{fields[1]} = "{v}"'
     if kind == "domain":
-        return f'$e.network.dns.questions.name = "{v}" nocase'
+        return f'$e.{fields[0]} = "{v}" nocase'
     if kind == "url":
-        return f'$e.target.url = "{v}" nocase'
+        return f'$e.{fields[0]} = "{v}" nocase'
     if kind == "hash":
-        return f'$e.target.file.{obs.subtype} = "{v}" nocase'
+        field = fields[0].rsplit(".", 1)[0] + f".{obs.subtype}"
+        return f'$e.{field} = "{v}" nocase'
     if kind == "process":
-        return f'$e.target.process.file.full_path = "{v}" nocase'
+        return f'$e.{fields[0]} = "{v}" nocase'
     if kind == "registry":
-        return f'$e.target.registry.registry_key = "{v}" nocase'
-    return f'$e.target.process.command_line = "{v}" nocase'  # powershell
+        return f'$e.{fields[0]} = "{v}" nocase'
+    return f'$e.{fields[0]} = "{v}" nocase'  # powershell
 
 
 def _meta(data: sc.SiemData, rule_id: str, detection_id: str, generated_at: str) -> str:
@@ -122,6 +125,8 @@ class ChronicleGenerator(DetectionGenerator):
                 findings=groups[obs],
                 generated_at_iso=ts,
                 render=_render,
+                mapping_profile=CHRONICLE_FIELDS.name,
+                mapping_version=CHRONICLE_FIELDS.version,
             )
             for obs in sorted(groups, key=lambda o: (o.kind, o.value))
         ]

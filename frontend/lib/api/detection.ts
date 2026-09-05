@@ -63,7 +63,18 @@ export interface DetectionTarget {
 export interface DetectionValidation {
   status: DetectionValidationStatus;
   validator: string | null;
+  validator_version?: string | null;
+  level?: "structural" | "compiled" | "fixture_tested" | "unavailable";
+  checked_at?: string | null;
   messages: string[];
+}
+
+export interface DetectionGenerationIssue {
+  generator: string;
+  language: DetectionLanguage;
+  error_category: string;
+  message: string;
+  affected_finding_ids: string[];
 }
 
 // Severity is an ordinal integer (0–4) copied from the finding — never recomputed.
@@ -105,6 +116,7 @@ export interface DetectionPackage {
   languages: DetectionLanguage[];
   references: DetectionReference[];
   source_finding_ids: string[];
+  generation_issues?: DetectionGenerationIssue[];
 }
 
 /**

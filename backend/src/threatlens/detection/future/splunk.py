@@ -11,6 +11,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from ...reasoning import InvestigationSummary
+from ..field_mappings import SPLUNK_FIELDS
 from ..models import DetectionArtifact, DetectionTarget, DetectionTemplate
 from ..registry import DetectionGenerator
 from ..templates import TemplateRegistry
@@ -36,27 +37,28 @@ TemplateRegistry().register(_TEMPLATE)  # reusable template (registry pattern)
 def _body(obs: sc.Observable) -> str:
     v = sc.dq(obs.value)
     kind = obs.kind
+    fields = SPLUNK_FIELDS.for_kind(kind)
+    source = SPLUNK_FIELDS.event_source
     if kind == "ip":
+        source_field, destination_field = fields
         return (
-            f'index=* (src_ip="{v}" OR dest_ip="{v}")\n'
+            f'{source} ({source_field}="{v}" OR {destination_field}="{v}")\n'
             "| stats count earliest(_time) as firstTime latest(_time) as lastTime "
-            "by host, src_ip, dest_ip"
+            f"by host, {source_field}, {destination_field}"
         )
     if kind == "domain":
-        return f'index=* (query="{v}" OR url="*{v}*")\n| stats count by host, query, url'
+        search = f'{source} ({fields[0]}="{v}" OR {fields[1]}="*{v}*")'
+        return f"{search}\n| stats count by host, {fields[0]}, {fields[1]}"
     if kind == "url":
-        return f'index=* url="{v}"\n| stats count by host, url'
+        return f'{source} {fields[0]}="{v}"\n| stats count by host, {fields[0]}'
     if kind == "hash":
-        field = obs.subtype
+        field = fields[0]
         return f'index=* {field}="{v}"\n| stats count by host, {field}, file_name'
     if kind == "process":
-        return (
-            f'index=* process_name="{v}"\n'
-            "| stats count by host, user, process_name, parent_process_name"
-        )
+        return f'{source} {fields[0]}="{v}"\n| stats count by host, user, {fields[0]}'
     if kind == "registry":
-        return f'index=* registry_path="{v}"\n| stats count by host, user, registry_path'
-    return f'index=* ScriptBlockText="*{v}*"\n| stats count by host, user'  # powershell
+        return f'{source} {fields[0]}="{v}"\n| stats count by host, user, {fields[0]}'
+    return f'{source} {fields[0]}="*{v}*"\n| stats count by host, user'
 
 
 def _render(data: sc.SiemData, rule_id: str, detection_id: str, generated_at: str) -> str:
@@ -97,6 +99,8 @@ class SplunkGenerator(DetectionGenerator):
                 findings=groups[obs],
                 generated_at_iso=ts,
                 render=_render,
+                mapping_profile=SPLUNK_FIELDS.name,
+                mapping_version=SPLUNK_FIELDS.version,
             )
             for obs in sorted(groups, key=lambda o: (o.kind, o.value))
         ]

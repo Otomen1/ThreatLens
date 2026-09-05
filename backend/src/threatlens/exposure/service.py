@@ -45,6 +45,7 @@ class ExposureService:
         contributes its status, not an exception, and never blocks another.
         """
         providers = self._registry.route(entity)
+
         async def lookup(provider: Any) -> Any:
             async with self._semaphore:
                 return await provider.safe_lookup(entity)

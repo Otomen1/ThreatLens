@@ -15,8 +15,8 @@ authentication (single-user, self-hosted).
 
 from __future__ import annotations
 
-from .config import WorkspaceSettings
 from .comparison import FindingChange, InvestigationComparison, compare
+from .config import WorkspaceSettings
 from .exceptions import (
     InvestigationNotFoundError,
     WorkspaceError,
@@ -29,10 +29,10 @@ from .models import (
     WorkspaceInvestigation,
     WorkspaceStatus,
 )
-from .service import WorkspaceService
-from .storage import LocalFileStorage, WorkspaceStorage
-from .sqlite_storage import SQLiteWorkspaceStorage
 from .postgres_storage import PostgresWorkspaceStorage
+from .service import WorkspaceService
+from .sqlite_storage import SQLiteWorkspaceStorage
+from .storage import LocalFileStorage, WorkspaceStorage
 
 __all__ = [
     "WORKSPACE_FRAMEWORK_VERSION",

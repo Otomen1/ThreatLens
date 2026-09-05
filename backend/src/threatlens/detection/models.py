@@ -22,9 +22,10 @@ from .types import (
     DetectionCapability,
     DetectionCategory,
     DetectionLanguage,
-    DetectionSeverity,
-    DetectionValidationStatus,
     DetectionReviewStatus,
+    DetectionSeverity,
+    DetectionValidationLevel,
+    DetectionValidationStatus,
 )
 
 # --------------------------------------------------------------------------- #
@@ -67,7 +68,22 @@ class DetectionValidation(BaseModel):
 
     status: DetectionValidationStatus = DetectionValidationStatus.UNVALIDATED
     validator: str | None = None
+    validator_version: str | None = None
+    level: DetectionValidationLevel = DetectionValidationLevel.STRUCTURAL
+    checked_at: datetime | None = None
     messages: tuple[str, ...] = ()
+
+
+class DetectionGenerationIssue(BaseModel):
+    """Sanitized description of one generator that could not complete."""
+
+    model_config = ConfigDict(frozen=True)
+
+    generator: str
+    language: DetectionLanguage
+    error_category: str
+    message: str
+    affected_finding_ids: tuple[str, ...] = ()
 
 
 class DetectionTemplate(BaseModel):
@@ -166,6 +182,7 @@ class DetectionPackage(BaseModel):
     languages: tuple[DetectionLanguage, ...] = ()
     references: tuple[DetectionReference, ...] = ()
     source_finding_ids: tuple[str, ...] = ()
+    generation_issues: tuple[DetectionGenerationIssue, ...] = ()
 
     @property
     def is_empty(self) -> bool:

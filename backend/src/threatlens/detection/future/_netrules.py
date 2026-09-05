@@ -254,6 +254,8 @@ def build_artifact(
     refs += [DetectionReference(title=f"ThreatLens finding {fid}") for fid in data.finding_ids]
 
     metadata = {
+        "mapping_profile": engine,
+        "mapping_version": "1",
         "finding_ids": ",".join(data.finding_ids),
         "rule_id": rule_id,
         "detection_id": artifact_id,

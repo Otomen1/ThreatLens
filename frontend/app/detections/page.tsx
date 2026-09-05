@@ -17,13 +17,15 @@ export default function DetectionsPage() {
   const [severity, setSeverity] = useState("all");
   const [iocType, setIocType] = useState("all");
   const [reviewStatus, setReviewStatus] = useState("all");
+  const [validationLevel, setValidationLevel] = useState("all");
+  const [mappingProfile, setMappingProfile] = useState("all");
   const [expandAll, setExpandAll] = useState(false);
   const [expandSignal, setExpandSignal] = useState(0);
   const [query, setQuery] = useState("");
   const [showExcluded, setShowExcluded] = useState(false);
   const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -48,8 +50,10 @@ export default function DetectionsPage() {
     .filter((rule) => severity === "all" || rule.severity === Number(severity))
     .filter((rule) => iocType === "all" || getIocType(rule.title) === iocType)
     .filter((rule) => reviewStatus === "all" || rule.review_status === reviewStatus)
+    .filter((rule) => validationLevel === "all" || (rule.validation.level ?? "structural") === validationLevel)
+    .filter((rule) => mappingProfile === "all" || (rule.metadata?.mapping_profile ?? "generic") === mappingProfile)
     .filter((rule) => showExcluded || rule.metadata?.excluded !== "true")
-    .filter((rule) => `${rule.title} ${rule.description} ${rule.content}`.toLowerCase().includes(query.toLowerCase().trim())), [records, language, severity, iocType, reviewStatus, showExcluded, query]);
+    .filter((rule) => `${rule.title} ${rule.description} ${rule.content}`.toLowerCase().includes(query.toLowerCase().trim())), [records, language, severity, iocType, reviewStatus, validationLevel, mappingProfile, showExcluded, query]);
   const groups = useMemo<RuleGroup[]>(() => {
     const grouped = new Map<string, RuleGroup>();
     for (const rule of rules) {
@@ -61,9 +65,10 @@ export default function DetectionsPage() {
     return [...grouped.values()].sort((a, b) => a.title.localeCompare(b.title));
   }, [rules]);
   const languages = [...new Set(records.flatMap((r) => r.detection_package?.languages ?? []))];
+  const mappings = [...new Set(records.flatMap((record) => (record.detection_package?.artifacts ?? []).map((artifact) => artifact.metadata?.mapping_profile ?? "generic")))];
   const pageCount = Math.max(1, Math.ceil(groups.length / pageSize));
   const visibleGroups = groups.slice((page - 1) * pageSize, page * pageSize);
-  useEffect(() => setPage(1), [language, severity, iocType, reviewStatus, query]);
+  useEffect(() => setPage(1), [language, severity, iocType, reviewStatus, validationLevel, mappingProfile, query, pageSize]);
 
   function exportRules() {
     const payload = rules.map(({ investigationId, investigationTitle, ...rule }) => ({ investigationId, investigationTitle, ...rule }));
@@ -115,13 +120,17 @@ export default function DetectionsPage() {
           </select>
           <select value={severity} onChange={(e) => setSeverity(e.target.value)} aria-label="Filter by severity" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value="all">All severities</option>{[4, 3, 2, 1, 0].map((item) => <option key={item} value={item}>{detectionSeverityLabel(item)}</option>)}</select>
           <select value={iocType} onChange={(e) => setIocType(e.target.value)} aria-label="Filter by IOC type" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value="all">All IOC types</option><option value="domain">Domains</option><option value="ip">IP addresses</option><option value="url">URLs</option><option value="hash">File hashes</option></select>
-          <select value={reviewStatus} onChange={(e) => setReviewStatus(e.target.value)} aria-label="Filter by review status" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value="all">All review statuses</option><option value="unreviewed">Unreviewed</option><option value="reviewed">Reviewed</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
+          <select value={reviewStatus} onChange={(e) => setReviewStatus(e.target.value)} aria-label="Filter by review status" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value="all">All review statuses</option><option value="draft">Draft</option><option value="reviewed">Reviewed</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
+          <select value={validationLevel} onChange={(e) => setValidationLevel(e.target.value)} aria-label="Filter by validation level" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value="all">All validation</option><option value="structural">Structural</option><option value="compiled">Compiled</option><option value="fixture_tested">Fixture tested</option><option value="unavailable">Structural only</option></select>
+          <select value={mappingProfile} onChange={(e) => setMappingProfile(e.target.value)} aria-label="Filter by field mapping" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value="all">All mappings</option>{mappings.map((item) => <option key={item} value={item}>{item}</option>)}</select>
+          <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))} aria-label="Rules per page" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value={10}>10 per page</option><option value={25}>25 per page</option><option value={50}>50 per page</option></select>
           <label className="flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-400"><input type="checkbox" checked={showExcluded} onChange={(e) => setShowExcluded(e.target.checked)} /> Show excluded</label>
         </div>
         {state === "loading" && <Panel>Loading generated detections…</Panel>}
         {state === "error" && <Panel>Could not load saved detections. Check that the Workspace API is available.</Panel>}
         {state === "ready" && rules.length === 0 && <Panel>No generated detections match this view. Generate detections from an investigation, then save it to the Workspace.</Panel>}
         {state === "ready" && groups.length > 0 && <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-zinc-500">{groups.length} IOC{groups.length === 1 ? "" : "s"} · {rules.length} generated rule{rules.length === 1 ? "" : "s"} · {rules.filter((rule) => rule.review_status === "approved").length} approved</p><div className="flex flex-wrap gap-2"><button type="button" onClick={exportRules} className="rounded-lg border border-sky-500/30 px-3 py-1.5 text-xs text-sky-300 hover:bg-sky-500/10">Export filtered JSON</button>{selectedGroups.size > 1 && <><button type="button" onClick={exportSelectedSigma} className="rounded-lg border border-indigo-500/30 px-3 py-1.5 text-xs text-indigo-300 hover:bg-indigo-500/10">Export selected Sigma</button><button type="button" onClick={saveSelectedSigma} className="rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs text-emerald-300 hover:bg-emerald-500/10">Save combined draft</button></>}<button type="button" onClick={() => { setExpandAll(true); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Expand all</button><button type="button" onClick={() => { setExpandAll(false); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Collapse all</button></div></div>}
+        {records.some((record) => (record.detection_package?.generation_issues?.length ?? 0) > 0) && <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200" role="status">Some detection formats failed to generate. Expand the source investigation for details.</div>}
         <div className="grid gap-3">
           {visibleGroups.map((group) => <IocGroup key={group.key} group={group} selected={selectedGroups.has(group.key)} onSelect={(checked) => setSelectedGroups((current) => { const next = new Set(current); checked ? next.add(group.key) : next.delete(group.key); return next; })} expandAll={expandAll} expandSignal={expandSignal} onUpdated={(record) => setRecords((items) => items.map((item) => item.id === record.id ? record : item))} />)}
         </div>
@@ -222,7 +231,7 @@ function RuleCard({ rule, onUpdated }: { rule: Rule; onUpdated: (record: Workspa
       <span className="text-zinc-600 group-open:rotate-180">⌄</span>
     </summary>
     <div className="border-t border-zinc-800 p-4 space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-500"><span>From <Link className="text-zinc-300 hover:underline" href={`/workspace/${rule.investigationId}`}>{rule.investigationTitle}</Link></span><span>{rule.validation.status} · {rule.review_status}</span></div>
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-500"><span>From <Link className="text-zinc-300 hover:underline" href={`/workspace/${rule.investigationId}`}>{rule.investigationTitle}</Link></span><span>{rule.metadata?.mapping_profile ?? "generic"} v{rule.metadata?.mapping_version ?? "1"} · {rule.validation.level ?? "structural"} · {rule.review_status}</span></div>
       {rule.description && <p className="text-sm text-zinc-400">{rule.description}</p>}
       <pre className="max-h-[420px] overflow-auto rounded-xl border border-zinc-800 bg-zinc-950 p-4 font-mono text-xs leading-5 text-zinc-300">{rule.content || "No rule content was generated."}</pre>
       {versions.length > 0 && <details className="rounded-xl border border-zinc-800 bg-zinc-950 p-3"><summary className="cursor-pointer text-xs font-medium text-zinc-300">Version history ({versions.length})</summary><div className="mt-3 space-y-2">{versions.map((version) => <div key={version.version} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zinc-800 p-2 text-xs"><span className="text-zinc-400">v{version.version} · {version.changed_fields.join(", ")} · {new Date(version.created_at).toLocaleString()}</span><button type="button" onClick={() => downloadVersion(version.version, version.content)} className="rounded border border-zinc-700 px-2 py-1 text-zinc-300 hover:bg-zinc-800">Export v{version.version}</button></div>)}</div></details>}

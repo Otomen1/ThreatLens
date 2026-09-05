@@ -210,6 +210,17 @@ function PackageView({
 
   return (
     <div className="space-y-3 pt-3">
+      {(data.generation_issues?.length ?? 0) > 0 && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3" role="status">
+          <p className="text-sm font-medium text-amber-200">
+            {data.artifacts.length} rules generated; {data.generation_issues?.length} format
+            {data.generation_issues?.length === 1 ? "" : "s"} failed.
+          </p>
+          <p className="mt-1 text-xs text-amber-200/70">
+            {data.generation_issues?.map((issue) => issue.generator).join(", ")}
+          </p>
+        </div>
+      )}
       <p className="text-[11px] text-zinc-500 uppercase tracking-wider">
         {groups.length} language{groups.length === 1 ? "" : "s"} · {data.artifacts.length} rule
         {data.artifacts.length === 1 ? "" : "s"}

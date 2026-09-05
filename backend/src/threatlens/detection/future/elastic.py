@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from ...reasoning import InvestigationSummary
+from ..field_mappings import ELASTIC_FIELDS
 from ..models import DetectionArtifact, DetectionTarget, DetectionTemplate
 from ..registry import DetectionGenerator
 from ..templates import TemplateRegistry
@@ -35,40 +36,44 @@ TemplateRegistry().register(_TEMPLATE)
 def _body(obs: sc.Observable) -> str:
     v = sc.dq(obs.value)
     kind = obs.kind
+    fields = ELASTIC_FIELDS.for_kind(kind)
+    source = ELASTIC_FIELDS.event_source
     if kind == "ip":
         return (
-            f'FROM logs-*\n| WHERE source.ip == "{v}" OR destination.ip == "{v}"\n'
-            "| KEEP @timestamp, source.ip, destination.ip, host.name"
+            f'FROM {source}\n| WHERE {fields[0]} == "{v}" OR {fields[1]} == "{v}"\n'
+            f"| KEEP @timestamp, {fields[0]}, {fields[1]}, host.name"
         )
     if kind == "domain":
         return (
-            f'FROM logs-*\n| WHERE dns.question.name == "{v}" OR url.domain == "{v}"\n'
-            "| KEEP @timestamp, host.name, dns.question.name"
+            f'FROM {source}\n| WHERE {fields[0]} == "{v}" OR {fields[1]} == "{v}"\n'
+            f"| KEEP @timestamp, host.name, {fields[0]}"
         )
     if kind == "url":
         return (
-            f'FROM logs-*\n| WHERE url.original == "{v}"\n'
-            "| KEEP @timestamp, host.name, url.original"
+            f'FROM {source}\n| WHERE {fields[0]} == "{v}"\n'
+            f"| KEEP @timestamp, host.name, {fields[0]}"
         )
     if kind == "hash":
-        field = f"file.hash.{obs.subtype}"
+        field = next(
+            (name for name in fields if name.endswith(obs.subtype)), f"file.hash.{obs.subtype}"
+        )
         return (
-            f'FROM logs-*\n| WHERE {field} == "{v}"\n'
+            f'FROM {source}\n| WHERE {field} == "{v}"\n'
             f"| KEEP @timestamp, host.name, file.name, {field}"
         )
     if kind == "process":
         return (
-            f'FROM logs-*\n| WHERE process.name == "{v}" OR process.command_line LIKE "*{v}*"\n'
-            "| KEEP @timestamp, host.name, process.name, process.command_line"
+            f'FROM {source}\n| WHERE {fields[0]} == "{v}" OR {fields[1]} LIKE "*{v}*"\n'
+            f"| KEEP @timestamp, host.name, {fields[0]}, {fields[1]}"
         )
     if kind == "registry":
         return (
-            f'FROM logs-*\n| WHERE registry.path LIKE "*{v}*"\n'
-            "| KEEP @timestamp, host.name, registry.path"
+            f'FROM {source}\n| WHERE {fields[0]} LIKE "*{v}*"\n'
+            f"| KEEP @timestamp, host.name, {fields[0]}"
         )
     return (  # powershell
-        f'FROM logs-*\n| WHERE process.command_line LIKE "*{v}*"\n'
-        "| KEEP @timestamp, host.name, process.command_line"
+        f'FROM {source}\n| WHERE {fields[0]} LIKE "*{v}*"\n'
+        f"| KEEP @timestamp, host.name, {fields[0]}"
     )
 
 
@@ -110,6 +115,8 @@ class ElasticGenerator(DetectionGenerator):
                 findings=groups[obs],
                 generated_at_iso=ts,
                 render=_render,
+                mapping_profile=ELASTIC_FIELDS.name,
+                mapping_version=ELASTIC_FIELDS.version,
             )
             for obs in sorted(groups, key=lambda o: (o.kind, o.value))
         ]

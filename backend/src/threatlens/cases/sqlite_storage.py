@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import sqlite3
+from contextlib import AbstractContextManager
 from pathlib import Path
+from typing import cast
 from uuid import UUID
 
 from ..sqlite_storage import connect, record_audit, transaction
@@ -30,7 +32,9 @@ class SQLiteCaseStorage(CaseStorage):
             raise CaseStorageError(f"Could not save case {case.id}") from exc
 
     def load(self, case_id: UUID) -> Case:
-        row = self._db.execute("SELECT payload FROM case_records WHERE id = ?", (str(case_id),)).fetchone()
+        row = self._db.execute(
+            "SELECT payload FROM case_records WHERE id = ?", (str(case_id),)
+        ).fetchone()
         if row is None:
             raise CaseNotFoundError(case_id)
         try:
@@ -45,7 +49,9 @@ class SQLiteCaseStorage(CaseStorage):
         record_audit(self._db, action="delete", resource_type="case", resource_id=str(case_id))
 
     def list_all(self) -> list[Case]:
-        rows = self._db.execute("SELECT payload FROM case_records ORDER BY updated_at DESC").fetchall()
+        rows = self._db.execute(
+            "SELECT payload FROM case_records ORDER BY updated_at DESC"
+        ).fetchall()
         records: list[Case] = []
         for row in rows:
             try:
@@ -55,7 +61,10 @@ class SQLiteCaseStorage(CaseStorage):
         return records
 
     def exists(self, case_id: UUID) -> bool:
-        return self._db.execute("SELECT 1 FROM case_records WHERE id = ?", (str(case_id),)).fetchone() is not None
+        return (
+            self._db.execute("SELECT 1 FROM case_records WHERE id = ?", (str(case_id),)).fetchone()
+            is not None
+        )
 
-    def lock(self):
-        return transaction(self._db)
+    def lock(self) -> AbstractContextManager[None]:
+        return cast(AbstractContextManager[None], transaction(self._db))

@@ -20,13 +20,13 @@ YARA, no AI, no rule generation; those arrive in later phases (see
 from __future__ import annotations
 
 from .config import DetectionSettings
-from .exclusions import DetectionExclusion, apply_exclusions
 from .engine import (
     DETECTION_ENGINE_VERSION,
     compute_artifact_id,
     compute_package_id,
     generate,
 )
+from .exclusions import DetectionExclusion, apply_exclusions
 from .future import (
     ChronicleGenerator,
     ElasticGenerator,
@@ -40,6 +40,7 @@ from .future import (
 )
 from .models import (
     DetectionArtifact,
+    DetectionGenerationIssue,
     DetectionMetadata,
     DetectionPackage,
     DetectionReference,
@@ -64,8 +65,9 @@ from .types import (
     DetectionCapability,
     DetectionCategory,
     DetectionLanguage,
-    DetectionSeverity,
     DetectionReviewStatus,
+    DetectionSeverity,
+    DetectionValidationLevel,
     DetectionValidationStatus,
 )
 from .validation import test_sigma_rule, validate_artifact, validate_package
@@ -74,6 +76,7 @@ from .versioning import DetectionVersion, changed_fields, create_version, versio
 __all__ = [
     "DETECTION_ENGINE_VERSION",
     "DetectionArtifact",
+    "DetectionGenerationIssue",
     "DetectionExclusion",
     "DetectionCapability",
     "DetectionCategory",
@@ -90,6 +93,7 @@ __all__ = [
     "DetectionTemplate",
     "DetectionValidation",
     "DetectionValidationStatus",
+    "DetectionValidationLevel",
     "DetectionVersion",
     "DetectionValidator",
     "DuplicateDetectionGeneratorError",

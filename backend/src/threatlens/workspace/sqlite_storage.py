@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import sqlite3
+from contextlib import AbstractContextManager
 from pathlib import Path
+from typing import cast
 from uuid import UUID
 
 from ..sqlite_storage import connect, record_audit, transaction
@@ -23,30 +25,43 @@ class SQLiteWorkspaceStorage(WorkspaceStorage):
     def save(self, record: WorkspaceInvestigation) -> None:
         try:
             self._db.execute(
-                "INSERT OR REPLACE INTO workspace_records(id, updated_at, payload) VALUES (?, ?, ?)",
+                """INSERT OR REPLACE INTO workspace_records(id, updated_at, payload)
+                VALUES (?, ?, ?)""",
                 (str(record.id), record.updated_at.isoformat(), record.model_dump_json()),
             )
-            record_audit(self._db, action="upsert", resource_type="workspace", resource_id=str(record.id))
+            record_audit(
+                self._db, action="upsert", resource_type="workspace", resource_id=str(record.id)
+            )
         except sqlite3.Error as exc:
             raise WorkspaceStorageError(f"Could not save investigation {record.id}") from exc
 
     def load(self, investigation_id: UUID) -> WorkspaceInvestigation:
-        row = self._db.execute("SELECT payload FROM workspace_records WHERE id = ?", (str(investigation_id),)).fetchone()
+        row = self._db.execute(
+            "SELECT payload FROM workspace_records WHERE id = ?", (str(investigation_id),)
+        ).fetchone()
         if row is None:
             raise InvestigationNotFoundError(investigation_id)
         try:
             return WorkspaceInvestigation.model_validate_json(row[0])
         except ValueError as exc:
-            raise WorkspaceStorageError(f"Corrupt investigation record: {investigation_id}") from exc
+            raise WorkspaceStorageError(
+                f"Corrupt investigation record: {investigation_id}"
+            ) from exc
 
     def delete(self, investigation_id: UUID) -> None:
-        cursor = self._db.execute("DELETE FROM workspace_records WHERE id = ?", (str(investigation_id),))
+        cursor = self._db.execute(
+            "DELETE FROM workspace_records WHERE id = ?", (str(investigation_id),)
+        )
         if cursor.rowcount == 0:
             raise InvestigationNotFoundError(investigation_id)
-        record_audit(self._db, action="delete", resource_type="workspace", resource_id=str(investigation_id))
+        record_audit(
+            self._db, action="delete", resource_type="workspace", resource_id=str(investigation_id)
+        )
 
     def list_all(self) -> list[WorkspaceInvestigation]:
-        rows = self._db.execute("SELECT payload FROM workspace_records ORDER BY updated_at DESC").fetchall()
+        rows = self._db.execute(
+            "SELECT payload FROM workspace_records ORDER BY updated_at DESC"
+        ).fetchall()
         records: list[WorkspaceInvestigation] = []
         for row in rows:
             try:
@@ -56,7 +71,12 @@ class SQLiteWorkspaceStorage(WorkspaceStorage):
         return records
 
     def exists(self, investigation_id: UUID) -> bool:
-        return self._db.execute("SELECT 1 FROM workspace_records WHERE id = ?", (str(investigation_id),)).fetchone() is not None
+        return (
+            self._db.execute(
+                "SELECT 1 FROM workspace_records WHERE id = ?", (str(investigation_id),)
+            ).fetchone()
+            is not None
+        )
 
-    def lock(self):
-        return transaction(self._db)
+    def lock(self) -> AbstractContextManager[None]:
+        return cast(AbstractContextManager[None], transaction(self._db))

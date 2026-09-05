@@ -366,9 +366,7 @@ class TestOllamaProviderFailures:
         assert out.status is AIStatus.INVALID_RESPONSE
 
     @pytest.mark.asyncio
-    async def test_failure_is_logged_server_side(
-        self, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    async def test_failure_is_logged_server_side(self, caplog: pytest.LogCaptureFixture) -> None:
         def handler(_request: httpx.Request) -> httpx.Response:
             raise httpx.ConnectError("connection refused")
 

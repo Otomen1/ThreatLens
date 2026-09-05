@@ -53,6 +53,27 @@ class CaseService:
         self._storage = storage
         self._workspace = workspace_service
 
+    def snapshot(self) -> list[Case]:
+        """Return all persisted cases for a portable backup."""
+        return self._storage.list_all()
+
+    def merge_snapshot(self, records: list[Case]) -> tuple[int, int, int]:
+        """Safely add or update newer cases without deleting existing data."""
+        added = updated = skipped = 0
+        with self._storage.lock():
+            for record in records:
+                if not self._storage.exists(record.id):
+                    self._storage.save(record)
+                    added += 1
+                    continue
+                current = self._storage.load(record.id)
+                if record.updated_at > current.updated_at:
+                    self._storage.save(record)
+                    updated += 1
+                else:
+                    skipped += 1
+        return added, updated, skipped
+
     def create(self, request: CreateCaseRequest, *, now: datetime | None = None) -> Case:
         """Persist a new case; returns it with a fresh id.
 
@@ -101,11 +122,11 @@ class CaseService:
             changes = request.model_dump(exclude_unset=True)
             if "status" in changes:
                 _validate_transition(existing.status, CaseStatus(changes["status"]))
-        # `tags`/`metadata` are non-optional collections on `Case` itself
-        # (unlike `description`/`owner`, which are genuinely `X | None`);
-        # `model_copy` does not re-validate, so an explicit `null` for either
-        # must be normalized to its empty form here rather than ever writing
-        # a bare `None` into a field typed as `list`/`dict`.
+            # `tags`/`metadata` are non-optional collections on `Case` itself
+            # (unlike `description`/`owner`, which are genuinely `X | None`);
+            # `model_copy` does not re-validate, so an explicit `null` for either
+            # must be normalized to its empty form here rather than ever writing
+            # a bare `None` into a field typed as `list`/`dict`.
             if changes.get("tags") is None and "tags" in changes:
                 changes["tags"] = []
             if changes.get("metadata") is None and "metadata" in changes:

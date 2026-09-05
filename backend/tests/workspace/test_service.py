@@ -41,9 +41,7 @@ def _save(
     now: datetime = NOW,
     **kwargs: object,
 ) -> object:
-    request = SaveInvestigationRequest(
-        title=title, investigation_type=investigation_type, **kwargs
-    )  # type: ignore[arg-type]
+    request = SaveInvestigationRequest(title=title, investigation_type=investigation_type, **kwargs)  # type: ignore[arg-type]
     return service.save(request, now=now)
 
 
@@ -141,14 +139,16 @@ class TestUpdate:
     def test_persists_the_update(self, service: WorkspaceService) -> None:
         record = _save(service)
         service.update(
-            record.id, UpdateInvestigationRequest(status=WorkspaceStatus.ARCHIVED)  # type: ignore[attr-defined]
+            record.id,
+            UpdateInvestigationRequest(status=WorkspaceStatus.ARCHIVED),  # type: ignore[attr-defined]
         )
         assert service.get(record.id).status == WorkspaceStatus.ARCHIVED  # type: ignore[attr-defined]
 
     def test_can_reattach_a_severity(self, service: WorkspaceService) -> None:
         record = _save(service)
         updated = service.update(
-            record.id, UpdateInvestigationRequest(severity=Severity.CRITICAL)  # type: ignore[attr-defined]
+            record.id,
+            UpdateInvestigationRequest(severity=Severity.CRITICAL),  # type: ignore[attr-defined]
         )
         assert updated.severity == Severity.CRITICAL
 

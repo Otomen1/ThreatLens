@@ -54,7 +54,7 @@
         "rule_id": "a7d5267d-6ddf-5141-bdb1-85de7f34381f",
         "severity": 4,
         "sha256": "65e16a3581f097ee",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071.001",
@@ -65,7 +65,7 @@
         "rule_id": "snr_99002b1ef7c41907",
         "severity": 4,
         "sha256": "f6f8560c8c4d2d27",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071.001",
@@ -87,7 +87,7 @@
         "rule_id": "sur_5a6fd95345d63d72",
         "severity": 4,
         "sha256": "813da0e004611842",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -161,7 +161,7 @@
         "rule_id": "646fb072-055e-57f5-884e-dc3d85885caf",
         "severity": 4,
         "sha256": "c4e4d16e7a9e941f",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -172,7 +172,7 @@
         "rule_id": "snr_bde4eff68898ee05",
         "severity": 4,
         "sha256": "a1ba0313974d8677",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -194,7 +194,7 @@
         "rule_id": "sur_d534f5ac489b55a9",
         "severity": 4,
         "sha256": "a856454e0e54f389",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -268,7 +268,7 @@
         "rule_id": "8adf752a-ab00-5a27-9ace-56446bcb1542",
         "severity": 4,
         "sha256": "786bddbd894316c5",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -279,7 +279,7 @@
         "rule_id": "snr_4aa496e564f90c19",
         "severity": 4,
         "sha256": "dfdecbab9a678ac9",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -301,7 +301,7 @@
         "rule_id": "sur_6bd4bbc1c970f5aa",
         "severity": 4,
         "sha256": "7fef049e0ce25837",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -375,17 +375,17 @@
         "rule_id": "5779e866-2ebb-57cc-9971-6e25a888bfd6",
         "severity": 4,
         "sha256": "23586317580a24c4",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204",
         "category": "file",
         "finding_ids": "fnd_mal",
-        "id": "det_4e04e0c14a5450b0",
+        "id": "det_98c32f4c16bded73",
         "language": "splunk_spl",
         "rule_id": "spl_66076eda4e0746f1",
         "severity": 4,
-        "sha256": "0a25dd6c8cbf7af7",
+        "sha256": "9e8e1dfd7f610630",
         "validation": "valid"
       },
       {
@@ -397,7 +397,7 @@
         "rule_id": "yar_a19aafe5788ae794",
         "severity": 4,
         "sha256": "e8b0280e77b10bac",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -409,7 +409,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_93197c153218ebae",
+    "package_id": "pkg_f04e35ea3949d5c6",
     "source_finding_ids": [
       "fnd_mal",
       "fnd_info"
@@ -470,17 +470,17 @@
         "rule_id": "7fdb896a-774d-5fcb-974e-8450ff807e9f",
         "severity": 4,
         "sha256": "5a7766056b77bc79",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204",
         "category": "file",
         "finding_ids": "fnd_mal",
-        "id": "det_ef3720e2a52972cc",
+        "id": "det_25ad74379db557be",
         "language": "splunk_spl",
         "rule_id": "spl_a096235c4a447709",
         "severity": 4,
-        "sha256": "551c2861566b5aa3",
+        "sha256": "1f6f3937c71b0ae6",
         "validation": "valid"
       },
       {
@@ -492,7 +492,7 @@
         "rule_id": "yar_a57b85d963c59cb4",
         "severity": 4,
         "sha256": "2824da0d10466e43",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -504,7 +504,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_1b75071beabb5352",
+    "package_id": "pkg_f40d653777f27ce8",
     "source_finding_ids": [
       "fnd_mal",
       "fnd_info"
@@ -527,11 +527,11 @@
         "attack": "T1105",
         "category": "http",
         "finding_ids": "fnd_mal",
-        "id": "det_d6a6ad26d5838660",
+        "id": "det_9638848ee45a331e",
         "language": "elastic_esql",
         "rule_id": "ela_1000c29ceec3b763",
         "severity": 4,
-        "sha256": "ccaaca98f432bdb1",
+        "sha256": "206f164496b59fd2",
         "validation": "valid"
       },
       {
@@ -565,7 +565,7 @@
         "rule_id": "36c8e727-8e2a-5294-8595-6c5f1f503ece",
         "severity": 4,
         "sha256": "c25364d2ac9fe397",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1105",
@@ -576,7 +576,7 @@
         "rule_id": "snr_28a6be08586718d1",
         "severity": 4,
         "sha256": "2306f60ed13cd999",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1105",
@@ -598,7 +598,7 @@
         "rule_id": "sur_04b43a1fc5a5f1e2",
         "severity": 4,
         "sha256": "1af61b1f9507e3e7",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -611,7 +611,7 @@
       "splunk_spl",
       "suricata"
     ],
-    "package_id": "pkg_650857ea002bb3f8",
+    "package_id": "pkg_783bfecf41385f7e",
     "source_finding_ids": [
       "fnd_mal",
       "fnd_info"
@@ -672,7 +672,7 @@
         "rule_id": "a7d5267d-6ddf-5141-bdb1-85de7f34381f",
         "severity": 3,
         "sha256": "449822d5bc7ef9aa",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071.001",
@@ -683,7 +683,7 @@
         "rule_id": "snr_99002b1ef7c41907",
         "severity": 3,
         "sha256": "1934f495b0e08064",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071.001",
@@ -705,7 +705,7 @@
         "rule_id": "sur_5a6fd95345d63d72",
         "severity": 3,
         "sha256": "d0db5208f1fe7962",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -778,7 +778,7 @@
         "rule_id": "a7d5267d-6ddf-5141-bdb1-85de7f34381f",
         "severity": 3,
         "sha256": "449822d5bc7ef9aa",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071.001",
@@ -789,7 +789,7 @@
         "rule_id": "snr_99002b1ef7c41907",
         "severity": 3,
         "sha256": "1934f495b0e08064",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071.001",
@@ -811,7 +811,7 @@
         "rule_id": "sur_5a6fd95345d63d72",
         "severity": 3,
         "sha256": "d0db5208f1fe7962",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -884,7 +884,7 @@
         "rule_id": "a7d5267d-6ddf-5141-bdb1-85de7f34381f",
         "severity": 3,
         "sha256": "449822d5bc7ef9aa",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071.001",
@@ -895,7 +895,7 @@
         "rule_id": "snr_99002b1ef7c41907",
         "severity": 3,
         "sha256": "1934f495b0e08064",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071.001",
@@ -917,7 +917,7 @@
         "rule_id": "sur_5a6fd95345d63d72",
         "severity": 3,
         "sha256": "d0db5208f1fe7962",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -990,7 +990,7 @@
         "rule_id": "a7d5267d-6ddf-5141-bdb1-85de7f34381f",
         "severity": 3,
         "sha256": "449822d5bc7ef9aa",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071.001",
@@ -1001,7 +1001,7 @@
         "rule_id": "snr_99002b1ef7c41907",
         "severity": 3,
         "sha256": "1934f495b0e08064",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071.001",
@@ -1023,7 +1023,7 @@
         "rule_id": "sur_5a6fd95345d63d72",
         "severity": 3,
         "sha256": "d0db5208f1fe7962",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -1096,7 +1096,7 @@
         "rule_id": "a7d5267d-6ddf-5141-bdb1-85de7f34381f",
         "severity": 3,
         "sha256": "4e44fc61d177658c",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "",
@@ -1107,7 +1107,7 @@
         "rule_id": "snr_99002b1ef7c41907",
         "severity": 3,
         "sha256": "70140de0ba2174a9",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "",
@@ -1129,7 +1129,7 @@
         "rule_id": "sur_5a6fd95345d63d72",
         "severity": 3,
         "sha256": "5bf6c667e5901771",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -1202,7 +1202,7 @@
         "rule_id": "a7d5267d-6ddf-5141-bdb1-85de7f34381f",
         "severity": 4,
         "sha256": "210b86ea73344291",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071.001",
@@ -1213,7 +1213,7 @@
         "rule_id": "snr_99002b1ef7c41907",
         "severity": 4,
         "sha256": "1934f495b0e08064",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071.001",
@@ -1235,7 +1235,7 @@
         "rule_id": "sur_5a6fd95345d63d72",
         "severity": 4,
         "sha256": "d0db5208f1fe7962",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -1308,7 +1308,7 @@
         "rule_id": "a7d5267d-6ddf-5141-bdb1-85de7f34381f",
         "severity": 3,
         "sha256": "449822d5bc7ef9aa",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071.001",
@@ -1319,7 +1319,7 @@
         "rule_id": "snr_99002b1ef7c41907",
         "severity": 3,
         "sha256": "1934f495b0e08064",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071.001",
@@ -1341,7 +1341,7 @@
         "rule_id": "sur_5a6fd95345d63d72",
         "severity": 3,
         "sha256": "d0db5208f1fe7962",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -1414,7 +1414,7 @@
         "rule_id": "a7d5267d-6ddf-5141-bdb1-85de7f34381f",
         "severity": 1,
         "sha256": "6f283afc8ab64c4c",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071.001",
@@ -1425,7 +1425,7 @@
         "rule_id": "snr_99002b1ef7c41907",
         "severity": 1,
         "sha256": "8a7c6d1394166a7b",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071.001",
@@ -1447,7 +1447,7 @@
         "rule_id": "sur_5a6fd95345d63d72",
         "severity": 1,
         "sha256": "56a741fefae41c16",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -1520,7 +1520,7 @@
         "rule_id": "a7d5267d-6ddf-5141-bdb1-85de7f34381f",
         "severity": 2,
         "sha256": "c4f7df60dce7fad8",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071.001",
@@ -1531,7 +1531,7 @@
         "rule_id": "snr_99002b1ef7c41907",
         "severity": 2,
         "sha256": "58ed4ee314e68fc6",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071.001",
@@ -1553,7 +1553,7 @@
         "rule_id": "sur_5a6fd95345d63d72",
         "severity": 2,
         "sha256": "d2e8e28701c40c08",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -1626,7 +1626,7 @@
         "rule_id": "a7d5267d-6ddf-5141-bdb1-85de7f34381f",
         "severity": 3,
         "sha256": "b41aa04c46bdf3e0",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071.001",
@@ -1637,7 +1637,7 @@
         "rule_id": "snr_99002b1ef7c41907",
         "severity": 3,
         "sha256": "7febe24db4779849",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071.001",
@@ -1659,7 +1659,7 @@
         "rule_id": "sur_5a6fd95345d63d72",
         "severity": 3,
         "sha256": "772bad42a63d5830",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -1733,7 +1733,7 @@
         "rule_id": "646fb072-055e-57f5-884e-dc3d85885caf",
         "severity": 3,
         "sha256": "44c13868ec46ce58",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -1744,7 +1744,7 @@
         "rule_id": "snr_bde4eff68898ee05",
         "severity": 3,
         "sha256": "74bf791fdbf00bc5",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -1766,7 +1766,7 @@
         "rule_id": "sur_d534f5ac489b55a9",
         "severity": 3,
         "sha256": "35e3b4e0aaada505",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -1840,7 +1840,7 @@
         "rule_id": "8adf752a-ab00-5a27-9ace-56446bcb1542",
         "severity": 3,
         "sha256": "4086409c346e0e68",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -1851,7 +1851,7 @@
         "rule_id": "snr_4aa496e564f90c19",
         "severity": 3,
         "sha256": "101d71e1c3cf6189",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -1873,7 +1873,7 @@
         "rule_id": "sur_6bd4bbc1c970f5aa",
         "severity": 3,
         "sha256": "604bd471842a45e1",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -1947,17 +1947,17 @@
         "rule_id": "5779e866-2ebb-57cc-9971-6e25a888bfd6",
         "severity": 3,
         "sha256": "6312e94c3c2dfcf2",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204",
         "category": "file",
         "finding_ids": "fnd_dup_a,fnd_dup_b",
-        "id": "det_daf9284407eabf2d",
+        "id": "det_75f29cc1c141ffc2",
         "language": "splunk_spl",
         "rule_id": "spl_66076eda4e0746f1",
         "severity": 3,
-        "sha256": "ba1007b4942da884",
+        "sha256": "448b1bd6d24ec1f2",
         "validation": "valid"
       },
       {
@@ -1969,7 +1969,7 @@
         "rule_id": "yar_a19aafe5788ae794",
         "severity": 3,
         "sha256": "e4033314700ec96b",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -1981,7 +1981,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_69a28bfb453b536b",
+    "package_id": "pkg_bd7806f4825214b0",
     "source_finding_ids": [
       "fnd_dup_a",
       "fnd_dup_b"
@@ -2108,11 +2108,11 @@
         "attack": "T1218.011",
         "category": "process",
         "finding_ids": "fnd_dup_a,fnd_dup_b",
-        "id": "det_190e2190a56f0163",
+        "id": "det_48b0099dcf08a644",
         "language": "splunk_spl",
         "rule_id": "spl_97d07be454c94254",
         "severity": 3,
-        "sha256": "fe3f0b257367774c",
+        "sha256": "869e6bf41790ce91",
         "validation": "valid"
       }
     ],
@@ -2123,7 +2123,7 @@
       "sentinel_kql",
       "splunk_spl"
     ],
-    "package_id": "pkg_1c4557855d699de5",
+    "package_id": "pkg_49d0b8b854321e7b",
     "source_finding_ids": [
       "fnd_dup_a",
       "fnd_dup_b"
@@ -2255,17 +2255,17 @@
         "rule_id": "7fdb896a-774d-5fcb-974e-8450ff807e9f",
         "severity": 3,
         "sha256": "d0761193016e362b",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204",
         "category": "file",
         "finding_ids": "fnd_dup_a,fnd_dup_b",
-        "id": "det_a8df74faa0ca2568",
+        "id": "det_5daa218d636bbc13",
         "language": "splunk_spl",
         "rule_id": "spl_a096235c4a447709",
         "severity": 3,
-        "sha256": "8d97e5c258c2be9b",
+        "sha256": "14947399c4f43bbe",
         "validation": "valid"
       },
       {
@@ -2277,7 +2277,7 @@
         "rule_id": "yar_a57b85d963c59cb4",
         "severity": 3,
         "sha256": "c275c3992ef4092f",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -2289,7 +2289,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_9b3d4df365304625",
+    "package_id": "pkg_16f957b476844ac5",
     "source_finding_ids": [
       "fnd_dup_a",
       "fnd_dup_b"
@@ -2350,7 +2350,7 @@
         "rule_id": "1a68bc6e-5e8f-5f94-b81c-38cc394a1e10",
         "severity": 3,
         "sha256": "0515c624d41bb725",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204.002",
@@ -2372,7 +2372,7 @@
         "rule_id": "yar_b5eae999c349574a",
         "severity": 3,
         "sha256": "bf6da034be649d74",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -2407,11 +2407,11 @@
         "attack": "T1105",
         "category": "http",
         "finding_ids": "fnd_dup_a,fnd_dup_b",
-        "id": "det_8b0c688dc52ef959",
+        "id": "det_6a767ad2c0e7f2c7",
         "language": "elastic_esql",
         "rule_id": "ela_1000c29ceec3b763",
         "severity": 3,
-        "sha256": "aa3440b313971326",
+        "sha256": "8ca8182cb4b59744",
         "validation": "valid"
       },
       {
@@ -2445,7 +2445,7 @@
         "rule_id": "36c8e727-8e2a-5294-8595-6c5f1f503ece",
         "severity": 3,
         "sha256": "63d4d1921d1c72da",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1105",
@@ -2456,7 +2456,7 @@
         "rule_id": "snr_28a6be08586718d1",
         "severity": 3,
         "sha256": "2b2e5b0e9f4b0f53",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1105",
@@ -2478,7 +2478,7 @@
         "rule_id": "sur_04b43a1fc5a5f1e2",
         "severity": 3,
         "sha256": "235790b494eb8b38",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -2491,7 +2491,7 @@
       "splunk_spl",
       "suricata"
     ],
-    "package_id": "pkg_522df3ecf4af1f21",
+    "package_id": "pkg_6c68586d2b78fd31",
     "source_finding_ids": [
       "fnd_dup_a",
       "fnd_dup_b"
@@ -2592,7 +2592,7 @@
         "rule_id": "646fb072-055e-57f5-884e-dc3d85885caf",
         "severity": 3,
         "sha256": "d7beab3f4ec81743",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -2603,7 +2603,7 @@
         "rule_id": "snr_bde4eff68898ee05",
         "severity": 3,
         "sha256": "445c62362c980778",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -2625,7 +2625,7 @@
         "rule_id": "sur_d534f5ac489b55a9",
         "severity": 3,
         "sha256": "756c52d3793e5054",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -2698,7 +2698,7 @@
         "rule_id": "646fb072-055e-57f5-884e-dc3d85885caf",
         "severity": 3,
         "sha256": "d7beab3f4ec81743",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -2709,7 +2709,7 @@
         "rule_id": "snr_bde4eff68898ee05",
         "severity": 3,
         "sha256": "445c62362c980778",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -2731,7 +2731,7 @@
         "rule_id": "sur_d534f5ac489b55a9",
         "severity": 3,
         "sha256": "756c52d3793e5054",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -2804,7 +2804,7 @@
         "rule_id": "646fb072-055e-57f5-884e-dc3d85885caf",
         "severity": 3,
         "sha256": "d7beab3f4ec81743",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -2815,7 +2815,7 @@
         "rule_id": "snr_bde4eff68898ee05",
         "severity": 3,
         "sha256": "445c62362c980778",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -2837,7 +2837,7 @@
         "rule_id": "sur_d534f5ac489b55a9",
         "severity": 3,
         "sha256": "756c52d3793e5054",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -2910,7 +2910,7 @@
         "rule_id": "646fb072-055e-57f5-884e-dc3d85885caf",
         "severity": 3,
         "sha256": "d7beab3f4ec81743",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -2921,7 +2921,7 @@
         "rule_id": "snr_bde4eff68898ee05",
         "severity": 3,
         "sha256": "445c62362c980778",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -2943,7 +2943,7 @@
         "rule_id": "sur_d534f5ac489b55a9",
         "severity": 3,
         "sha256": "756c52d3793e5054",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -3016,7 +3016,7 @@
         "rule_id": "646fb072-055e-57f5-884e-dc3d85885caf",
         "severity": 3,
         "sha256": "71fb6f37156364af",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "",
@@ -3027,7 +3027,7 @@
         "rule_id": "snr_bde4eff68898ee05",
         "severity": 3,
         "sha256": "3bb0724c882b75c9",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "",
@@ -3049,7 +3049,7 @@
         "rule_id": "sur_d534f5ac489b55a9",
         "severity": 3,
         "sha256": "cc790b772e69a17b",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -3122,7 +3122,7 @@
         "rule_id": "646fb072-055e-57f5-884e-dc3d85885caf",
         "severity": 4,
         "sha256": "e42ba833dd37ff48",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -3133,7 +3133,7 @@
         "rule_id": "snr_bde4eff68898ee05",
         "severity": 4,
         "sha256": "445c62362c980778",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -3155,7 +3155,7 @@
         "rule_id": "sur_d534f5ac489b55a9",
         "severity": 4,
         "sha256": "756c52d3793e5054",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -3228,7 +3228,7 @@
         "rule_id": "646fb072-055e-57f5-884e-dc3d85885caf",
         "severity": 3,
         "sha256": "d7beab3f4ec81743",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -3239,7 +3239,7 @@
         "rule_id": "snr_bde4eff68898ee05",
         "severity": 3,
         "sha256": "445c62362c980778",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -3261,7 +3261,7 @@
         "rule_id": "sur_d534f5ac489b55a9",
         "severity": 3,
         "sha256": "756c52d3793e5054",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -3334,7 +3334,7 @@
         "rule_id": "646fb072-055e-57f5-884e-dc3d85885caf",
         "severity": 1,
         "sha256": "4094bfcd34cc239f",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -3345,7 +3345,7 @@
         "rule_id": "snr_bde4eff68898ee05",
         "severity": 1,
         "sha256": "c3b31ea6fa677476",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -3367,7 +3367,7 @@
         "rule_id": "sur_d534f5ac489b55a9",
         "severity": 1,
         "sha256": "3b5c2c6cacff5cd9",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -3440,7 +3440,7 @@
         "rule_id": "646fb072-055e-57f5-884e-dc3d85885caf",
         "severity": 2,
         "sha256": "e160f469acd5a69b",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -3451,7 +3451,7 @@
         "rule_id": "snr_bde4eff68898ee05",
         "severity": 2,
         "sha256": "6a618c23eec4e497",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -3473,7 +3473,7 @@
         "rule_id": "sur_d534f5ac489b55a9",
         "severity": 2,
         "sha256": "95353532829cb33d",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -3546,7 +3546,7 @@
         "rule_id": "8adf752a-ab00-5a27-9ace-56446bcb1542",
         "severity": 3,
         "sha256": "046beb888986f881",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -3557,7 +3557,7 @@
         "rule_id": "snr_4aa496e564f90c19",
         "severity": 3,
         "sha256": "d41c93b5f8eaadbf",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -3579,7 +3579,7 @@
         "rule_id": "sur_6bd4bbc1c970f5aa",
         "severity": 3,
         "sha256": "071446069f2cb209",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -3652,7 +3652,7 @@
         "rule_id": "8adf752a-ab00-5a27-9ace-56446bcb1542",
         "severity": 3,
         "sha256": "046beb888986f881",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -3663,7 +3663,7 @@
         "rule_id": "snr_4aa496e564f90c19",
         "severity": 3,
         "sha256": "d41c93b5f8eaadbf",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -3685,7 +3685,7 @@
         "rule_id": "sur_6bd4bbc1c970f5aa",
         "severity": 3,
         "sha256": "071446069f2cb209",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -3758,7 +3758,7 @@
         "rule_id": "8adf752a-ab00-5a27-9ace-56446bcb1542",
         "severity": 3,
         "sha256": "046beb888986f881",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -3769,7 +3769,7 @@
         "rule_id": "snr_4aa496e564f90c19",
         "severity": 3,
         "sha256": "d41c93b5f8eaadbf",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -3791,7 +3791,7 @@
         "rule_id": "sur_6bd4bbc1c970f5aa",
         "severity": 3,
         "sha256": "071446069f2cb209",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -3864,7 +3864,7 @@
         "rule_id": "8adf752a-ab00-5a27-9ace-56446bcb1542",
         "severity": 3,
         "sha256": "046beb888986f881",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -3875,7 +3875,7 @@
         "rule_id": "snr_4aa496e564f90c19",
         "severity": 3,
         "sha256": "d41c93b5f8eaadbf",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -3897,7 +3897,7 @@
         "rule_id": "sur_6bd4bbc1c970f5aa",
         "severity": 3,
         "sha256": "071446069f2cb209",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -3970,7 +3970,7 @@
         "rule_id": "8adf752a-ab00-5a27-9ace-56446bcb1542",
         "severity": 3,
         "sha256": "c226f6429ae9dacc",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "",
@@ -3981,7 +3981,7 @@
         "rule_id": "snr_4aa496e564f90c19",
         "severity": 3,
         "sha256": "d5ec47151fd6d0ce",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "",
@@ -4003,7 +4003,7 @@
         "rule_id": "sur_6bd4bbc1c970f5aa",
         "severity": 3,
         "sha256": "96277f4cf79b035f",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -4076,7 +4076,7 @@
         "rule_id": "8adf752a-ab00-5a27-9ace-56446bcb1542",
         "severity": 4,
         "sha256": "52a9259db7543ad2",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -4087,7 +4087,7 @@
         "rule_id": "snr_4aa496e564f90c19",
         "severity": 4,
         "sha256": "d41c93b5f8eaadbf",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -4109,7 +4109,7 @@
         "rule_id": "sur_6bd4bbc1c970f5aa",
         "severity": 4,
         "sha256": "071446069f2cb209",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -4182,7 +4182,7 @@
         "rule_id": "8adf752a-ab00-5a27-9ace-56446bcb1542",
         "severity": 3,
         "sha256": "046beb888986f881",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -4193,7 +4193,7 @@
         "rule_id": "snr_4aa496e564f90c19",
         "severity": 3,
         "sha256": "d41c93b5f8eaadbf",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -4215,7 +4215,7 @@
         "rule_id": "sur_6bd4bbc1c970f5aa",
         "severity": 3,
         "sha256": "071446069f2cb209",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -4288,7 +4288,7 @@
         "rule_id": "8adf752a-ab00-5a27-9ace-56446bcb1542",
         "severity": 1,
         "sha256": "7ee1a970fde72df3",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -4299,7 +4299,7 @@
         "rule_id": "snr_4aa496e564f90c19",
         "severity": 1,
         "sha256": "4700fe1400416b79",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -4321,7 +4321,7 @@
         "rule_id": "sur_6bd4bbc1c970f5aa",
         "severity": 1,
         "sha256": "762f9e000f948d3b",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -4394,7 +4394,7 @@
         "rule_id": "8adf752a-ab00-5a27-9ace-56446bcb1542",
         "severity": 2,
         "sha256": "969edd67ca202251",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -4405,7 +4405,7 @@
         "rule_id": "snr_4aa496e564f90c19",
         "severity": 2,
         "sha256": "fa946e39dcbcc953",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -4427,7 +4427,7 @@
         "rule_id": "sur_6bd4bbc1c970f5aa",
         "severity": 2,
         "sha256": "4ad210ccac1901b9",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -4456,7 +4456,7 @@
         "rule_id": "269b753e-c256-5d05-b63f-f4dc909e7f77",
         "severity": 3,
         "sha256": "bce5e200152deaf5",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -4478,7 +4478,7 @@
         "rule_id": "bfcb913c-bbc7-539a-a804-33072ae4d257",
         "severity": 3,
         "sha256": "a6bf0d05756f4a09",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -4544,17 +4544,17 @@
         "rule_id": "5779e866-2ebb-57cc-9971-6e25a888bfd6",
         "severity": 3,
         "sha256": "11ec45d1f3e1021b",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204",
         "category": "file",
         "finding_ids": "fnd_md5",
-        "id": "det_1bb61c52cdac1dc1",
+        "id": "det_d7103fcc105cf1d8",
         "language": "splunk_spl",
         "rule_id": "spl_66076eda4e0746f1",
         "severity": 3,
-        "sha256": "1d71bac74514edbc",
+        "sha256": "2822068087c06619",
         "validation": "valid"
       },
       {
@@ -4566,7 +4566,7 @@
         "rule_id": "yar_a19aafe5788ae794",
         "severity": 3,
         "sha256": "9e5d0f904f5f4741",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -4578,7 +4578,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_621391929e95b24a",
+    "package_id": "pkg_9684f31ffa9100f1",
     "source_finding_ids": [
       "fnd_md5"
     ]
@@ -4638,17 +4638,17 @@
         "rule_id": "5779e866-2ebb-57cc-9971-6e25a888bfd6",
         "severity": 3,
         "sha256": "11ec45d1f3e1021b",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204",
         "category": "file",
         "finding_ids": "fnd_md5",
-        "id": "det_c8b64c91bd211d3b",
+        "id": "det_d1b3fb8f40976f38",
         "language": "splunk_spl",
         "rule_id": "spl_66076eda4e0746f1",
         "severity": 3,
-        "sha256": "9c70f6c51654d68d",
+        "sha256": "0b21b7705d3c4fe5",
         "validation": "valid"
       },
       {
@@ -4660,7 +4660,7 @@
         "rule_id": "yar_a19aafe5788ae794",
         "severity": 3,
         "sha256": "9e5d0f904f5f4741",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -4672,7 +4672,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_5f5831acd99dd0ad",
+    "package_id": "pkg_2445361364c98abe",
     "source_finding_ids": [
       "fnd_md5"
     ]
@@ -4732,17 +4732,17 @@
         "rule_id": "5779e866-2ebb-57cc-9971-6e25a888bfd6",
         "severity": 3,
         "sha256": "11ec45d1f3e1021b",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204",
         "category": "file",
         "finding_ids": "fnd_md5",
-        "id": "det_3c2ba4c284199959",
+        "id": "det_2a7139d60783533f",
         "language": "splunk_spl",
         "rule_id": "spl_66076eda4e0746f1",
         "severity": 3,
-        "sha256": "326e4f2f36344a62",
+        "sha256": "ae45da5d41259493",
         "validation": "valid"
       },
       {
@@ -4754,7 +4754,7 @@
         "rule_id": "yar_a19aafe5788ae794",
         "severity": 3,
         "sha256": "9e5d0f904f5f4741",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -4766,7 +4766,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_7e4ae281503bfeee",
+    "package_id": "pkg_ab4f41bbf0c884eb",
     "source_finding_ids": [
       "fnd_md5"
     ]
@@ -4826,17 +4826,17 @@
         "rule_id": "5779e866-2ebb-57cc-9971-6e25a888bfd6",
         "severity": 3,
         "sha256": "11ec45d1f3e1021b",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204",
         "category": "file",
         "finding_ids": "fnd_md5",
-        "id": "det_7bb0ed1bae7e3ef7",
+        "id": "det_698120be595a7daa",
         "language": "splunk_spl",
         "rule_id": "spl_66076eda4e0746f1",
         "severity": 3,
-        "sha256": "be342cc7ddd4f184",
+        "sha256": "2ee1d41de1cf13ee",
         "validation": "valid"
       },
       {
@@ -4848,7 +4848,7 @@
         "rule_id": "yar_a19aafe5788ae794",
         "severity": 3,
         "sha256": "9e5d0f904f5f4741",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -4860,7 +4860,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_5aa16323a494d2e5",
+    "package_id": "pkg_b8eb0fa8367d1554",
     "source_finding_ids": [
       "fnd_md5"
     ]
@@ -4920,17 +4920,17 @@
         "rule_id": "5779e866-2ebb-57cc-9971-6e25a888bfd6",
         "severity": 3,
         "sha256": "9774c90556569adf",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "",
         "category": "file",
         "finding_ids": "fnd_md5",
-        "id": "det_db6f56ed1e0d21e4",
+        "id": "det_309e35c484ce016a",
         "language": "splunk_spl",
         "rule_id": "spl_66076eda4e0746f1",
         "severity": 3,
-        "sha256": "226fa91a3777b631",
+        "sha256": "739420c22099e850",
         "validation": "valid"
       },
       {
@@ -4942,7 +4942,7 @@
         "rule_id": "yar_a19aafe5788ae794",
         "severity": 3,
         "sha256": "2d19f7edb73f3acf",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -4954,7 +4954,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_56014ab878739d51",
+    "package_id": "pkg_435c34521cd1b851",
     "source_finding_ids": [
       "fnd_md5"
     ]
@@ -5014,17 +5014,17 @@
         "rule_id": "5779e866-2ebb-57cc-9971-6e25a888bfd6",
         "severity": 4,
         "sha256": "fe8545bb1c62200c",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204",
         "category": "file",
         "finding_ids": "fnd_md5",
-        "id": "det_101ae259c2473d6b",
+        "id": "det_4b32992b2d4045e4",
         "language": "splunk_spl",
         "rule_id": "spl_66076eda4e0746f1",
         "severity": 4,
-        "sha256": "b8c5717a3d46ddcc",
+        "sha256": "9750e66b3262e91d",
         "validation": "valid"
       },
       {
@@ -5036,7 +5036,7 @@
         "rule_id": "yar_a19aafe5788ae794",
         "severity": 4,
         "sha256": "9841448123431bf6",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -5048,7 +5048,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_d9479dc0dab4dcd1",
+    "package_id": "pkg_8fa1b840436f5b3c",
     "source_finding_ids": [
       "fnd_md5"
     ]
@@ -5108,17 +5108,17 @@
         "rule_id": "5779e866-2ebb-57cc-9971-6e25a888bfd6",
         "severity": 3,
         "sha256": "11ec45d1f3e1021b",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204",
         "category": "file",
         "finding_ids": "fnd_md5",
-        "id": "det_3c2ba4c284199959",
+        "id": "det_2a7139d60783533f",
         "language": "splunk_spl",
         "rule_id": "spl_66076eda4e0746f1",
         "severity": 3,
-        "sha256": "326e4f2f36344a62",
+        "sha256": "ae45da5d41259493",
         "validation": "valid"
       },
       {
@@ -5130,7 +5130,7 @@
         "rule_id": "yar_a19aafe5788ae794",
         "severity": 3,
         "sha256": "9e5d0f904f5f4741",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -5142,7 +5142,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_7e4ae281503bfeee",
+    "package_id": "pkg_ab4f41bbf0c884eb",
     "source_finding_ids": [
       "fnd_md5"
     ]
@@ -5202,17 +5202,17 @@
         "rule_id": "5779e866-2ebb-57cc-9971-6e25a888bfd6",
         "severity": 1,
         "sha256": "910e0a8bed2297f6",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204",
         "category": "file",
         "finding_ids": "fnd_md5",
-        "id": "det_57a0e963cf980f77",
+        "id": "det_965df5dfb2bfa8d6",
         "language": "splunk_spl",
         "rule_id": "spl_66076eda4e0746f1",
         "severity": 1,
-        "sha256": "4be152bfb5736156",
+        "sha256": "9130627f52f4b589",
         "validation": "valid"
       },
       {
@@ -5224,7 +5224,7 @@
         "rule_id": "yar_a19aafe5788ae794",
         "severity": 1,
         "sha256": "db68f042b220fbff",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -5236,7 +5236,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_e13623612d4a6a4e",
+    "package_id": "pkg_cec101247d95e30b",
     "source_finding_ids": [
       "fnd_md5"
     ]
@@ -5296,17 +5296,17 @@
         "rule_id": "5779e866-2ebb-57cc-9971-6e25a888bfd6",
         "severity": 2,
         "sha256": "1ca1c6194003cb4d",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204",
         "category": "file",
         "finding_ids": "fnd_md5",
-        "id": "det_b08f309b52d1dfdd",
+        "id": "det_eb41d0530f6f6775",
         "language": "splunk_spl",
         "rule_id": "spl_66076eda4e0746f1",
         "severity": 2,
-        "sha256": "38592276063377a3",
+        "sha256": "22a2d8cf4f249205",
         "validation": "valid"
       },
       {
@@ -5318,7 +5318,7 @@
         "rule_id": "yar_a19aafe5788ae794",
         "severity": 2,
         "sha256": "0e2361c969625204",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -5330,7 +5330,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_18ef3d1647e0869d",
+    "package_id": "pkg_11b28528139363d5",
     "source_finding_ids": [
       "fnd_md5"
     ]
@@ -5390,7 +5390,7 @@
         "rule_id": "a7d5267d-6ddf-5141-bdb1-85de7f34381f",
         "severity": 4,
         "sha256": "cfff0fe1a94aeb94",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071.001",
@@ -5401,7 +5401,7 @@
         "rule_id": "snr_99002b1ef7c41907",
         "severity": 4,
         "sha256": "d74175e50c02a9d1",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071.001",
@@ -5423,7 +5423,7 @@
         "rule_id": "sur_5a6fd95345d63d72",
         "severity": 4,
         "sha256": "31fa01910d56e043",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -5497,7 +5497,7 @@
         "rule_id": "646fb072-055e-57f5-884e-dc3d85885caf",
         "severity": 4,
         "sha256": "eab9c018b41b4526",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -5508,7 +5508,7 @@
         "rule_id": "snr_bde4eff68898ee05",
         "severity": 4,
         "sha256": "c4ccc088f2b6e282",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -5530,7 +5530,7 @@
         "rule_id": "sur_d534f5ac489b55a9",
         "severity": 4,
         "sha256": "9d23c9148b490e0d",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -5604,7 +5604,7 @@
         "rule_id": "8adf752a-ab00-5a27-9ace-56446bcb1542",
         "severity": 4,
         "sha256": "e2f1c8c01eda70e7",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -5615,7 +5615,7 @@
         "rule_id": "snr_4aa496e564f90c19",
         "severity": 4,
         "sha256": "88bc202e10c94d1d",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -5637,7 +5637,7 @@
         "rule_id": "sur_6bd4bbc1c970f5aa",
         "severity": 4,
         "sha256": "ba79897ccedb853f",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -5711,17 +5711,17 @@
         "rule_id": "5779e866-2ebb-57cc-9971-6e25a888bfd6",
         "severity": 4,
         "sha256": "25bdef106b5621c9",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204",
         "category": "file",
         "finding_ids": "fnd_a,fnd_b",
-        "id": "det_a7ba306a81bd2a3f",
+        "id": "det_7e96aac6a72ecd34",
         "language": "splunk_spl",
         "rule_id": "spl_66076eda4e0746f1",
         "severity": 4,
-        "sha256": "97bb7f973cb0fd71",
+        "sha256": "3d05b273542a42ff",
         "validation": "valid"
       },
       {
@@ -5733,7 +5733,7 @@
         "rule_id": "yar_a19aafe5788ae794",
         "severity": 4,
         "sha256": "aa6177f3bee3530d",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -5745,7 +5745,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_87805f7410635360",
+    "package_id": "pkg_eab34f6ea6c1fe47",
     "source_finding_ids": [
       "fnd_a",
       "fnd_b"
@@ -5872,11 +5872,11 @@
         "attack": "T1218.011",
         "category": "process",
         "finding_ids": "fnd_a,fnd_b",
-        "id": "det_11b646933dd5ef6c",
+        "id": "det_1922f27f4b444248",
         "language": "splunk_spl",
         "rule_id": "spl_97d07be454c94254",
         "severity": 4,
-        "sha256": "f36dbb944e3c6e2e",
+        "sha256": "e5472ccf28255225",
         "validation": "valid"
       }
     ],
@@ -5887,7 +5887,7 @@
       "sentinel_kql",
       "splunk_spl"
     ],
-    "package_id": "pkg_34edca498e1042f8",
+    "package_id": "pkg_b323a7a9722d14f7",
     "source_finding_ids": [
       "fnd_a",
       "fnd_b"
@@ -6019,17 +6019,17 @@
         "rule_id": "7fdb896a-774d-5fcb-974e-8450ff807e9f",
         "severity": 4,
         "sha256": "64022a77580a2c7e",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204",
         "category": "file",
         "finding_ids": "fnd_a,fnd_b",
-        "id": "det_3e7280b6aaf88b9d",
+        "id": "det_5e4680d7bb4e7b0c",
         "language": "splunk_spl",
         "rule_id": "spl_a096235c4a447709",
         "severity": 4,
-        "sha256": "1422dbfe39543d30",
+        "sha256": "861df6d6256a43d9",
         "validation": "valid"
       },
       {
@@ -6041,7 +6041,7 @@
         "rule_id": "yar_a57b85d963c59cb4",
         "severity": 4,
         "sha256": "871334fe25d1f95c",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -6053,7 +6053,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_c7ffb8eb8dfa2db4",
+    "package_id": "pkg_c69ab87a24c6aac5",
     "source_finding_ids": [
       "fnd_a",
       "fnd_b"
@@ -6114,7 +6114,7 @@
         "rule_id": "1a68bc6e-5e8f-5f94-b81c-38cc394a1e10",
         "severity": 4,
         "sha256": "1fb2c9382081c7bb",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204.002",
@@ -6136,7 +6136,7 @@
         "rule_id": "yar_b5eae999c349574a",
         "severity": 4,
         "sha256": "9a106dec73afc7cb",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -6171,11 +6171,11 @@
         "attack": "T1105",
         "category": "http",
         "finding_ids": "fnd_a,fnd_b",
-        "id": "det_f907bb86c77fcebe",
+        "id": "det_b298a90a33e427ea",
         "language": "elastic_esql",
         "rule_id": "ela_1000c29ceec3b763",
         "severity": 4,
-        "sha256": "d09c361d87cdbbbb",
+        "sha256": "dd31255c62eaa3c2",
         "validation": "valid"
       },
       {
@@ -6209,7 +6209,7 @@
         "rule_id": "36c8e727-8e2a-5294-8595-6c5f1f503ece",
         "severity": 4,
         "sha256": "148c907985839918",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1105",
@@ -6220,7 +6220,7 @@
         "rule_id": "snr_28a6be08586718d1",
         "severity": 4,
         "sha256": "0e3fca666582c4b2",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1105",
@@ -6242,7 +6242,7 @@
         "rule_id": "sur_04b43a1fc5a5f1e2",
         "severity": 4,
         "sha256": "5960ee49e7521bac",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -6255,7 +6255,7 @@
       "splunk_spl",
       "suricata"
     ],
-    "package_id": "pkg_1af75af4d2d66297",
+    "package_id": "pkg_2a344143a25fde4b",
     "source_finding_ids": [
       "fnd_a",
       "fnd_b"
@@ -6300,11 +6300,11 @@
         "attack": "",
         "category": "http",
         "finding_ids": "fnd_url",
-        "id": "det_63aefce9463aea7e",
+        "id": "det_62ad833008fc6936",
         "language": "elastic_esql",
         "rule_id": "ela_867dcfcbf1c7784a",
         "severity": 3,
-        "sha256": "ba8d71f50b0b9c05",
+        "sha256": "6a49258b2080ec15",
         "validation": "valid"
       },
       {
@@ -6360,7 +6360,7 @@
         "rule_id": "2335d398-a798-54f7-a174-dd6b83944180",
         "severity": 3,
         "sha256": "2e0c5f5853b804a1",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "",
@@ -6371,7 +6371,7 @@
         "rule_id": "a7d5267d-6ddf-5141-bdb1-85de7f34381f",
         "severity": 3,
         "sha256": "80e2487a4ab2c30a",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "",
@@ -6382,7 +6382,7 @@
         "rule_id": "snr_99002b1ef7c41907",
         "severity": 3,
         "sha256": "081035981199011e",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "",
@@ -6393,7 +6393,7 @@
         "rule_id": "snr_3cd7586842f4a5a8",
         "severity": 3,
         "sha256": "eb3bb2f5b8305613",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "",
@@ -6426,7 +6426,7 @@
         "rule_id": "sur_7d616987555dce21",
         "severity": 3,
         "sha256": "27a085dc69744c36",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "",
@@ -6437,7 +6437,7 @@
         "rule_id": "sur_5a6fd95345d63d72",
         "severity": 3,
         "sha256": "ff996d1f6beb8ffe",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -6450,7 +6450,7 @@
       "splunk_spl",
       "suricata"
     ],
-    "package_id": "pkg_2a3710966d5543b6",
+    "package_id": "pkg_d76f598a2cd9f6ff",
     "source_finding_ids": [
       "fnd_dom",
       "fnd_url"
@@ -6599,7 +6599,7 @@
         "rule_id": "5779e866-2ebb-57cc-9971-6e25a888bfd6",
         "severity": 3,
         "sha256": "9774c90556569adf",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "",
@@ -6610,7 +6610,7 @@
         "rule_id": "23576a75-79be-5066-b325-176940f6e996",
         "severity": 3,
         "sha256": "c7fb922a8e2c2f4d",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071.001",
@@ -6621,7 +6621,7 @@
         "rule_id": "e9220b35-22c3-5411-83a8-30271c8aba96",
         "severity": 3,
         "sha256": "413f786c63a6622b",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "",
@@ -6632,7 +6632,7 @@
         "rule_id": "snr_eb49cd38dd5a9236",
         "severity": 3,
         "sha256": "d03a593662221ab3",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071.001",
@@ -6643,7 +6643,18 @@
         "rule_id": "snr_f92dd427c401e8ed",
         "severity": 3,
         "sha256": "651da989ccfcaf80",
-        "validation": "unvalidated"
+        "validation": "invalid"
+      },
+      {
+        "attack": "",
+        "category": "file",
+        "finding_ids": "fnd_md5",
+        "id": "det_309e35c484ce016a",
+        "language": "splunk_spl",
+        "rule_id": "spl_66076eda4e0746f1",
+        "severity": 3,
+        "sha256": "739420c22099e850",
+        "validation": "valid"
       },
       {
         "attack": "",
@@ -6654,17 +6665,6 @@
         "rule_id": "spl_9204bc2b30727a2d",
         "severity": 3,
         "sha256": "2a356d33c484ddc3",
-        "validation": "valid"
-      },
-      {
-        "attack": "",
-        "category": "file",
-        "finding_ids": "fnd_md5",
-        "id": "det_db6f56ed1e0d21e4",
-        "language": "splunk_spl",
-        "rule_id": "spl_66076eda4e0746f1",
-        "severity": 3,
-        "sha256": "226fa91a3777b631",
         "validation": "valid"
       },
       {
@@ -6687,7 +6687,7 @@
         "rule_id": "sur_c1f900402bca8986",
         "severity": 3,
         "sha256": "701da1ecf5ad71a8",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "",
@@ -6698,7 +6698,7 @@
         "rule_id": "sur_6dc8a4fc5b6cd2d9",
         "severity": 3,
         "sha256": "ad79579c1a0f435f",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "",
@@ -6709,7 +6709,7 @@
         "rule_id": "yar_a19aafe5788ae794",
         "severity": 3,
         "sha256": "2d19f7edb73f3acf",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -6723,7 +6723,7 @@
       "suricata",
       "yara"
     ],
-    "package_id": "pkg_df9bf85b1a9eb6b9",
+    "package_id": "pkg_27c2f46e35e30ab0",
     "source_finding_ids": [
       "fnd_ip",
       "fnd_md5",
@@ -6879,11 +6879,11 @@
         "attack": "",
         "category": "process",
         "finding_ids": "fnd_proc",
-        "id": "det_19c89b20dcf2ca9e",
+        "id": "det_9f1bf91c6f2b490f",
         "language": "splunk_spl",
         "rule_id": "spl_97d07be454c94254",
         "severity": 3,
-        "sha256": "322a424ad7a91602",
+        "sha256": "d2db56ef72050e89",
         "validation": "valid"
       },
       {
@@ -6905,7 +6905,7 @@
       "sentinel_kql",
       "splunk_spl"
     ],
-    "package_id": "pkg_c7ca1d26ad416597",
+    "package_id": "pkg_4c7bd3e740509671",
     "source_finding_ids": [
       "fnd_proc",
       "fnd_reg",
@@ -7011,7 +7011,7 @@
         "rule_id": "1a68bc6e-5e8f-5f94-b81c-38cc394a1e10",
         "severity": 3,
         "sha256": "0f3fe66a3d6a6c56",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -7022,7 +7022,7 @@
         "rule_id": "646fb072-055e-57f5-884e-dc3d85885caf",
         "severity": 3,
         "sha256": "b41e67685dd824f6",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -7033,7 +7033,7 @@
         "rule_id": "snr_bde4eff68898ee05",
         "severity": 3,
         "sha256": "207fc9715eb782ee",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -7066,7 +7066,7 @@
         "rule_id": "sur_d534f5ac489b55a9",
         "severity": 3,
         "sha256": "45af553cf3804973",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1204",
@@ -7077,7 +7077,7 @@
         "rule_id": "yar_b5eae999c349574a",
         "severity": 3,
         "sha256": "c09aea0d93ab9d3c",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -7152,7 +7152,7 @@
         "rule_id": "b5e909ba-5407-5302-95ee-a1511f01316a",
         "severity": 3,
         "sha256": "5810244deeab3762",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1071",
@@ -7163,7 +7163,7 @@
         "rule_id": "snr_3cf850da62df383b",
         "severity": 3,
         "sha256": "914c9dcc441b761e",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1071",
@@ -7185,7 +7185,7 @@
         "rule_id": "sur_9aed195159495e66",
         "severity": 3,
         "sha256": "b6210f1f341fbc88",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -7890,11 +7890,11 @@
         "attack": "T1218.011",
         "category": "process",
         "finding_ids": "fnd_process",
-        "id": "det_b2a958db61f4da2e",
+        "id": "det_2f354832df8c44d8",
         "language": "splunk_spl",
         "rule_id": "spl_97d07be454c94254",
         "severity": 3,
-        "sha256": "d09304b10c31bf83",
+        "sha256": "3bf6492a36a9f82c",
         "validation": "valid"
       }
     ],
@@ -7905,7 +7905,7 @@
       "sentinel_kql",
       "splunk_spl"
     ],
-    "package_id": "pkg_96f2b22ed2e62894",
+    "package_id": "pkg_c7d9dba8473c9883",
     "source_finding_ids": [
       "fnd_process"
     ]
@@ -7960,11 +7960,11 @@
         "attack": "T1218.011",
         "category": "process",
         "finding_ids": "fnd_process",
-        "id": "det_4253abd2acf3d247",
+        "id": "det_122a162410b2f3e7",
         "language": "splunk_spl",
         "rule_id": "spl_97d07be454c94254",
         "severity": 3,
-        "sha256": "8746c5b374941d74",
+        "sha256": "a6b7ed4f47bc34f7",
         "validation": "valid"
       }
     ],
@@ -7975,7 +7975,7 @@
       "sentinel_kql",
       "splunk_spl"
     ],
-    "package_id": "pkg_003e0888a8471117",
+    "package_id": "pkg_e74c805c67bdf551",
     "source_finding_ids": [
       "fnd_process"
     ]
@@ -8030,11 +8030,11 @@
         "attack": "T1218.011",
         "category": "process",
         "finding_ids": "fnd_process",
-        "id": "det_d62c85a2b66b973c",
+        "id": "det_c272d81af151e0c7",
         "language": "splunk_spl",
         "rule_id": "spl_97d07be454c94254",
         "severity": 3,
-        "sha256": "ae03418b2cae9a10",
+        "sha256": "4ff60621a9a8e0d3",
         "validation": "valid"
       }
     ],
@@ -8045,7 +8045,7 @@
       "sentinel_kql",
       "splunk_spl"
     ],
-    "package_id": "pkg_6188ff40e510f896",
+    "package_id": "pkg_fb75427135959de8",
     "source_finding_ids": [
       "fnd_process"
     ]
@@ -8100,11 +8100,11 @@
         "attack": "T1218.011",
         "category": "process",
         "finding_ids": "fnd_process",
-        "id": "det_043f785091d39f4e",
+        "id": "det_e8faa10928ce69f4",
         "language": "splunk_spl",
         "rule_id": "spl_97d07be454c94254",
         "severity": 3,
-        "sha256": "03122d96f0116ec2",
+        "sha256": "dc573440290be75a",
         "validation": "valid"
       }
     ],
@@ -8115,7 +8115,7 @@
       "sentinel_kql",
       "splunk_spl"
     ],
-    "package_id": "pkg_0a2c7a12150fb230",
+    "package_id": "pkg_010a1d52c6830fc6",
     "source_finding_ids": [
       "fnd_process"
     ]
@@ -8170,11 +8170,11 @@
         "attack": "",
         "category": "process",
         "finding_ids": "fnd_process",
-        "id": "det_2355609a34c7a022",
+        "id": "det_55f902493505eb55",
         "language": "splunk_spl",
         "rule_id": "spl_97d07be454c94254",
         "severity": 3,
-        "sha256": "7ae7c0439dce4f03",
+        "sha256": "2aefd62ecb03daff",
         "validation": "valid"
       }
     ],
@@ -8185,7 +8185,7 @@
       "sentinel_kql",
       "splunk_spl"
     ],
-    "package_id": "pkg_771efa0853b88018",
+    "package_id": "pkg_0003d6b02fd5d055",
     "source_finding_ids": [
       "fnd_process"
     ]
@@ -8240,11 +8240,11 @@
         "attack": "T1218.011",
         "category": "process",
         "finding_ids": "fnd_process",
-        "id": "det_ca7debbda8357f78",
+        "id": "det_7f69fa932178656f",
         "language": "splunk_spl",
         "rule_id": "spl_97d07be454c94254",
         "severity": 4,
-        "sha256": "a3e55e7f9d0b7888",
+        "sha256": "da3962c2a2b6ded4",
         "validation": "valid"
       }
     ],
@@ -8255,7 +8255,7 @@
       "sentinel_kql",
       "splunk_spl"
     ],
-    "package_id": "pkg_ba07cd513b1cacc0",
+    "package_id": "pkg_d541c270e1faadcf",
     "source_finding_ids": [
       "fnd_process"
     ]
@@ -8310,11 +8310,11 @@
         "attack": "T1218.011",
         "category": "process",
         "finding_ids": "fnd_process",
-        "id": "det_d62c85a2b66b973c",
+        "id": "det_c272d81af151e0c7",
         "language": "splunk_spl",
         "rule_id": "spl_97d07be454c94254",
         "severity": 3,
-        "sha256": "ae03418b2cae9a10",
+        "sha256": "4ff60621a9a8e0d3",
         "validation": "valid"
       }
     ],
@@ -8325,7 +8325,7 @@
       "sentinel_kql",
       "splunk_spl"
     ],
-    "package_id": "pkg_6188ff40e510f896",
+    "package_id": "pkg_fb75427135959de8",
     "source_finding_ids": [
       "fnd_process"
     ]
@@ -8380,11 +8380,11 @@
         "attack": "T1218.011",
         "category": "process",
         "finding_ids": "fnd_process",
-        "id": "det_301fd5e725450b80",
+        "id": "det_c60552044213891d",
         "language": "splunk_spl",
         "rule_id": "spl_97d07be454c94254",
         "severity": 1,
-        "sha256": "b26ea9db9636d7ea",
+        "sha256": "b66a3bf94abeebeb",
         "validation": "valid"
       }
     ],
@@ -8395,7 +8395,7 @@
       "sentinel_kql",
       "splunk_spl"
     ],
-    "package_id": "pkg_c4f833e4ae1ffd8f",
+    "package_id": "pkg_ecf1d99c2a403b7e",
     "source_finding_ids": [
       "fnd_process"
     ]
@@ -8450,11 +8450,11 @@
         "attack": "T1218.011",
         "category": "process",
         "finding_ids": "fnd_process",
-        "id": "det_e82676cc9b33b6c9",
+        "id": "det_af30d1b3f102e7f8",
         "language": "splunk_spl",
         "rule_id": "spl_97d07be454c94254",
         "severity": 2,
-        "sha256": "5e3b34f155a9b873",
+        "sha256": "a0c381d75fe8b631",
         "validation": "valid"
       }
     ],
@@ -8465,7 +8465,7 @@
       "sentinel_kql",
       "splunk_spl"
     ],
-    "package_id": "pkg_5e26949d7dcbf30d",
+    "package_id": "pkg_74f047dc1b3aac67",
     "source_finding_ids": [
       "fnd_process"
     ]
@@ -9155,17 +9155,17 @@
         "rule_id": "7fdb896a-774d-5fcb-974e-8450ff807e9f",
         "severity": 3,
         "sha256": "318f51b634486f5f",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204",
         "category": "file",
         "finding_ids": "fnd_sha1",
-        "id": "det_f77e4b181d23c2ac",
+        "id": "det_598a807463975568",
         "language": "splunk_spl",
         "rule_id": "spl_a096235c4a447709",
         "severity": 3,
-        "sha256": "c34ab846cc556fa0",
+        "sha256": "bf59d2282f8254f3",
         "validation": "valid"
       },
       {
@@ -9177,7 +9177,7 @@
         "rule_id": "yar_a57b85d963c59cb4",
         "severity": 3,
         "sha256": "4d697d6bda105dce",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -9189,7 +9189,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_a3ade0e3516d2c1e",
+    "package_id": "pkg_25072c62e2948175",
     "source_finding_ids": [
       "fnd_sha1"
     ]
@@ -9249,17 +9249,17 @@
         "rule_id": "7fdb896a-774d-5fcb-974e-8450ff807e9f",
         "severity": 3,
         "sha256": "318f51b634486f5f",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204",
         "category": "file",
         "finding_ids": "fnd_sha1",
-        "id": "det_acbb7aeba8030bf2",
+        "id": "det_9183f760f3448a7e",
         "language": "splunk_spl",
         "rule_id": "spl_a096235c4a447709",
         "severity": 3,
-        "sha256": "febf8496d85071ea",
+        "sha256": "1750f4b4771c9209",
         "validation": "valid"
       },
       {
@@ -9271,7 +9271,7 @@
         "rule_id": "yar_a57b85d963c59cb4",
         "severity": 3,
         "sha256": "4d697d6bda105dce",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -9283,7 +9283,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_935a3c89a2e0a6ac",
+    "package_id": "pkg_92bd1fb5825d10b5",
     "source_finding_ids": [
       "fnd_sha1"
     ]
@@ -9343,17 +9343,17 @@
         "rule_id": "7fdb896a-774d-5fcb-974e-8450ff807e9f",
         "severity": 3,
         "sha256": "318f51b634486f5f",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204",
         "category": "file",
         "finding_ids": "fnd_sha1",
-        "id": "det_b107bf6f11a06f57",
+        "id": "det_f0fa97383769e386",
         "language": "splunk_spl",
         "rule_id": "spl_a096235c4a447709",
         "severity": 3,
-        "sha256": "f572383810e1ef05",
+        "sha256": "eb88e7e569e7cd2e",
         "validation": "valid"
       },
       {
@@ -9365,7 +9365,7 @@
         "rule_id": "yar_a57b85d963c59cb4",
         "severity": 3,
         "sha256": "4d697d6bda105dce",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -9377,7 +9377,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_f53b395aadfd2ffe",
+    "package_id": "pkg_d2b17ed4953cbbfc",
     "source_finding_ids": [
       "fnd_sha1"
     ]
@@ -9437,17 +9437,17 @@
         "rule_id": "7fdb896a-774d-5fcb-974e-8450ff807e9f",
         "severity": 3,
         "sha256": "318f51b634486f5f",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204",
         "category": "file",
         "finding_ids": "fnd_sha1",
-        "id": "det_d584f5e4cb3a02e0",
+        "id": "det_e9cf82dc152a704e",
         "language": "splunk_spl",
         "rule_id": "spl_a096235c4a447709",
         "severity": 3,
-        "sha256": "37ac751aef0b127c",
+        "sha256": "b2d2f7e74d4f9b96",
         "validation": "valid"
       },
       {
@@ -9459,7 +9459,7 @@
         "rule_id": "yar_a57b85d963c59cb4",
         "severity": 3,
         "sha256": "4d697d6bda105dce",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -9471,7 +9471,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_adc657b00d2a30b7",
+    "package_id": "pkg_22493e741ae02880",
     "source_finding_ids": [
       "fnd_sha1"
     ]
@@ -9531,17 +9531,17 @@
         "rule_id": "7fdb896a-774d-5fcb-974e-8450ff807e9f",
         "severity": 3,
         "sha256": "7b3db0581c3c0b32",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "",
         "category": "file",
         "finding_ids": "fnd_sha1",
-        "id": "det_66e7c4088115f1a9",
+        "id": "det_10f44c8d94bdf896",
         "language": "splunk_spl",
         "rule_id": "spl_a096235c4a447709",
         "severity": 3,
-        "sha256": "ba11b3f845c287fb",
+        "sha256": "509226dfad4b0fbe",
         "validation": "valid"
       },
       {
@@ -9553,7 +9553,7 @@
         "rule_id": "yar_a57b85d963c59cb4",
         "severity": 3,
         "sha256": "2fbcd194d6118d31",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -9565,7 +9565,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_c8749f49bd644a96",
+    "package_id": "pkg_9b4c212ffc615228",
     "source_finding_ids": [
       "fnd_sha1"
     ]
@@ -9625,17 +9625,17 @@
         "rule_id": "7fdb896a-774d-5fcb-974e-8450ff807e9f",
         "severity": 4,
         "sha256": "6ab5eb9dce34ea34",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204",
         "category": "file",
         "finding_ids": "fnd_sha1",
-        "id": "det_b66994a6d07120e3",
+        "id": "det_09014b3b7176b3c5",
         "language": "splunk_spl",
         "rule_id": "spl_a096235c4a447709",
         "severity": 4,
-        "sha256": "3e4daf2a9867d093",
+        "sha256": "1a8951772ee0ce27",
         "validation": "valid"
       },
       {
@@ -9647,7 +9647,7 @@
         "rule_id": "yar_a57b85d963c59cb4",
         "severity": 4,
         "sha256": "6dd8d3914217c229",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -9659,7 +9659,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_cb9fac2fa1d49ab2",
+    "package_id": "pkg_573b63e87ad7e659",
     "source_finding_ids": [
       "fnd_sha1"
     ]
@@ -9719,17 +9719,17 @@
         "rule_id": "7fdb896a-774d-5fcb-974e-8450ff807e9f",
         "severity": 3,
         "sha256": "318f51b634486f5f",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204",
         "category": "file",
         "finding_ids": "fnd_sha1",
-        "id": "det_b107bf6f11a06f57",
+        "id": "det_f0fa97383769e386",
         "language": "splunk_spl",
         "rule_id": "spl_a096235c4a447709",
         "severity": 3,
-        "sha256": "f572383810e1ef05",
+        "sha256": "eb88e7e569e7cd2e",
         "validation": "valid"
       },
       {
@@ -9741,7 +9741,7 @@
         "rule_id": "yar_a57b85d963c59cb4",
         "severity": 3,
         "sha256": "4d697d6bda105dce",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -9753,7 +9753,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_f53b395aadfd2ffe",
+    "package_id": "pkg_d2b17ed4953cbbfc",
     "source_finding_ids": [
       "fnd_sha1"
     ]
@@ -9813,17 +9813,17 @@
         "rule_id": "7fdb896a-774d-5fcb-974e-8450ff807e9f",
         "severity": 1,
         "sha256": "0a0d3c51cac2a0b0",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204",
         "category": "file",
         "finding_ids": "fnd_sha1",
-        "id": "det_ec3266f87fc3a8c6",
+        "id": "det_28e5f1647c8b4d75",
         "language": "splunk_spl",
         "rule_id": "spl_a096235c4a447709",
         "severity": 1,
-        "sha256": "fd820da2b86cca56",
+        "sha256": "b5fcd310b622172b",
         "validation": "valid"
       },
       {
@@ -9835,7 +9835,7 @@
         "rule_id": "yar_a57b85d963c59cb4",
         "severity": 1,
         "sha256": "45710e742b0aa233",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -9847,7 +9847,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_6aff5174a7d468cc",
+    "package_id": "pkg_8f66d5f26801f672",
     "source_finding_ids": [
       "fnd_sha1"
     ]
@@ -9907,17 +9907,17 @@
         "rule_id": "7fdb896a-774d-5fcb-974e-8450ff807e9f",
         "severity": 2,
         "sha256": "b886f819130a4382",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204",
         "category": "file",
         "finding_ids": "fnd_sha1",
-        "id": "det_ddf88aad464a6e4f",
+        "id": "det_348f452cd0397184",
         "language": "splunk_spl",
         "rule_id": "spl_a096235c4a447709",
         "severity": 2,
-        "sha256": "994d75a987a92ffe",
+        "sha256": "8e0e8e716433628e",
         "validation": "valid"
       },
       {
@@ -9929,7 +9929,7 @@
         "rule_id": "yar_a57b85d963c59cb4",
         "severity": 2,
         "sha256": "4a358962138a3e8e",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -9941,7 +9941,7 @@
       "splunk_spl",
       "yara"
     ],
-    "package_id": "pkg_5503429b4dacc509",
+    "package_id": "pkg_6fa30973f9596011",
     "source_finding_ids": [
       "fnd_sha1"
     ]
@@ -10001,7 +10001,7 @@
         "rule_id": "1a68bc6e-5e8f-5f94-b81c-38cc394a1e10",
         "severity": 3,
         "sha256": "99ac6a74a1b3e13c",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204.002",
@@ -10023,7 +10023,7 @@
         "rule_id": "yar_b5eae999c349574a",
         "severity": 3,
         "sha256": "7e2ac2a6d5bef374",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -10095,7 +10095,7 @@
         "rule_id": "1a68bc6e-5e8f-5f94-b81c-38cc394a1e10",
         "severity": 3,
         "sha256": "99ac6a74a1b3e13c",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204.002",
@@ -10117,7 +10117,7 @@
         "rule_id": "yar_b5eae999c349574a",
         "severity": 3,
         "sha256": "7e2ac2a6d5bef374",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -10189,7 +10189,7 @@
         "rule_id": "1a68bc6e-5e8f-5f94-b81c-38cc394a1e10",
         "severity": 3,
         "sha256": "99ac6a74a1b3e13c",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204.002",
@@ -10211,7 +10211,7 @@
         "rule_id": "yar_b5eae999c349574a",
         "severity": 3,
         "sha256": "7e2ac2a6d5bef374",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -10283,7 +10283,7 @@
         "rule_id": "1a68bc6e-5e8f-5f94-b81c-38cc394a1e10",
         "severity": 3,
         "sha256": "99ac6a74a1b3e13c",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204.002",
@@ -10305,7 +10305,7 @@
         "rule_id": "yar_b5eae999c349574a",
         "severity": 3,
         "sha256": "7e2ac2a6d5bef374",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -10377,7 +10377,7 @@
         "rule_id": "1a68bc6e-5e8f-5f94-b81c-38cc394a1e10",
         "severity": 3,
         "sha256": "cdaca4fe641d555b",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "",
@@ -10399,7 +10399,7 @@
         "rule_id": "yar_b5eae999c349574a",
         "severity": 3,
         "sha256": "aa430c1ad9039f2b",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -10471,7 +10471,7 @@
         "rule_id": "1a68bc6e-5e8f-5f94-b81c-38cc394a1e10",
         "severity": 4,
         "sha256": "e87d72a549d5badb",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204.002",
@@ -10493,7 +10493,7 @@
         "rule_id": "yar_b5eae999c349574a",
         "severity": 4,
         "sha256": "149524d05fdf6030",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -10565,7 +10565,7 @@
         "rule_id": "1a68bc6e-5e8f-5f94-b81c-38cc394a1e10",
         "severity": 3,
         "sha256": "99ac6a74a1b3e13c",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204.002",
@@ -10587,7 +10587,7 @@
         "rule_id": "yar_b5eae999c349574a",
         "severity": 3,
         "sha256": "7e2ac2a6d5bef374",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -10659,7 +10659,7 @@
         "rule_id": "1a68bc6e-5e8f-5f94-b81c-38cc394a1e10",
         "severity": 1,
         "sha256": "fdb91b065a4647df",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204.002",
@@ -10681,7 +10681,7 @@
         "rule_id": "yar_b5eae999c349574a",
         "severity": 1,
         "sha256": "c515488334b82275",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -10753,7 +10753,7 @@
         "rule_id": "1a68bc6e-5e8f-5f94-b81c-38cc394a1e10",
         "severity": 2,
         "sha256": "c33b6385e3f8748c",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1204.002",
@@ -10775,7 +10775,7 @@
         "rule_id": "yar_b5eae999c349574a",
         "severity": 2,
         "sha256": "8d94532a86412e71",
-        "validation": "unvalidated"
+        "validation": "valid"
       }
     ],
     "languages": [
@@ -10897,11 +10897,11 @@
         "attack": "T1105",
         "category": "http",
         "finding_ids": "fnd_url",
-        "id": "det_36732bcec1090685",
+        "id": "det_210682a9bd1db563",
         "language": "elastic_esql",
         "rule_id": "ela_1000c29ceec3b763",
         "severity": 3,
-        "sha256": "cf6f8c4496e6594f",
+        "sha256": "1b70a8eba3001d25",
         "validation": "valid"
       },
       {
@@ -10935,7 +10935,7 @@
         "rule_id": "36c8e727-8e2a-5294-8595-6c5f1f503ece",
         "severity": 3,
         "sha256": "7f097340a0903ed3",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1105",
@@ -10946,7 +10946,7 @@
         "rule_id": "snr_28a6be08586718d1",
         "severity": 3,
         "sha256": "8fa53d2e73d05924",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1105",
@@ -10968,7 +10968,7 @@
         "rule_id": "sur_04b43a1fc5a5f1e2",
         "severity": 3,
         "sha256": "ace037e4b0b4df44",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -10981,7 +10981,7 @@
       "splunk_spl",
       "suricata"
     ],
-    "package_id": "pkg_0af85fddae45e08a",
+    "package_id": "pkg_40d55bee9694b878",
     "source_finding_ids": [
       "fnd_url"
     ]
@@ -11003,11 +11003,11 @@
         "attack": "T1105",
         "category": "http",
         "finding_ids": "fnd_url",
-        "id": "det_6e8f5a803d15db07",
+        "id": "det_027348f16eb79c2a",
         "language": "elastic_esql",
         "rule_id": "ela_1000c29ceec3b763",
         "severity": 3,
-        "sha256": "1c681444b100f298",
+        "sha256": "36262c89e665038a",
         "validation": "valid"
       },
       {
@@ -11041,7 +11041,7 @@
         "rule_id": "36c8e727-8e2a-5294-8595-6c5f1f503ece",
         "severity": 3,
         "sha256": "7f097340a0903ed3",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1105",
@@ -11052,7 +11052,7 @@
         "rule_id": "snr_28a6be08586718d1",
         "severity": 3,
         "sha256": "8fa53d2e73d05924",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1105",
@@ -11074,7 +11074,7 @@
         "rule_id": "sur_04b43a1fc5a5f1e2",
         "severity": 3,
         "sha256": "ace037e4b0b4df44",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -11087,7 +11087,7 @@
       "splunk_spl",
       "suricata"
     ],
-    "package_id": "pkg_ec6c51b84ee77674",
+    "package_id": "pkg_6f0b378c3902cb15",
     "source_finding_ids": [
       "fnd_url"
     ]
@@ -11109,11 +11109,11 @@
         "attack": "T1105",
         "category": "http",
         "finding_ids": "fnd_url",
-        "id": "det_4c24a8b63ae0bb48",
+        "id": "det_cece38fcd2f7e8d3",
         "language": "elastic_esql",
         "rule_id": "ela_1000c29ceec3b763",
         "severity": 3,
-        "sha256": "b6b0491d498cdbe3",
+        "sha256": "1d91c1812832af5e",
         "validation": "valid"
       },
       {
@@ -11147,7 +11147,7 @@
         "rule_id": "36c8e727-8e2a-5294-8595-6c5f1f503ece",
         "severity": 3,
         "sha256": "7f097340a0903ed3",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1105",
@@ -11158,7 +11158,7 @@
         "rule_id": "snr_28a6be08586718d1",
         "severity": 3,
         "sha256": "8fa53d2e73d05924",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1105",
@@ -11180,7 +11180,7 @@
         "rule_id": "sur_04b43a1fc5a5f1e2",
         "severity": 3,
         "sha256": "ace037e4b0b4df44",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -11193,7 +11193,7 @@
       "splunk_spl",
       "suricata"
     ],
-    "package_id": "pkg_e8b023a717898ad1",
+    "package_id": "pkg_66f152a988243c39",
     "source_finding_ids": [
       "fnd_url"
     ]
@@ -11215,11 +11215,11 @@
         "attack": "T1105",
         "category": "http",
         "finding_ids": "fnd_url",
-        "id": "det_f77bd1937b53da0e",
+        "id": "det_d35ea5d83e70cede",
         "language": "elastic_esql",
         "rule_id": "ela_1000c29ceec3b763",
         "severity": 3,
-        "sha256": "1b9c8eeddc219cb9",
+        "sha256": "9c0243dd7a639386",
         "validation": "valid"
       },
       {
@@ -11253,7 +11253,7 @@
         "rule_id": "36c8e727-8e2a-5294-8595-6c5f1f503ece",
         "severity": 3,
         "sha256": "7f097340a0903ed3",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1105",
@@ -11264,7 +11264,7 @@
         "rule_id": "snr_28a6be08586718d1",
         "severity": 3,
         "sha256": "8fa53d2e73d05924",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1105",
@@ -11286,7 +11286,7 @@
         "rule_id": "sur_04b43a1fc5a5f1e2",
         "severity": 3,
         "sha256": "ace037e4b0b4df44",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -11299,7 +11299,7 @@
       "splunk_spl",
       "suricata"
     ],
-    "package_id": "pkg_a6f41c09bb78b8a5",
+    "package_id": "pkg_62183d3b8d80fbe1",
     "source_finding_ids": [
       "fnd_url"
     ]
@@ -11321,11 +11321,11 @@
         "attack": "",
         "category": "http",
         "finding_ids": "fnd_url",
-        "id": "det_2f64ebe04ffff178",
+        "id": "det_3ee8b575415361bf",
         "language": "elastic_esql",
         "rule_id": "ela_1000c29ceec3b763",
         "severity": 3,
-        "sha256": "9952a28a355aae02",
+        "sha256": "5dd08de02c9b3143",
         "validation": "valid"
       },
       {
@@ -11359,7 +11359,7 @@
         "rule_id": "36c8e727-8e2a-5294-8595-6c5f1f503ece",
         "severity": 3,
         "sha256": "46ab6f8a35d3cceb",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "",
@@ -11370,7 +11370,7 @@
         "rule_id": "snr_28a6be08586718d1",
         "severity": 3,
         "sha256": "fed7cdc75fc9dcb2",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "",
@@ -11392,7 +11392,7 @@
         "rule_id": "sur_04b43a1fc5a5f1e2",
         "severity": 3,
         "sha256": "889b01b554584955",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -11405,7 +11405,7 @@
       "splunk_spl",
       "suricata"
     ],
-    "package_id": "pkg_812ec49197e627be",
+    "package_id": "pkg_b66dbdad855c8c76",
     "source_finding_ids": [
       "fnd_url"
     ]
@@ -11427,11 +11427,11 @@
         "attack": "T1105",
         "category": "http",
         "finding_ids": "fnd_url",
-        "id": "det_6ce68e2a764cd54a",
+        "id": "det_5d950b99ba9b0842",
         "language": "elastic_esql",
         "rule_id": "ela_1000c29ceec3b763",
         "severity": 4,
-        "sha256": "e4cd5613bd898a9d",
+        "sha256": "e617fac7da164007",
         "validation": "valid"
       },
       {
@@ -11465,7 +11465,7 @@
         "rule_id": "36c8e727-8e2a-5294-8595-6c5f1f503ece",
         "severity": 4,
         "sha256": "e8ded8ad9620a79e",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1105",
@@ -11476,7 +11476,7 @@
         "rule_id": "snr_28a6be08586718d1",
         "severity": 4,
         "sha256": "8fa53d2e73d05924",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1105",
@@ -11498,7 +11498,7 @@
         "rule_id": "sur_04b43a1fc5a5f1e2",
         "severity": 4,
         "sha256": "ace037e4b0b4df44",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -11511,7 +11511,7 @@
       "splunk_spl",
       "suricata"
     ],
-    "package_id": "pkg_f6df72a3ecb54fc5",
+    "package_id": "pkg_8d028a7b0c6dccb6",
     "source_finding_ids": [
       "fnd_url"
     ]
@@ -11533,11 +11533,11 @@
         "attack": "T1105",
         "category": "http",
         "finding_ids": "fnd_url",
-        "id": "det_4c24a8b63ae0bb48",
+        "id": "det_cece38fcd2f7e8d3",
         "language": "elastic_esql",
         "rule_id": "ela_1000c29ceec3b763",
         "severity": 3,
-        "sha256": "b6b0491d498cdbe3",
+        "sha256": "1d91c1812832af5e",
         "validation": "valid"
       },
       {
@@ -11571,7 +11571,7 @@
         "rule_id": "36c8e727-8e2a-5294-8595-6c5f1f503ece",
         "severity": 3,
         "sha256": "7f097340a0903ed3",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1105",
@@ -11582,7 +11582,7 @@
         "rule_id": "snr_28a6be08586718d1",
         "severity": 3,
         "sha256": "8fa53d2e73d05924",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1105",
@@ -11604,7 +11604,7 @@
         "rule_id": "sur_04b43a1fc5a5f1e2",
         "severity": 3,
         "sha256": "ace037e4b0b4df44",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -11617,7 +11617,7 @@
       "splunk_spl",
       "suricata"
     ],
-    "package_id": "pkg_e8b023a717898ad1",
+    "package_id": "pkg_66f152a988243c39",
     "source_finding_ids": [
       "fnd_url"
     ]
@@ -11639,11 +11639,11 @@
         "attack": "T1105",
         "category": "http",
         "finding_ids": "fnd_url",
-        "id": "det_1e4ac16d961adc48",
+        "id": "det_1f1c010651062884",
         "language": "elastic_esql",
         "rule_id": "ela_1000c29ceec3b763",
         "severity": 1,
-        "sha256": "699e9b4b181e119f",
+        "sha256": "6cc66372a7031392",
         "validation": "valid"
       },
       {
@@ -11677,7 +11677,7 @@
         "rule_id": "36c8e727-8e2a-5294-8595-6c5f1f503ece",
         "severity": 1,
         "sha256": "ae73d53974b6a7e6",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1105",
@@ -11688,7 +11688,7 @@
         "rule_id": "snr_28a6be08586718d1",
         "severity": 1,
         "sha256": "c1d627c0c607492e",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1105",
@@ -11710,7 +11710,7 @@
         "rule_id": "sur_04b43a1fc5a5f1e2",
         "severity": 1,
         "sha256": "effe86b2ee3122dc",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -11723,7 +11723,7 @@
       "splunk_spl",
       "suricata"
     ],
-    "package_id": "pkg_7117baa862b800af",
+    "package_id": "pkg_0ff98fe5071b00f4",
     "source_finding_ids": [
       "fnd_url"
     ]
@@ -11745,11 +11745,11 @@
         "attack": "T1105",
         "category": "http",
         "finding_ids": "fnd_url",
-        "id": "det_464a0389fccae64c",
+        "id": "det_4896753ea4698ff9",
         "language": "elastic_esql",
         "rule_id": "ela_1000c29ceec3b763",
         "severity": 2,
-        "sha256": "4f0bf713ee0ce301",
+        "sha256": "dde83ca9bd238a0d",
         "validation": "valid"
       },
       {
@@ -11783,7 +11783,7 @@
         "rule_id": "36c8e727-8e2a-5294-8595-6c5f1f503ece",
         "severity": 2,
         "sha256": "7d343a56c8e9c7b6",
-        "validation": "unvalidated"
+        "validation": "valid"
       },
       {
         "attack": "T1105",
@@ -11794,7 +11794,7 @@
         "rule_id": "snr_28a6be08586718d1",
         "severity": 2,
         "sha256": "9b2bf9bd71ebe0d1",
-        "validation": "unvalidated"
+        "validation": "invalid"
       },
       {
         "attack": "T1105",
@@ -11816,7 +11816,7 @@
         "rule_id": "sur_04b43a1fc5a5f1e2",
         "severity": 2,
         "sha256": "aa4fc65f5a2b603a",
-        "validation": "unvalidated"
+        "validation": "invalid"
       }
     ],
     "languages": [
@@ -11829,7 +11829,7 @@
       "splunk_spl",
       "suricata"
     ],
-    "package_id": "pkg_dbdebc20177de287",
+    "package_id": "pkg_8c698d2fb9bcf34f",
     "source_finding_ids": [
       "fnd_url"
     ]

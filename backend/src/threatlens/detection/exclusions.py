@@ -41,7 +41,8 @@ def apply_exclusions(
     if not exclusions:
         return summary
     findings = tuple(
-        finding for finding in summary.findings
+        finding
+        for finding in summary.findings
         if not any(exclusion.matches(finding, now=now) for exclusion in exclusions)
     )
     return summary.model_copy(update={"findings": findings})

@@ -99,6 +99,15 @@ class DetectionValidationStatus(StrEnum):
     SKIPPED = "skipped"
 
 
+class DetectionValidationLevel(StrEnum):
+    """Depth reached by the validator, independent from pass/fail status."""
+
+    STRUCTURAL = "structural"
+    COMPILED = "compiled"
+    FIXTURE_TESTED = "fixture_tested"
+    UNAVAILABLE = "unavailable"
+
+
 class DetectionReviewStatus(StrEnum):
     """Analyst lifecycle state for a generated artifact."""
 

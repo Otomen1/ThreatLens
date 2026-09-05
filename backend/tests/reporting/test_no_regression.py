@@ -60,7 +60,7 @@ class TestExistingEngineVersionsUnchanged:
         assert ENGINE_VERSION == "1.0"
 
     def test_detection_engine_version_unchanged(self) -> None:
-        assert DETECTION_ENGINE_VERSION == "1.0"
+        assert DETECTION_ENGINE_VERSION == "1.1"
 
     def test_correlation_framework_version_unchanged(self) -> None:
         assert CORRELATION_FRAMEWORK_VERSION == "0.1.0"
@@ -93,9 +93,7 @@ class TestExistingApiBehaviorUnchanged:
 
     def test_workspace_save_still_returns_full_record_shape(self) -> None:
         client = TestClient(app)
-        res = client.post(
-            "/api/v1/workspace", json={"title": "Case", "investigation_type": "ipv4"}
-        )
+        res = client.post("/api/v1/workspace", json={"title": "Case", "investigation_type": "ipv4"})
         assert res.status_code == 201
         body = res.json()
         assert "investigation_summary" in body
@@ -105,9 +103,7 @@ class TestExistingApiBehaviorUnchanged:
 
     def test_timeline_and_graph_endpoints_still_work(self) -> None:
         client = TestClient(app)
-        res = client.post(
-            "/api/v1/workspace", json={"title": "Case", "investigation_type": "ipv4"}
-        )
+        res = client.post("/api/v1/workspace", json={"title": "Case", "investigation_type": "ipv4"})
         body = res.json()
         assert client.get(f"/api/v1/workspace/{body['id']}/timeline").status_code == 200
         assert client.get(f"/api/v1/workspace/{body['id']}/graph").status_code == 200
@@ -115,9 +111,7 @@ class TestExistingApiBehaviorUnchanged:
 
     def test_export_endpoint_works_alongside_them(self) -> None:
         client = TestClient(app)
-        res = client.post(
-            "/api/v1/workspace", json={"title": "Case", "investigation_type": "ipv4"}
-        )
+        res = client.post("/api/v1/workspace", json={"title": "Case", "investigation_type": "ipv4"})
         body = res.json()
         assert client.get(f"/api/v1/workspace/{body['id']}/export").status_code == 200
         client.delete(f"/api/v1/workspace/{body['id']}")

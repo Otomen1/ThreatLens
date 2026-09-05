@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import importlib
 import os
-from contextlib import nullcontext
+from contextlib import AbstractContextManager, nullcontext
+from typing import Any, cast
 from uuid import UUID
 
 from pydantic import ValidationError
@@ -21,7 +23,7 @@ class PostgresWorkspaceStorage(WorkspaceStorage):
         if not self._url:
             raise WorkspaceStorageError("DATABASE_URL is required for postgres storage")
         try:
-            import psycopg
+            psycopg = cast(Any, importlib.import_module("psycopg"))
             self._psycopg = psycopg
             with self._psycopg.connect(self._url) as connection:
                 connection.execute("""
@@ -32,23 +34,32 @@ class PostgresWorkspaceStorage(WorkspaceStorage):
                     )
                 """)
         except Exception as exc:
-            raise WorkspaceStorageError("Could not initialize PostgreSQL workspace storage") from exc
+            raise WorkspaceStorageError(
+                "Could not initialize PostgreSQL workspace storage"
+            ) from exc
 
     def save(self, record: WorkspaceInvestigation) -> None:
         try:
             with self._psycopg.connect(self._url) as connection:
-                connection.execute("""
+                connection.execute(
+                    """
                     INSERT INTO threatlens_workspace_records (id, updated_at, payload)
                     VALUES (%s, %s, %s::jsonb)
-                    ON CONFLICT (id) DO UPDATE SET updated_at = EXCLUDED.updated_at, payload = EXCLUDED.payload
-                """, (record.id, record.updated_at, record.model_dump_json()))
+                    ON CONFLICT (id) DO UPDATE SET
+                    updated_at = EXCLUDED.updated_at, payload = EXCLUDED.payload
+                """,
+                    (record.id, record.updated_at, record.model_dump_json()),
+                )
         except Exception as exc:
             raise WorkspaceStorageError(f"Could not save investigation {record.id}") from exc
 
     def load(self, investigation_id: UUID) -> WorkspaceInvestigation:
         try:
             with self._psycopg.connect(self._url) as connection:
-                row = connection.execute("SELECT payload FROM threatlens_workspace_records WHERE id = %s", (investigation_id,)).fetchone()
+                row = connection.execute(
+                    "SELECT payload FROM threatlens_workspace_records WHERE id = %s",
+                    (investigation_id,),
+                ).fetchone()
         except Exception as exc:
             raise WorkspaceStorageError("Could not load investigation") from exc
         if row is None:
@@ -56,12 +67,16 @@ class PostgresWorkspaceStorage(WorkspaceStorage):
         try:
             return WorkspaceInvestigation.model_validate(row[0])
         except ValidationError as exc:
-            raise WorkspaceStorageError(f"Corrupt investigation record: {investigation_id}") from exc
+            raise WorkspaceStorageError(
+                f"Corrupt investigation record: {investigation_id}"
+            ) from exc
 
     def delete(self, investigation_id: UUID) -> None:
         try:
             with self._psycopg.connect(self._url) as connection:
-                result = connection.execute("DELETE FROM threatlens_workspace_records WHERE id = %s", (investigation_id,))
+                result = connection.execute(
+                    "DELETE FROM threatlens_workspace_records WHERE id = %s", (investigation_id,)
+                )
                 if result.rowcount == 0:
                     raise InvestigationNotFoundError(investigation_id)
         except InvestigationNotFoundError:
@@ -72,7 +87,9 @@ class PostgresWorkspaceStorage(WorkspaceStorage):
     def list_all(self) -> list[WorkspaceInvestigation]:
         try:
             with self._psycopg.connect(self._url) as connection:
-                rows = connection.execute("SELECT payload FROM threatlens_workspace_records ORDER BY updated_at DESC").fetchall()
+                rows = connection.execute(
+                    "SELECT payload FROM threatlens_workspace_records ORDER BY updated_at DESC"
+                ).fetchall()
             return [WorkspaceInvestigation.model_validate(row[0]) for row in rows]
         except ValidationError as exc:
             raise WorkspaceStorageError("Corrupt investigation record") from exc
@@ -81,7 +98,12 @@ class PostgresWorkspaceStorage(WorkspaceStorage):
 
     def exists(self, investigation_id: UUID) -> bool:
         with self._psycopg.connect(self._url) as connection:
-            return connection.execute("SELECT 1 FROM threatlens_workspace_records WHERE id = %s", (investigation_id,)).fetchone() is not None
+            return (
+                connection.execute(
+                    "SELECT 1 FROM threatlens_workspace_records WHERE id = %s", (investigation_id,)
+                ).fetchone()
+                is not None
+            )
 
-    def lock(self):
+    def lock(self) -> AbstractContextManager[None]:
         return nullcontext()

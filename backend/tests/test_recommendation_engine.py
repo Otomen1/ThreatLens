@@ -207,9 +207,11 @@ class TestEndToEnd:
 
     def test_no_findings_no_recommendations(self) -> None:
         # Free text routes to no providers → no findings → no recommendations.
-        body = TestClient(app).post(
-            "/api/v1/investigate", json={"query": "zzznotarealindicator999"}
-        ).json()
+        body = (
+            TestClient(app)
+            .post("/api/v1/investigate", json={"query": "zzznotarealindicator999"})
+            .json()
+        )
         summary = body["investigation_summary"]
         assert summary["findings"] == []
         assert summary["recommendations"] == []

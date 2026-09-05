@@ -81,6 +81,7 @@ def record_detection_generation(
     """Record one completed ``/detections`` call."""
     registry.record_detection_generation(
         languages=[artifact.language.value for artifact in package.artifacts],
+        issues=[issue.generator for issue in package.generation_issues],
         latency_ms=duration_ms,
     )
 

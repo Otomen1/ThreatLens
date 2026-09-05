@@ -61,9 +61,7 @@ RULES: tuple[CorrelationRule, ...] = (
             "on one subject."
         ),
         category=Cat.CORROBORATED_MALICIOUS_EXPOSURE,
-        required_categories=frozenset(
-            {FC.MALICIOUS_INFRASTRUCTURE, FC.REPUTATION, FC.EXPOSURE}
-        ),
+        required_categories=frozenset({FC.MALICIOUS_INFRASTRUCTURE, FC.REPUTATION, FC.EXPOSURE}),
         relationship=Rel.ASSOCIATED_WITH,
         title="Corroborated malicious infrastructure with exposed services",
         priority=3,
@@ -108,9 +106,7 @@ RULES: tuple[CorrelationRule, ...] = (
             "these three."
         ),
         category=Cat.CAMPAIGN_ACTOR_INFRASTRUCTURE_CONVERGENCE,
-        required_categories=frozenset(
-            {FC.CAMPAIGN, FC.THREAT_ACTOR, FC.MALICIOUS_INFRASTRUCTURE}
-        ),
+        required_categories=frozenset({FC.CAMPAIGN, FC.THREAT_ACTOR, FC.MALICIOUS_INFRASTRUCTURE}),
         relationship=Rel.ATTRIBUTED_TO,
         title="Campaign, threat actor, and malicious infrastructure jointly observed",
         same_subject=False,

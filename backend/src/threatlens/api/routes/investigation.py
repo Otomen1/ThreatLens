@@ -19,9 +19,9 @@ from fastapi import APIRouter, Depends
 from ...correlation import CorrelationService
 from ...exposure import ExposureService
 from ...exposure import build_default_registry as build_exposure_registry
-from ...investigation import InvestigationService
 from ...identity import IdentityService
 from ...identity import build_default_registry as build_identity_registry
+from ...investigation import InvestigationService
 from ...providers import build_default_router
 from ...reasoning import reason
 from ...reference import build_default_reference_router

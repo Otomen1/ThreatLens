@@ -14,8 +14,9 @@ const links = [
   ["/exposure", "Exposure"],
   ["/identity", "Identity"],
   ["/correlation", "Correlation"],
+  ["/settings", "Settings"],
 ] as const;
-const AUTHENTICATED_LINKS = new Set(["/workspace", "/detections", "/cases"]);
+const AUTHENTICATED_LINKS = new Set(["/workspace", "/detections", "/cases", "/settings"]);
 
 export function AppNav() {
   const pathname = usePathname();

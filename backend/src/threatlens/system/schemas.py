@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ServiceState(StrEnum):
@@ -97,6 +97,8 @@ class DetectionEngineeringUsage(BaseModel):
 
     generated_total: int
     by_language: dict[str, int]
+    generation_failures: int = 0
+    failures_by_generator: dict[str, int] = Field(default_factory=dict)
     avg_generation_ms: float | None
     last_generated_at: str | None
 

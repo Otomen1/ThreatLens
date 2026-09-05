@@ -31,7 +31,11 @@ def test_reports_framework_version() -> None:
 def test_response_shape_is_exactly_the_documented_fields() -> None:
     body = client.get("/api/v1/identity").json()
     assert set(body) == {
-        "status", "message", "framework_version", "providers_registered", "summary"
+        "status",
+        "message",
+        "framework_version",
+        "providers_registered",
+        "summary",
     }
 
 

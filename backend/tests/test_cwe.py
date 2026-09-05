@@ -419,9 +419,7 @@ class TestRelationships:
         provider = CweProvider(dataset=_mini_dataset())
         result = await provider.lookup(_entity("CWE-9999"))
         weakness_rels = [
-            r
-            for r in result.relationships
-            if r.target_type == RelationshipTargetType.WEAKNESS
+            r for r in result.relationships if r.target_type == RelationshipTargetType.WEAKNESS
         ]
         assert len(weakness_rels) == 1
         assert weakness_rels[0].target_value == "CWE-20"
@@ -638,9 +636,7 @@ class TestAggregation:
         provider = CweProvider(dataset=_mini_dataset())
         result = await provider.lookup(_entity("CWE-9999"))
         assert result.status == ResultStatus.OK
-        aggregated = aggregate(
-            [result], entity_type=EntityType.CWE, entity_value="CWE-9999"
-        )
+        aggregated = aggregate([result], entity_type=EntityType.CWE, entity_value="CWE-9999")
         assert aggregated.metadata.get("cwe") is not None
         cwe_meta = aggregated.metadata["cwe"]
         assert isinstance(cwe_meta, dict)
@@ -651,9 +647,7 @@ class TestAggregation:
         provider = CweProvider(dataset=_mini_dataset())
         result = await provider.lookup(_entity("CWE-0000"))
         assert result.status == ResultStatus.NOT_FOUND
-        aggregated = aggregate(
-            [result], entity_type=EntityType.CWE, entity_value="CWE-0000"
-        )
+        aggregated = aggregate([result], entity_type=EntityType.CWE, entity_value="CWE-0000")
         assert aggregated.metadata.get("cwe") is None
 
 

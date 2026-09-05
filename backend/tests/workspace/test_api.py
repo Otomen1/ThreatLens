@@ -46,9 +46,7 @@ def _save(client: TestClient, **overrides: object) -> dict:
 
 class TestSaveInvestigation:
     def test_returns_201(self, client: TestClient) -> None:
-        res = client.post(
-            "/api/v1/workspace", json={"title": "Case", "investigation_type": "ipv4"}
-        )
+        res = client.post("/api/v1/workspace", json={"title": "Case", "investigation_type": "ipv4"})
         assert res.status_code == 201
 
     def test_response_shape(self, client: TestClient) -> None:
@@ -75,9 +73,7 @@ class TestSaveInvestigation:
         assert body["severity"] == 3
 
     def test_blank_title_422(self, client: TestClient) -> None:
-        res = client.post(
-            "/api/v1/workspace", json={"title": "", "investigation_type": "ipv4"}
-        )
+        res = client.post("/api/v1/workspace", json={"title": "", "investigation_type": "ipv4"})
         assert res.status_code == 422
 
     def test_missing_investigation_type_422(self, client: TestClient) -> None:

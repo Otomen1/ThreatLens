@@ -8,23 +8,25 @@ router â€” it holds no route handlers or business logic of its own.
 
 from __future__ import annotations
 
-import os
 import hmac
 import json
 import logging
+import os
 import time
-from uuid import UUID, uuid4
 from collections import defaultdict, deque
 from threading import Lock
+from uuid import UUID, uuid4
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.middleware.base import RequestResponseEndpoint
 
 from ..system import build_system_router
 from .health import router as health_router
 from .routes import (
     ai,
+    backup,
     cases,
     correlation,
     detection,
@@ -108,7 +110,7 @@ def _request_id(value: str | None) -> str:
 
 
 @app.middleware("http")
-async def request_context(request: Request, call_next):
+async def request_context(request: Request, call_next: RequestResponseEndpoint) -> Response:
     """Attach one trace id to every response and emit one structured log line."""
     request_id = _request_id(request.headers.get("x-request-id"))
     request.state.request_id = request_id
@@ -116,19 +118,24 @@ async def request_context(request: Request, call_next):
     response = await call_next(request)
     elapsed_ms = round((time.perf_counter() - started) * 1000, 2)
     response.headers["x-request-id"] = request_id
-    _logger.info(json.dumps({
-        "event": "http_request",
-        "request_id": request_id,
-        "method": request.method,
-        "path": request.url.path,
-        "status": response.status_code,
-        "duration_ms": elapsed_ms,
-    }, separators=(",", ":")))
+    _logger.info(
+        json.dumps(
+            {
+                "event": "http_request",
+                "request_id": request_id,
+                "method": request.method,
+                "path": request.url.path,
+                "status": response.status_code,
+                "duration_ms": elapsed_ms,
+            },
+            separators=(",", ":"),
+        )
+    )
     return response
 
 
 @app.middleware("http")
-async def protect_api(request: Request, call_next):
+async def protect_api(request: Request, call_next: RequestResponseEndpoint) -> Response:
     """Protect deployed API instances when an API key is configured.
 
     Local development remains unchanged when ``THREATLENS_API_KEY`` is unset;
@@ -153,6 +160,7 @@ async def protect_api(request: Request, call_next):
                     return JSONResponse(status_code=429, content={"detail": "Rate limit exceeded"})
                 bucket.append(now)
     return await call_next(request)
+
 
 # Operational-readiness endpoints. Mounted at the root (``/health``, ``/ready``,
 # ``/version``, â€¦) for infrastructure probes hitting the backend directly, and
@@ -190,6 +198,7 @@ app.include_router(workspace.router)
 # exists; never reads, mutates, or recomputes an investigation's content,
 # and Workspace itself has no notion of cases.
 app.include_router(cases.router)
+app.include_router(backup.router)
 
 # Downstream, optional AI explanation of a completed investigation.
 app.include_router(ai.router)

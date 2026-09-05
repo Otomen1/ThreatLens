@@ -90,9 +90,7 @@ class TestUnrelatedRoutesSurviveBrokenWorkspaceStorage:
         # response, not a crashed process. TestClient's default of
         # re-raising for debugging is deliberately opted out of here.
         client = TestClient(app, raise_server_exceptions=False)
-        res = client.post(
-            "/api/v1/workspace", json={"title": "Case", "investigation_type": "ipv4"}
-        )
+        res = client.post("/api/v1/workspace", json={"title": "Case", "investigation_type": "ipv4"})
         assert res.status_code == 500
         # the app itself is still alive and serving unrelated routes:
         assert client.get("/health").status_code == 200

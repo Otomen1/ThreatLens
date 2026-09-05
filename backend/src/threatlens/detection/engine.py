@@ -3,9 +3,8 @@
 ``generate(summary)`` converts a completed
 :class:`~threatlens.reasoning.models.InvestigationSummary` into a
 :class:`~threatlens.detection.models.DetectionPackage` by running every
-registered :class:`~threatlens.detection.registry.DetectionGenerator`. In this
-phase the default registry is empty, so the package carries metadata but no
-artifacts.
+registered :class:`~threatlens.detection.registry.DetectionGenerator`. The
+default registry contains every bundled deterministic generator.
 
 Guarantees (mirroring the Reasoning Engine):
 
@@ -23,19 +22,23 @@ Guarantees (mirroring the Reasoning Engine):
 from __future__ import annotations
 
 import hashlib
+import logging
 from collections.abc import Iterable
 
 from ..reasoning import InvestigationSummary
 from .models import (
     DetectionArtifact,
+    DetectionGenerationIssue,
     DetectionMetadata,
     DetectionPackage,
     DetectionReference,
 )
 from .registry import DetectionRegistry, build_default_registry
 from .types import DetectionCategory, DetectionLanguage, DetectionSeverity
+from .validation import validate_package
 
-DETECTION_ENGINE_VERSION = "1.0"
+DETECTION_ENGINE_VERSION = "1.1"
+logger = logging.getLogger(__name__)
 """Frozen Detection Engine version (Phase 4.5). Like the Reasoning Engine, changes
 to generator output must regenerate the golden snapshots and bump this version."""
 
@@ -123,18 +126,28 @@ def generate(
     reg = registry if registry is not None else build_default_registry()
 
     artifacts: list[DetectionArtifact] = []
+    issues: list[DetectionGenerationIssue] = []
     for generator in reg.generators:
         # A faulty optional generator must not take down the complete package.
         # Generators are expected to be total, but this boundary keeps one
         # extension from compromising the deterministic core.
         try:
             artifacts.extend(generator.generate(summary))
-        except Exception:
-            continue
+        except Exception as exc:
+            logger.exception("Detection generator %s failed", generator.name)
+            issues.append(
+                DetectionGenerationIssue(
+                    generator=generator.name,
+                    language=generator.language,
+                    error_category=type(exc).__name__,
+                    message="Generator failed; other detection formats remain available.",
+                    affected_finding_ids=tuple(finding.id for finding in summary.findings),
+                )
+            )
     # A custom registry may return the same artifact twice; identity-based
     # deduplication keeps package counts and exports trustworthy.
     artifacts = list({artifact.id: artifact for artifact in artifacts}.values())
-    artifacts = _ordered(artifacts)
+    artifacts = _ordered(list(validate_package(tuple(artifacts), checked_at=summary.generated_at)))
 
     source_finding_ids = tuple(finding.id for finding in summary.findings)
     metadata = DetectionMetadata(
@@ -160,6 +173,7 @@ def generate(
         languages=_languages(artifacts),
         references=_dedupe_references(artifacts),
         source_finding_ids=source_finding_ids,
+        generation_issues=tuple(sorted(issues, key=lambda issue: issue.generator)),
     )
 
 

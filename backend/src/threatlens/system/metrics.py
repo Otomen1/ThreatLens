@@ -39,9 +39,7 @@ class CallCounter:
     last_request_at: str | None = None
     last_success_at: str | None = None
 
-    def record(
-        self, *, success: bool, latency_ms: float, cache_hit: bool | None = None
-    ) -> None:
+    def record(self, *, success: bool, latency_ms: float, cache_hit: bool | None = None) -> None:
         self.requests += 1
         self.last_request_at = _now()
         if success:
@@ -100,6 +98,7 @@ class MetricsRegistry:
     ai_prompt_chars: RunningAverage = field(default_factory=RunningAverage)
     ai_completion_chars: RunningAverage = field(default_factory=RunningAverage)
     detection_by_language: dict[str, int] = field(default_factory=dict)
+    detection_generation_issues: dict[str, int] = field(default_factory=dict)
     detection_generation_ms: RunningAverage = field(default_factory=RunningAverage)
     detection_last_generated_at: str | None = None
     dkl_queries: CallCounter = field(default_factory=CallCounter)
@@ -120,6 +119,7 @@ class MetricsRegistry:
             self.ai_prompt_chars = RunningAverage()
             self.ai_completion_chars = RunningAverage()
             self.detection_by_language.clear()
+            self.detection_generation_issues.clear()
             self.detection_generation_ms = RunningAverage()
             self.detection_last_generated_at = None
             self.dkl_queries = CallCounter()
@@ -156,11 +156,17 @@ class MetricsRegistry:
             self.ai_prompt_chars.add(prompt_chars)
             self.ai_completion_chars.add(completion_chars)
 
-    def record_detection_generation(self, *, languages: list[str], latency_ms: float) -> None:
+    def record_detection_generation(
+        self, *, languages: list[str], latency_ms: float, issues: list[str] | None = None
+    ) -> None:
         with self._lock:
             for language in languages:
                 self.detection_by_language[language] = (
                     self.detection_by_language.get(language, 0) + 1
+                )
+            for generator in issues or []:
+                self.detection_generation_issues[generator] = (
+                    self.detection_generation_issues.get(generator, 0) + 1
                 )
             self.detection_generation_ms.add(latency_ms)
             self.detection_last_generated_at = _now()

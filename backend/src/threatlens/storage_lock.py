@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import importlib
 import os
 import time
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Iterator
 
 
 @contextmanager
@@ -27,13 +28,12 @@ def file_lock(path: Path, *, timeout: float = 10.0) -> Iterator[None]:
                     handle.seek(0)
                     msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
                 else:
-                    import fcntl
-
+                    fcntl = importlib.import_module("fcntl")
                     fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                 break
-            except (BlockingIOError, OSError):
+            except (BlockingIOError, OSError) as exc:
                 if time.monotonic() >= deadline:
-                    raise TimeoutError(f"Timed out acquiring storage lock: {path}")
+                    raise TimeoutError(f"Timed out acquiring storage lock: {path}") from exc
                 time.sleep(0.01)
         try:
             yield
@@ -44,8 +44,7 @@ def file_lock(path: Path, *, timeout: float = 10.0) -> Iterator[None]:
                 handle.seek(0)
                 msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
             else:
-                import fcntl
-
+                fcntl = importlib.import_module("fcntl")
                 fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
     finally:
         handle.close()

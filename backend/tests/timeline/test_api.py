@@ -107,7 +107,8 @@ class TestGetInvestigationTimeline:
         """Adding the timeline route must not disturb any other workspace endpoint."""
         saved = _save(client)
         assert client.get("/api/v1/workspace").json()["total"] == 1
-        assert client.put(
-            f"/api/v1/workspace/{saved['id']}", json={"status": "closed"}
-        ).status_code == 200
+        assert (
+            client.put(f"/api/v1/workspace/{saved['id']}", json={"status": "closed"}).status_code
+            == 200
+        )
         assert client.delete(f"/api/v1/workspace/{saved['id']}").status_code == 204

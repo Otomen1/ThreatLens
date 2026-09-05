@@ -21,18 +21,18 @@ from ...reasoning import Severity
 from ...reporting import InvestigationReport, ReportService
 from ...timeline import Timeline, TimelineService
 from ...workspace import (
-    InvestigationNotFoundError,
     InvestigationComparison,
-    compare,
+    InvestigationNotFoundError,
     LocalFileStorage,
-    SQLiteWorkspaceStorage,
     PostgresWorkspaceStorage,
     SaveInvestigationRequest,
+    SQLiteWorkspaceStorage,
     UpdateInvestigationRequest,
     WorkspaceInvestigation,
     WorkspaceService,
     WorkspaceSettings,
     WorkspaceStatus,
+    compare,
 )
 from ..schemas import WorkspaceListItem, WorkspaceListResponse
 
@@ -238,7 +238,10 @@ def get_investigation_report(
     return report.build(record)
 
 
-@router.get("/api/v1/workspace/{investigation_id}/compare/{other_id}", response_model=InvestigationComparison)
+@router.get(
+    "/api/v1/workspace/{investigation_id}/compare/{other_id}",
+    response_model=InvestigationComparison,
+)
 def compare_investigations(
     investigation_id: UUID,
     other_id: UUID,

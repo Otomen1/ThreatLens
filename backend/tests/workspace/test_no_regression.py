@@ -58,7 +58,7 @@ class TestExistingEngineVersionsUnchanged:
         assert ENGINE_VERSION == "1.0"
 
     def test_detection_engine_version_unchanged(self) -> None:
-        assert DETECTION_ENGINE_VERSION == "1.0"
+        assert DETECTION_ENGINE_VERSION == "1.1"
 
     def test_correlation_framework_version_unchanged(self) -> None:
         assert CORRELATION_FRAMEWORK_VERSION == "0.1.0"

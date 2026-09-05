@@ -56,9 +56,7 @@ def test_investigate_includes_additive_context_projections() -> None:
     assert body["exposure"] is not None
     assert body["correlation"] is not None
     assert {"findings", "statistics", "metadata"}.issubset(body["exposure"])
-    assert {"observations", "matches", "statistics", "metadata"}.issubset(
-        body["correlation"]
-    )
+    assert {"observations", "matches", "statistics", "metadata"}.issubset(body["correlation"])
     assert body["identity"] is not None
     assert {"findings", "statistics"}.issubset(body["identity"])
 

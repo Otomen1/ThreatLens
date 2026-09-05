@@ -136,6 +136,11 @@ class _FakeGenerator(DetectionGenerator):
         ]
 
 
+class _FailingGenerator(_FakeGenerator):
+    def generate(self, summary: InvestigationSummary) -> Sequence[DetectionArtifact]:
+        raise RuntimeError("internal secret must not escape")
+
+
 # --------------------------------------------------------------------------- #
 # Pure function: purity, determinism, empty package
 # --------------------------------------------------------------------------- #
@@ -151,6 +156,19 @@ def test_empty_registry_yields_empty_package() -> None:
 def test_generation_is_deterministic() -> None:
     summary = _summary(findings=[_finding("fnd_a"), _finding("fnd_b")])
     assert generate(summary) == generate(summary)
+
+
+def test_generator_failure_is_visible_and_sanitized() -> None:
+    registry = DetectionRegistry()
+    registry.register(_FakeGenerator(name="healthy"))
+    registry.register(_FailingGenerator(name="broken", language=DetectionLanguage.YARA))
+    package = generate(_summary(findings=[_finding()]), registry=registry)
+    assert len(package.artifacts) == 1
+    assert len(package.generation_issues) == 1
+    issue = package.generation_issues[0]
+    assert issue.generator == "broken"
+    assert issue.language is DetectionLanguage.YARA
+    assert "secret" not in issue.message
 
 
 def test_generate_does_not_mutate_summary() -> None:

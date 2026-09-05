@@ -297,6 +297,8 @@ def build_artifact(
     findings: list[Finding],
     generated_at_iso: str,
     render: Renderer,
+    mapping_profile: str | None = None,
+    mapping_version: str = "1",
 ) -> DetectionArtifact:
     data = collect(observable, findings, generator, platform)
     category = CATEGORY_BY_KIND[observable.kind]
@@ -333,6 +335,8 @@ def build_artifact(
         "engine_version": PLATFORM_VERSION,
         "rule_id": rule_id,
         "source": SOURCE,
+        "mapping_profile": mapping_profile or generator,
+        "mapping_version": mapping_version,
     }
     if data.techniques:
         metadata["mitre"] = ",".join(data.techniques)

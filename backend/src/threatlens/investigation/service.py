@@ -34,7 +34,9 @@ class InvestigationService:
 
     async def _lookup(self, provider: Any, entity: Entity, *, reference: bool) -> Any:
         async with self._semaphore:
-            return await (provider.safe_lookup(entity) if reference else provider.safe_search(entity))
+            return await (
+                provider.safe_lookup(entity) if reference else provider.safe_search(entity)
+            )
 
     async def investigate(self, entity: Entity) -> tuple[AggregatedResult, AggregatedResult]:
         """Run all routed providers concurrently; return (threat_intelligence, knowledge).

@@ -12,10 +12,10 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
 
+from ..correlation import CorrelationSummary
 from ..entities.models import Entity
 from ..entities.types import EntityType
 from ..exposure import ExposureSummary
-from ..correlation import CorrelationSummary
 from ..identity import IdentitySummary
 from ..providers import AggregatedResult
 from ..reasoning import InvestigationSummary, Severity
