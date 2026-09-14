@@ -178,6 +178,21 @@ def test_partial_failure_keeps_successful_findings() -> None:
     assert agg.providers[1].error is not None
 
 
+def test_provider_agreement_separates_conflict_no_data_and_failure() -> None:
+    malicious = make_result(
+        "malicious", reputation=Reputation(level=ReputationLevel.MALICIOUS)
+    )
+    benign = make_result("benign", reputation=Reputation(level=ReputationLevel.BENIGN))
+    no_data = make_result("empty", status=ResultStatus.NOT_FOUND)
+    failed = make_result("failed", status=ResultStatus.TIMEOUT)
+    agreement = aggregate_all([malicious, benign, no_data, failed]).agreement
+    assert agreement.malicious == 1
+    assert agreement.benign == 1
+    assert agreement.no_data == 1
+    assert agreement.failures == 1
+    assert agreement.conflicted
+
+
 def test_not_found_and_unauthorized_contribute_attribution_only() -> None:
     nf = make_result("provider_a", status=ResultStatus.NOT_FOUND)
     unauth = make_result("provider_b", status=ResultStatus.UNAUTHORIZED)

@@ -81,6 +81,8 @@ export function InvestigationWorkspace({ data, timestamp }: Props) {
       {/* ── 2. Investigation assessment (reasoning headline) ──────── */}
       {summary && <InvestigationSummaryCard summary={summary} />}
 
+      <ProviderAgreementCard result={threat_intelligence} />
+
       <ContextSignalsCard exposure={exposure} correlation={correlation} />
 
       {/* ── 3. Recommendations (rollup, priority-ordered) ─────────── */}
@@ -174,6 +176,30 @@ export function InvestigationWorkspace({ data, timestamp }: Props) {
       {/* ── 10. Advanced Details ──────────────────────────────────── */}
       <AdvancedPanel threatIntelligence={threat_intelligence} knowledge={knowledge} />
     </div>
+  );
+}
+
+function ProviderAgreementCard({ result }: { result: InvestigationResponse["threat_intelligence"] }) {
+  const agreement = result.agreement;
+  if (!agreement) return null;
+  const counts = [
+    ["Malicious", agreement.malicious, "text-red-300"],
+    ["Suspicious", agreement.suspicious, "text-amber-300"],
+    ["Benign", agreement.benign, "text-emerald-300"],
+    ["Unknown", agreement.unknown, "text-zinc-300"],
+    ["No data", agreement.no_data, "text-zinc-400"],
+    ["Failed", agreement.failures, "text-red-300"],
+  ] as const;
+  return (
+    <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5" aria-label="Provider agreement">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div><h2 className="text-sm font-semibold text-white">Provider agreement</h2><p className="mt-1 text-xs text-zinc-500">Verdicts are separate from missing data and provider failures.</p></div>
+        {agreement.conflicted && <span className="rounded border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-xs text-amber-300">Conflicting verdicts</span>}
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-6">
+        {counts.map(([label, value, color]) => <div key={label} className="rounded-xl border border-zinc-800 bg-zinc-950 p-3"><p className={`text-lg font-semibold ${color}`}>{value}</p><p className="text-xs text-zinc-500">{label}</p></div>)}
+      </div>
+    </section>
   );
 }
 

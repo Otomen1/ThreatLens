@@ -116,3 +116,22 @@ class DetectionReviewStatus(StrEnum):
     APPROVED = "approved"
     REJECTED = "rejected"
     DEPRECATED = "deprecated"
+
+
+class DetectionQualityBand(StrEnum):
+    """Deployment-readiness band for a deterministic generated rule."""
+
+    STRONG = "strong"
+    REVIEW = "review"
+    WEAK = "weak"
+    DO_NOT_DEPLOY = "do_not_deploy"
+
+
+class DetectionFreshnessStatus(StrEnum):
+    """Age of the newest evidence supporting a generated rule."""
+
+    FRESH = "fresh"
+    REVIEW_DUE = "review_due"
+    STALE = "stale"
+    EXPIRED = "expired"
+    UNKNOWN = "unknown"

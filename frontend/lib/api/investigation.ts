@@ -146,6 +146,10 @@ export interface AggregatedResult {
   references: AttributedReference[];
   tags: string[];
   metadata: Record<string, unknown>;
+  agreement?: {
+    malicious: number; suspicious: number; benign: number; unknown: number;
+    no_data: number; failures: number; conflicted: boolean;
+  };
 }
 
 // --- reasoning (Investigation Intelligence Engine) ---

@@ -18,7 +18,11 @@ const investigation: Record<string, any> = {
 };
 
 test.beforeEach(async ({ page }) => {
-  await page.route(/\/api\/v1\/workspace(?:\/|$|\?)/, async (route) => {
+  await page.route(/workspace/, async (route) => {
+    if (route.request().resourceType() === "document") {
+      await route.continue();
+      return;
+    }
     const path = new URL(route.request().url()).pathname;
     if (path.endsWith(`/${investigation.id}`)) {
       await route.fulfill({ json: investigation });

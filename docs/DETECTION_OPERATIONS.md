@@ -11,6 +11,10 @@ Generated rules are drafts until an analyst reviews and approves them.
 4. Add an analyst note, approve or reject the rule, and export only approved content.
 5. For related indicators, select same-type IOC groups and save a combined Sigma draft.
 
+Use the quality score to prioritize review. Open a rule to see every deduction.
+Evidence freshness is calculated from the newest timestamped supporting observation;
+`unknown` means the source did not provide a usable timestamp, not that the IOC is safe.
+
 Excluded rules are hidden by default in the Detection Workspace and can be restored
 with **Show excluded**. Exclusion is analyst metadata; it does not erase the original
 investigation finding.
@@ -27,6 +31,13 @@ Sigma and YARA receive offline structural checks. SIEM formats receive determini
 parser-level checks for required structure; validate against the target platform
 before production deployment. ThreatLens does not automatically push or activate
 rules in a SIEM.
+
+## Personal backup drill
+
+Download a backup from **Settings**, select the downloaded file, then choose
+**Test restore safely**. ThreatLens verifies the digest and performs a complete
+serialize/parse round trip in isolated memory without changing live data. Recent
+activity is shown in Settings but resets when the server process restarts.
 
 ## Database migration
 

@@ -127,6 +127,15 @@ class InvestigationUsage(BaseModel):
     avg_ai_response_ms: float | None
 
 
+class BackupOperationUsage(BaseModel):
+    operation: str
+    requests: int
+    successful: int
+    failed: int
+    avg_latency_ms: float | None
+    last_request_at: str | None
+
+
 class UsageResponse(BaseModel):
     """Section 2 — API Consumption."""
 
@@ -136,6 +145,7 @@ class UsageResponse(BaseModel):
     detection_engineering: DetectionEngineeringUsage
     detection_knowledge: DetectionKnowledgeUsage
     investigations: InvestigationUsage
+    backups: list[BackupOperationUsage] = Field(default_factory=list)
     timestamp: str
 
 

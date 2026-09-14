@@ -97,6 +97,8 @@ export interface DetectionArtifact {
   reviewed_by: string | null;
   rule_id: string | null;
   metadata: Record<string, string>;
+  quality?: { score: number; band: "strong" | "review" | "weak" | "do_not_deploy"; deductions: string[] };
+  freshness?: { status: "fresh" | "review_due" | "stale" | "expired" | "unknown"; last_evidence_at: string | null; review_after: string | null; expires_at: string | null };
 }
 
 export interface DetectionMetadata {

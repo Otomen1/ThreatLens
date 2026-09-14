@@ -6,6 +6,20 @@ on:
   pull_request:
 
 jobs:
+  security:
+    name: Security (credentials · dependency review)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Scan tracked files for credentials
+        run: python scripts/check_secrets.py
+      - name: Review dependency changes
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@v4
+
   backend:
     name: Backend (lint · types · tests)
     runs-on: ubuntu-latest

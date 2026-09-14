@@ -33,11 +33,12 @@ from .models import (
     DetectionPackage,
     DetectionReference,
 )
+from .quality import assess_artifacts
 from .registry import DetectionRegistry, build_default_registry
 from .types import DetectionCategory, DetectionLanguage, DetectionSeverity
 from .validation import validate_package
 
-DETECTION_ENGINE_VERSION = "1.1"
+DETECTION_ENGINE_VERSION = "1.2"
 logger = logging.getLogger(__name__)
 """Frozen Detection Engine version (Phase 4.5). Like the Reasoning Engine, changes
 to generator output must regenerate the golden snapshots and bump this version."""
@@ -147,7 +148,8 @@ def generate(
     # A custom registry may return the same artifact twice; identity-based
     # deduplication keeps package counts and exports trustworthy.
     artifacts = list({artifact.id: artifact for artifact in artifacts}.values())
-    artifacts = _ordered(list(validate_package(tuple(artifacts), checked_at=summary.generated_at)))
+    validated = validate_package(tuple(artifacts), checked_at=summary.generated_at)
+    artifacts = _ordered(list(assess_artifacts(validated, summary)))
 
     source_finding_ids = tuple(finding.id for finding in summary.findings)
     metadata = DetectionMetadata(

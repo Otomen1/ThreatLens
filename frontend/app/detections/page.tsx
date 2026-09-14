@@ -19,6 +19,9 @@ export default function DetectionsPage() {
   const [reviewStatus, setReviewStatus] = useState("all");
   const [validationLevel, setValidationLevel] = useState("all");
   const [mappingProfile, setMappingProfile] = useState("all");
+  const [qualityBand, setQualityBand] = useState("all");
+  const [freshness, setFreshness] = useState("all");
+  const [notice, setNotice] = useState("");
   const [expandAll, setExpandAll] = useState(false);
   const [expandSignal, setExpandSignal] = useState(0);
   const [query, setQuery] = useState("");
@@ -52,8 +55,10 @@ export default function DetectionsPage() {
     .filter((rule) => reviewStatus === "all" || rule.review_status === reviewStatus)
     .filter((rule) => validationLevel === "all" || (rule.validation.level ?? "structural") === validationLevel)
     .filter((rule) => mappingProfile === "all" || (rule.metadata?.mapping_profile ?? "generic") === mappingProfile)
+    .filter((rule) => qualityBand === "all" || (rule.quality?.band ?? "do_not_deploy") === qualityBand)
+    .filter((rule) => freshness === "all" || (rule.freshness?.status ?? "unknown") === freshness)
     .filter((rule) => showExcluded || rule.metadata?.excluded !== "true")
-    .filter((rule) => `${rule.title} ${rule.description} ${rule.content}`.toLowerCase().includes(query.toLowerCase().trim())), [records, language, severity, iocType, reviewStatus, validationLevel, mappingProfile, showExcluded, query]);
+    .filter((rule) => `${rule.title} ${rule.description} ${rule.content}`.toLowerCase().includes(query.toLowerCase().trim())), [records, language, severity, iocType, reviewStatus, validationLevel, mappingProfile, qualityBand, freshness, showExcluded, query]);
   const groups = useMemo<RuleGroup[]>(() => {
     const grouped = new Map<string, RuleGroup>();
     for (const rule of rules) {
@@ -68,7 +73,7 @@ export default function DetectionsPage() {
   const mappings = [...new Set(records.flatMap((record) => (record.detection_package?.artifacts ?? []).map((artifact) => artifact.metadata?.mapping_profile ?? "generic")))];
   const pageCount = Math.max(1, Math.ceil(groups.length / pageSize));
   const visibleGroups = groups.slice((page - 1) * pageSize, page * pageSize);
-  useEffect(() => setPage(1), [language, severity, iocType, reviewStatus, validationLevel, mappingProfile, query, pageSize]);
+  useEffect(() => setPage(1), [language, severity, iocType, reviewStatus, validationLevel, mappingProfile, qualityBand, freshness, query, pageSize]);
 
   function exportRules() {
     const payload = rules.map(({ investigationId, investigationTitle, ...rule }) => ({ investigationId, investigationTitle, ...rule }));
@@ -78,7 +83,7 @@ export default function DetectionsPage() {
   function exportSelectedSigma() {
     const selected = groups.filter((group) => selectedGroups.has(group.key));
     const types = new Set(selected.map((group) => getIocType(group.title)));
-    if (types.size !== 1) { window.alert("Select IOCs of the same type to create a combined Sigma rule."); return; }
+    if (types.size !== 1) { setNotice("Select IOCs of the same type to create a combined Sigma rule."); return; }
     const type = [...types][0];
     const values = selected.map((group) => group.title.split(":").slice(1).join(":").trim()).filter(Boolean);
     if (values.length < 2) return;
@@ -90,7 +95,7 @@ export default function DetectionsPage() {
   async function saveSelectedSigma() {
     const selected = groups.filter((group) => selectedGroups.has(group.key));
     const types = new Set(selected.map((group) => getIocType(group.title)));
-    if (selected.length < 2 || types.size !== 1) { window.alert("Select at least two IOCs of the same type."); return; }
+    if (selected.length < 2 || types.size !== 1) { setNotice("Select at least two IOCs of the same type."); return; }
     const type = [...types][0]; const values = selected.map((group) => group.title.split(":").slice(1).join(":").trim()).filter(Boolean);
     const field = type === "domain" ? "query" : type === "ip" ? "dst_ip" : type === "url" ? "c-uri|contains" : "Hashes|contains";
     const category = type === "domain" ? "dns" : type === "ip" ? "network" : type === "url" ? "http" : "file";
@@ -102,7 +107,7 @@ export default function DetectionsPage() {
     const versioned = previous ? withDetectionVersion(previous, artifact) : artifact;
     const pkg = { ...record.detection_package, artifacts: [...record.detection_package.artifacts.filter((item) => item.id !== id), versioned] };
     const updated = await updateInvestigation(record.id, { detection_package: pkg });
-    setRecords((items) => items.map((item) => item.id === updated.id ? updated : item)); setSelectedGroups(new Set()); window.alert("Combined Sigma rule saved as a draft for review.");
+    setRecords((items) => items.map((item) => item.id === updated.id ? updated : item)); setSelectedGroups(new Set()); setNotice("Combined Sigma rule saved as a draft for review.");
   }
 
   return (
@@ -123,6 +128,8 @@ export default function DetectionsPage() {
           <select value={reviewStatus} onChange={(e) => setReviewStatus(e.target.value)} aria-label="Filter by review status" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value="all">All review statuses</option><option value="draft">Draft</option><option value="reviewed">Reviewed</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
           <select value={validationLevel} onChange={(e) => setValidationLevel(e.target.value)} aria-label="Filter by validation level" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value="all">All validation</option><option value="structural">Structural</option><option value="compiled">Compiled</option><option value="fixture_tested">Fixture tested</option><option value="unavailable">Structural only</option></select>
           <select value={mappingProfile} onChange={(e) => setMappingProfile(e.target.value)} aria-label="Filter by field mapping" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value="all">All mappings</option>{mappings.map((item) => <option key={item} value={item}>{item}</option>)}</select>
+          <select value={qualityBand} onChange={(e) => setQualityBand(e.target.value)} aria-label="Filter by rule quality" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value="all">All quality</option><option value="strong">Strong</option><option value="review">Review</option><option value="weak">Weak</option><option value="do_not_deploy">Do not deploy</option></select>
+          <select value={freshness} onChange={(e) => setFreshness(e.target.value)} aria-label="Filter by evidence freshness" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value="all">All freshness</option><option value="fresh">Fresh</option><option value="review_due">Review due</option><option value="expired">Expired</option><option value="unknown">Unknown age</option></select>
           <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))} aria-label="Rules per page" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value={10}>10 per page</option><option value={25}>25 per page</option><option value={50}>50 per page</option></select>
           <label className="flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-400"><input type="checkbox" checked={showExcluded} onChange={(e) => setShowExcluded(e.target.checked)} /> Show excluded</label>
         </div>
@@ -131,6 +138,7 @@ export default function DetectionsPage() {
         {state === "ready" && rules.length === 0 && <Panel>No generated detections match this view. Generate detections from an investigation, then save it to the Workspace.</Panel>}
         {state === "ready" && groups.length > 0 && <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-zinc-500">{groups.length} IOC{groups.length === 1 ? "" : "s"} · {rules.length} generated rule{rules.length === 1 ? "" : "s"} · {rules.filter((rule) => rule.review_status === "approved").length} approved</p><div className="flex flex-wrap gap-2"><button type="button" onClick={exportRules} className="rounded-lg border border-sky-500/30 px-3 py-1.5 text-xs text-sky-300 hover:bg-sky-500/10">Export filtered JSON</button>{selectedGroups.size > 1 && <><button type="button" onClick={exportSelectedSigma} className="rounded-lg border border-indigo-500/30 px-3 py-1.5 text-xs text-indigo-300 hover:bg-indigo-500/10">Export selected Sigma</button><button type="button" onClick={saveSelectedSigma} className="rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs text-emerald-300 hover:bg-emerald-500/10">Save combined draft</button></>}<button type="button" onClick={() => { setExpandAll(true); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Expand all</button><button type="button" onClick={() => { setExpandAll(false); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Collapse all</button></div></div>}
         {records.some((record) => (record.detection_package?.generation_issues?.length ?? 0) > 0) && <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200" role="status">Some detection formats failed to generate. Expand the source investigation for details.</div>}
+        {notice && <div className="flex items-center justify-between rounded-xl border border-sky-500/30 bg-sky-500/10 px-4 py-3 text-sm text-sky-200" role="status"><span>{notice}</span><button type="button" onClick={() => setNotice("")} className="rounded px-2 py-1 text-xs hover:bg-sky-500/10">Dismiss</button></div>}
         <div className="grid gap-3">
           {visibleGroups.map((group) => <IocGroup key={group.key} group={group} selected={selectedGroups.has(group.key)} onSelect={(checked) => setSelectedGroups((current) => { const next = new Set(current); checked ? next.add(group.key) : next.delete(group.key); return next; })} expandAll={expandAll} expandSignal={expandSignal} onUpdated={(record) => setRecords((items) => items.map((item) => item.id === record.id ? record : item))} />)}
         </div>
@@ -232,6 +240,8 @@ function RuleCard({ rule, onUpdated }: { rule: Rule; onUpdated: (record: Workspa
     </summary>
     <div className="border-t border-zinc-800 p-4 space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-500"><span>From <Link className="text-zinc-300 hover:underline" href={`/workspace/${rule.investigationId}`}>{rule.investigationTitle}</Link></span><span>{rule.metadata?.mapping_profile ?? "generic"} v{rule.metadata?.mapping_version ?? "1"} · {rule.validation.level ?? "structural"} · {rule.review_status}</span></div>
+      <div className="flex flex-wrap gap-2 text-xs"><span className="rounded border border-sky-500/30 bg-sky-500/10 px-2 py-1 text-sky-300">Quality {rule.quality?.score ?? 0}/100 · {(rule.quality?.band ?? "do_not_deploy").replaceAll("_", " ")}</span><span className="rounded border border-zinc-700 px-2 py-1 text-zinc-400">Evidence {(rule.freshness?.status ?? "unknown").replaceAll("_", " ")}</span></div>
+      {(rule.quality?.deductions.length ?? 0) > 0 && <ul className="list-disc space-y-1 pl-5 text-xs text-amber-300">{rule.quality?.deductions.map((item) => <li key={item}>{item}</li>)}</ul>}
       {rule.description && <p className="text-sm text-zinc-400">{rule.description}</p>}
       <pre className="max-h-[420px] overflow-auto rounded-xl border border-zinc-800 bg-zinc-950 p-4 font-mono text-xs leading-5 text-zinc-300">{rule.content || "No rule content was generated."}</pre>
       {versions.length > 0 && <details className="rounded-xl border border-zinc-800 bg-zinc-950 p-3"><summary className="cursor-pointer text-xs font-medium text-zinc-300">Version history ({versions.length})</summary><div className="mt-3 space-y-2">{versions.map((version) => <div key={version.version} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zinc-800 p-2 text-xs"><span className="text-zinc-400">v{version.version} · {version.changed_fields.join(", ")} · {new Date(version.created_at).toLocaleString()}</span><button type="button" onClick={() => downloadVersion(version.version, version.content)} className="rounded border border-zinc-700 px-2 py-1 text-zinc-300 hover:bg-zinc-800">Export v{version.version}</button></div>)}</div></details>}

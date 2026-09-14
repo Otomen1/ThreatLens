@@ -127,6 +127,11 @@ export interface InvestigationUsage {
   avg_ai_response_ms: number | null;
 }
 
+export interface BackupOperationUsage {
+  operation: string; requests: number; successful: number; failed: number;
+  avg_latency_ms: number | null; last_request_at: string | null;
+}
+
 export interface UsageResponse {
   threat_intelligence: ProviderUsage[];
   knowledge: KnowledgeProviderUsage[];
@@ -134,6 +139,7 @@ export interface UsageResponse {
   detection_engineering: DetectionEngineeringUsage;
   detection_knowledge: DetectionKnowledgeUsage;
   investigations: InvestigationUsage;
+  backups?: BackupOperationUsage[];
   timestamp: string;
 }
 

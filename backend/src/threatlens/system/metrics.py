@@ -106,6 +106,7 @@ class MetricsRegistry:
     investigation_findings: RunningAverage = field(default_factory=RunningAverage)
     investigation_recommendations: RunningAverage = field(default_factory=RunningAverage)
     investigation_confidence: RunningAverage = field(default_factory=RunningAverage)
+    backup_operations: dict[str, CallCounter] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         self._lock = Lock()
@@ -127,6 +128,14 @@ class MetricsRegistry:
             self.investigation_findings = RunningAverage()
             self.investigation_recommendations = RunningAverage()
             self.investigation_confidence = RunningAverage()
+            self.backup_operations.clear()
+
+    def record_backup(self, operation: str, *, success: bool, latency_ms: float) -> None:
+        """Record sanitized backup outcomes without storing user data."""
+        with self._lock:
+            self.backup_operations.setdefault(operation, CallCounter()).record(
+                success=success, latency_ms=latency_ms
+            )
 
     def record_ti(self, provider: str, *, success: bool, latency_ms: float) -> None:
         """Record one TI provider's outcome for the enclosing investigation.

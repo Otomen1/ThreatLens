@@ -21,7 +21,9 @@ from ..entities.types import EntityType
 from .types import (
     DetectionCapability,
     DetectionCategory,
+    DetectionFreshnessStatus,
     DetectionLanguage,
+    DetectionQualityBand,
     DetectionReviewStatus,
     DetectionSeverity,
     DetectionValidationLevel,
@@ -86,6 +88,27 @@ class DetectionGenerationIssue(BaseModel):
     affected_finding_ids: tuple[str, ...] = ()
 
 
+class DetectionQuality(BaseModel):
+    """Explainable, deterministic indication of rule readiness."""
+
+    model_config = ConfigDict(frozen=True)
+
+    score: int = Field(default=0, ge=0, le=100)
+    band: DetectionQualityBand = DetectionQualityBand.DO_NOT_DEPLOY
+    deductions: tuple[str, ...] = ()
+
+
+class DetectionFreshness(BaseModel):
+    """Evidence-age policy attached to an artifact without using wall time."""
+
+    model_config = ConfigDict(frozen=True)
+
+    status: DetectionFreshnessStatus = DetectionFreshnessStatus.UNKNOWN
+    last_evidence_at: datetime | None = None
+    review_after: datetime | None = None
+    expires_at: datetime | None = None
+
+
 class DetectionTemplate(BaseModel):
     """A reusable blueprint a generator instantiates into an artifact.
 
@@ -140,6 +163,8 @@ class DetectionArtifact(BaseModel):
     reviewed_by: str | None = None
     rule_id: str | None = None
     metadata: dict[str, str] = Field(default_factory=dict)
+    quality: DetectionQuality = DetectionQuality()
+    freshness: DetectionFreshness = DetectionFreshness()
 
 
 # --------------------------------------------------------------------------- #

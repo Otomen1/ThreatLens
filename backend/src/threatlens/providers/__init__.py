@@ -16,6 +16,7 @@ from .aggregation import (
     AttributedEvidence,
     AttributedReference,
     AttributedRelationship,
+    ProviderAgreement,
     ProviderSummary,
     aggregate,
 )
@@ -73,6 +74,7 @@ __all__ = [
     "ProviderRouter",
     "ProviderStatus",
     "ProviderSummary",
+    "ProviderAgreement",
     "ProviderTimeout",
     "Reference",
     "Relationship",

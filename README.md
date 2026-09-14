@@ -154,9 +154,11 @@ Production: `npm run build && npm start`. The frontend also deploys to Vercel (s
 - Detection generation is fault-isolated: a failed format is reported in `generation_issues` while healthy formats remain available.
 - Validation labels distinguish built-in structural checks from optional native compilation. Install `pySigma` and/or `yara-python` locally for stronger checks; Vercel safely falls back to structural validation. Live SIEM execution is not implied.
 - Field-mapping profile names and versions are embedded in generated artifact metadata and displayed in the Detection Workspace.
+- Every generated rule includes an explainable 0–100 readiness score and evidence-freshness status. These are triage aids, not proof that a rule will work in a live SIEM.
+- Investigation results show provider agreement while keeping malicious, suspicious, benign, unknown, no-data, and failed lookups distinct.
 - With `THREATLENS_STORAGE_BACKEND=postgres`, both investigations and Cases use `DATABASE_URL`.
-- The authenticated **Settings** page downloads a versioned JSON backup and validates it before a non-destructive restore. Restore adds missing records and updates matching IDs only when the backup record is newer; it never deletes records. Backups never contain environment variables or API keys.
-- CI runs Ruff, strict mypy, backend/frontend tests, a production build, and a mocked-auth Playwright workflow. No personal Supabase credentials are committed.
+- The authenticated **Settings** page downloads a versioned JSON backup, validates it, and can run an isolated in-memory test restore before a non-destructive live restore. Restore adds missing records and updates matching IDs only when the backup record is newer; it never deletes records. Backups never contain environment variables or API keys.
+- CI runs Ruff, strict mypy, backend/frontend tests, a production build, mocked-auth Playwright, and a high-confidence credential scan. Dependabot checks Python, npm, and GitHub Actions weekly at no cost.
 
 ### Ollama (optional — AI explanations)
 

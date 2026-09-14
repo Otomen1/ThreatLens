@@ -55,6 +55,13 @@ export function ApiConsumptionTab({ data }: Props) {
       <Section title="Investigation Statistics">
         <InvestigationSection usage={data.investigations} />
       </Section>
+
+      <Section title="Backup Reliability">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {(data.backups ?? []).length === 0 && <p className="text-xs text-zinc-500">No backup activity in this server session.</p>}
+          {(data.backups ?? []).map((item) => <div key={item.operation} className="rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-xs"><p className="mb-2 capitalize text-zinc-200">{item.operation}</p><div className="grid grid-cols-2 gap-2"><Field label="Successful" value={String(item.successful)} /><Field label="Failed" value={String(item.failed)} /><Field label="Avg latency" value={formatLatency(item.avg_latency_ms)} /><Field label="Last run" value={formatTimestamp(item.last_request_at)} /></div></div>)}
+        </div>
+      </Section>
     </div>
   );
 }

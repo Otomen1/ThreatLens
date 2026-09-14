@@ -47,6 +47,20 @@ class ProviderSummary(BaseModel):
     error: ResultError | None = None
 
 
+class ProviderAgreement(BaseModel):
+    """Explainable provider verdict counts; absence is never treated as benign."""
+
+    model_config = ConfigDict(frozen=True)
+
+    malicious: int = 0
+    suspicious: int = 0
+    benign: int = 0
+    unknown: int = 0
+    no_data: int = 0
+    failures: int = 0
+    conflicted: bool = False
+
+
 class AttributedEvidence(BaseModel):
     """One de-duplicated evidence record and the providers that reported it."""
 
@@ -87,6 +101,7 @@ class AggregatedResult(BaseModel):
     references: list[AttributedReference] = Field(default_factory=list)
     tags: list[str] = Field(default_factory=list)
     metadata: dict[str, JsonValue] = Field(default_factory=dict)
+    agreement: ProviderAgreement = ProviderAgreement()
 
     @property
     def provider_count(self) -> int:
@@ -132,6 +147,38 @@ def aggregate(
         references=_merge_references(contributing),
         tags=_merge_tags(contributing),
         metadata=_merge_metadata(contributing),
+        agreement=_agreement(results),
+    )
+
+
+def _agreement(results: Sequence[IntelligenceResult]) -> ProviderAgreement:
+    malicious = suspicious = benign = unknown = no_data = failures = 0
+    for result in results:
+        if result.status in {
+            ResultStatus.ERROR,
+            ResultStatus.TIMEOUT,
+            ResultStatus.RATE_LIMITED,
+            ResultStatus.UNAUTHORIZED,
+        }:
+            failures += 1
+        elif result.status in {ResultStatus.NOT_FOUND, ResultStatus.UNSUPPORTED}:
+            no_data += 1
+        elif result.reputation is None or result.reputation.level.value == "unknown":
+            unknown += 1
+        elif result.reputation.level.value in {"malicious", "likely_malicious"}:
+            malicious += 1
+        elif result.reputation.level.value == "suspicious":
+            suspicious += 1
+        else:
+            benign += 1
+    return ProviderAgreement(
+        malicious=malicious,
+        suspicious=suspicious,
+        benign=benign,
+        unknown=unknown,
+        no_data=no_data,
+        failures=failures,
+        conflicted=(malicious + suspicious > 0 and benign > 0),
     )
 
 

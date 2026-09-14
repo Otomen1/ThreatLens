@@ -21,6 +21,7 @@ from ..detection_library.sync import read_cache
 from .metrics import CallCounter, MetricsRegistry
 from .schemas import (
     AIUsage,
+    BackupOperationUsage,
     DetectionEngineeringUsage,
     DetectionKnowledgeUsage,
     InvestigationUsage,
@@ -95,6 +96,17 @@ async def build_usage(
         detection_engineering=detection_usage,
         detection_knowledge=dkl_usage,
         investigations=investigations,
+        backups=[
+            BackupOperationUsage(
+                operation=name,
+                requests=counter.requests,
+                successful=counter.successes,
+                failed=counter.failures,
+                avg_latency_ms=counter.avg_latency_ms,
+                last_request_at=counter.last_request_at,
+            )
+            for name, counter in sorted(metrics.backup_operations.items())
+        ],
         timestamp=_now(),
     )
 
