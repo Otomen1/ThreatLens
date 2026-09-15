@@ -1,64 +1,25 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 
-import { investigateBatch, type BatchInvestigationResponse, type InvestigationResponse } from "@/lib/api";
+import { BatchWorkspace } from "@/components/batch/BatchWorkspace";
 import { InvestigationWorkspace } from "@/components/InvestigationWorkspace";
+import { useBatchInvestigation } from "@/hooks/useBatchInvestigation";
 
 export default function HomePage() {
   const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<InvestigationResponse | null>(null);
-  const [batch, setBatch] = useState<BatchInvestigationResponse | null>(null);
-  const [expandedIoc, setExpandedIoc] = useState<number | null>(null);
   const [timestamp, setTimestamp] = useState("");
-  const [stage, setStage] = useState("Preparing investigation…");
-  const abortRef = useRef<AbortController | null>(null);
-
-  // Cancel any in-flight request on unmount.
-  useEffect(() => () => abortRef.current?.abort(), []);
+  const batch = useBatchInvestigation();
+  const loading = batch.previewing || batch.running;
+  const result = batch.preview?.entities.length === 1 ? batch.rows[0]?.investigation ?? null : null;
 
   const runSearch = useCallback(async () => {
     const trimmed = query.trim();
     if (!trimmed) return;
 
-    // A new search supersedes any in-flight one.
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    setLoading(true);
-    setStage("Finding indicators…");
-    setError(null);
-    setResult(null);
-    setBatch(null);
-    setExpandedIoc(null);
-    try {
-      setStage("Querying intelligence sources…");
-      const res = await investigateBatch(trimmed, controller.signal);
-      setStage("Building evidence assessment…");
-      if (res.total === 1 && res.items[0]?.status === "completed" && res.items[0].investigation) {
-        setResult(res.items[0].investigation);
-      } else {
-        setBatch(res);
-      }
-      setTimestamp(new Date().toLocaleString("en-US", {
-        month: "short", day: "numeric", year: "numeric",
-        hour: "2-digit", minute: "2-digit", second: "2-digit",
-        hour12: false,
-      }));
-    } catch (err) {
-      if (err instanceof DOMException && err.name === "AbortError") return;
-      setError(err instanceof Error ? err.message : "Something went wrong.");
-    } finally {
-      // Only the most recent request clears the loading state.
-      if (abortRef.current === controller) {
-        setLoading(false);
-        abortRef.current = null;
-      }
-    }
-  }, [query]);
+    await batch.prepare(trimmed);
+    setTimestamp(new Date().toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }));
+  }, [query, batch]);
 
   return (
     <main className="min-h-screen flex flex-col items-center px-4 py-12 sm:py-20">
@@ -135,22 +96,22 @@ export default function HomePage() {
               {loading ? "Searching…" : "Search"}
             </button>
           </div>
-          {loading && <p className="mt-2 text-center text-[11px] text-zinc-600" role="status">{stage}</p>}
+          {loading && <p className="mt-2 text-center text-[11px] text-zinc-600" role="status">{batch.previewing ? "Finding indicators…" : "Querying intelligence sources…"}</p>}
           <p className="mt-2 text-center text-[11px] text-zinc-600">Paste free-form notes or a list; ThreatLens extracts up to 20 supported IOCs. Press Enter to search, Shift+Enter for a new line.</p>
         </div>
 
         {/* Error */}
-        {error && (
+        {batch.error && (
           <div
             role="alert"
             className="bg-red-500/10 border border-red-500/30 text-red-300 text-sm rounded-xl px-4 py-3 text-center"
           >
-            {error}
+            {batch.error}
           </div>
         )}
 
         {/* Entity type hints (shown before the first search) */}
-        {!result && !batch && !error && (
+        {!result && !batch.preview && !batch.error && (
           <div className="flex flex-wrap justify-center gap-2">
             {[
               "IP Address",
@@ -174,45 +135,20 @@ export default function HomePage() {
       </div>
 
       {/* Investigation workspace — wider than the search box */}
-      {result && !error && (
+      {result && !batch.error && (
         <div className="w-full max-w-5xl mt-10">
           <InvestigationWorkspace data={result} timestamp={timestamp} />
         </div>
       )}
 
-      {batch && !error && (
-        <section className="w-full max-w-5xl mt-10 space-y-3" aria-label="Batch IOC results">
-          <div className="flex items-baseline justify-between gap-3">
-            <h2 className="text-lg font-semibold text-white">Batch results</h2>
-            <p className="text-xs text-zinc-500">{batch.total} IOC{batch.total === 1 ? "" : "s"} extracted</p>
-          </div>
-          {batch.items.map((item, index) => {
-            const investigation = item.investigation;
-            const isExpanded = expandedIoc === index;
-            const providers = investigation?.threat_intelligence.providers.filter((provider) => provider.status === "ok").length ?? 0;
-            return (
-              <article key={`${item.entity.type}-${item.entity.normalized_value}`} className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/70">
-                <button
-                  type="button"
-                  onClick={() => investigation && setExpandedIoc(isExpanded ? null : index)}
-                  disabled={!investigation}
-                  className="flex w-full items-center gap-4 px-5 py-4 text-left disabled:cursor-default"
-                  aria-expanded={investigation ? isExpanded : undefined}
-                >
-                  <span className={`h-2.5 w-2.5 rounded-full ${item.status === "completed" ? "bg-emerald-400" : "bg-red-400"}`} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-mono text-sm text-zinc-100">{item.entity.normalized_value}</span>
-                    <span className="mt-1 block text-xs uppercase tracking-wide text-zinc-500">{item.entity.type}</span>
-                  </span>
-                  {investigation ? <span className="text-right text-xs text-zinc-400">Posture {investigation.investigation_summary.posture} · {providers} provider{providers === 1 ? "" : "s"} available</span> : <span className="max-w-sm text-right text-xs text-red-300">{item.error ?? "Investigation failed."}</span>}
-                  {investigation && <span className="text-zinc-500">{isExpanded ? "−" : "+"}</span>}
-                </button>
-                {isExpanded && investigation && <div className="border-t border-zinc-800 px-4 pb-4"><InvestigationWorkspace data={investigation} timestamp={timestamp} /></div>}
-              </article>
-            );
-          })}
-        </section>
+      {batch.preview?.entities.length === 1 && batch.rows[0]?.state === "failed" && (
+        <div role="alert" className="mt-10 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
+          {batch.rows[0].error}
+          {batch.rows[0].retryable && <button type="button" onClick={() => void batch.retry([0])} className="ml-3 underline">Retry</button>}
+        </div>
       )}
+
+      {batch.preview && batch.preview.entities.length > 1 && !batch.error && <BatchWorkspace preview={batch.preview} rows={batch.rows} setRows={batch.setRows} running={batch.running} timestamp={timestamp} onStart={(entities) => void batch.start(entities)} onRetry={(indexes) => void batch.retry(indexes)} onCancel={batch.cancel} onClear={batch.clear} />}
     </main>
   );
 }

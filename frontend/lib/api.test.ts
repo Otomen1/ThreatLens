@@ -29,6 +29,7 @@ import {
   updateCase,
   updateInvestigation,
   investigateBatch,
+  previewInvestigationBatch,
   type InvestigationSummary,
 } from "./api";
 
@@ -104,6 +105,18 @@ describe("investigateBatch", () => {
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(String(url)).toMatch(/\/investigate\/batch$/);
     expect(JSON.parse(init.body as string)).toEqual({ query: "IOC=1.1.1.1 domain=example.com" });
+  });
+});
+
+describe("previewInvestigationBatch", () => {
+  it("previews extraction without using the execution endpoint", async () => {
+    const payload = { entities: [], supported: 0, duplicates: 0, invalid: 0 };
+    const fetchMock = stubFetch(200, payload);
+
+    await expect(previewInvestigationBatch("1.1.1.1")).resolves.toEqual(payload);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(/\/investigate\/batch\/preview$/);
+    expect(JSON.parse(init.body as string)).toEqual({ query: "1.1.1.1" });
   });
 });
 

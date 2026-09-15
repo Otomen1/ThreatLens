@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
+from dataclasses import dataclass
 
 from ..entities.models import Entity
 from ..entities.types import EntityType
@@ -42,13 +44,28 @@ class BatchIocLimitExceeded(ValueError):
     """Raised when a paste contains more IOCs than one batch may process."""
 
 
-def extract_iocs(raw_text: str, *, detector) -> list[Entity]:
+@dataclass(frozen=True, slots=True)
+class IocExtractionReport:
+    """Extraction result plus transparent de-duplication/validation counts."""
+
+    entities: tuple[Entity, ...]
+    candidates: int
+    duplicates: int
+    invalid: int
+
+
+def extract_iocs(raw_text: str, *, detector: Callable[[str], Entity]) -> list[Entity]:
     """Return distinct supported IOC entities in first-seen order.
 
     Labels and prose are ignored because only shaped IOC candidates are passed
     to the existing detector. ``detector`` is injected to keep this utility
     straightforward to test and to ensure one source of type normalization.
     """
+    return list(extract_ioc_report(raw_text, detector=detector).entities)
+
+
+def extract_ioc_report(raw_text: str, *, detector: Callable[[str], Entity]) -> IocExtractionReport:
+    """Extract IOCs and report only shaped invalid/duplicate candidates."""
     text = refang(raw_text)
     candidates: list[tuple[int, str]] = []
     occupied: list[tuple[int, int]] = []
@@ -64,15 +81,24 @@ def extract_iocs(raw_text: str, *, detector) -> list[Entity]:
 
     entities: list[Entity] = []
     seen: set[tuple[EntityType, str]] = set()
+    duplicates = 0
+    invalid = 0
     for _, candidate in sorted(candidates, key=lambda item: item[0]):
         entity = detector(candidate)
         if entity.type not in IOC_TYPES:
+            invalid += 1
             continue
         key = (entity.type, entity.normalized_value)
         if key in seen:
+            duplicates += 1
             continue
         seen.add(key)
         entities.append(entity)
         if len(entities) > MAX_BATCH_IOCS:
             raise BatchIocLimitExceeded(f"A batch can contain at most {MAX_BATCH_IOCS} IOCs.")
-    return entities
+    return IocExtractionReport(
+        entities=tuple(entities),
+        candidates=len(candidates),
+        duplicates=duplicates,
+        invalid=invalid,
+    )

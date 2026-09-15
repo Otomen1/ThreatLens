@@ -8,6 +8,7 @@ with a per-request ``search_id`` for future history/replay (not persisted yet).
 from __future__ import annotations
 
 from datetime import datetime
+from enum import StrEnum
 from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
@@ -74,13 +75,38 @@ class InvestigationResponse(BaseModel):
     identity: IdentitySummary | None = None
 
 
+class BatchItemStatus(StrEnum):
+    """Closed set of states used by server and progressive clients."""
+
+    QUEUED = "queued"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
 class BatchInvestigationItem(BaseModel):
     """One independently processed IOC in a batch investigation."""
 
     entity: Entity
-    status: str
+    status: BatchItemStatus
     investigation: InvestigationResponse | None = None
     error: str | None = None
+    error_code: str | None = None
+    retryable: bool = False
+
+
+class BatchPreviewResponse(BaseModel):
+    """Safe extraction preview before any provider is contacted."""
+
+    entities: list[Entity]
+    supported: int
+    duplicates: int
+    invalid: int
+    estimated_ti_requests: int
+    requires_confirmation: bool
+    quota_warning: str | None = None
+    single_entity: Entity | None = None
 
 
 class BatchInvestigationResponse(BaseModel):

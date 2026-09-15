@@ -61,3 +61,7 @@ class InvestigationService:
         ti_aggregated = aggregate(ti_results, entity_type=entity.type, entity_value=entity.value)
         ref_aggregated = aggregate(ref_results, entity_type=entity.type, entity_value=entity.value)
         return ti_aggregated, ref_aggregated
+
+    def estimate_ti_requests(self, entity: Entity) -> int:
+        """Return routed TI-provider count without making network requests."""
+        return len(self._ti_router.route(entity))

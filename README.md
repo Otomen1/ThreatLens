@@ -302,6 +302,29 @@ Secrets live in `backend/.env` (git-ignored). Never commit keys.
 
 ---
 
+## Batch IOC investigations
+
+Paste analyst notes or a list into Search. ThreatLens extracts and de-duplicates up to 20
+IPv4, IPv6, domain, URL, email, and hash indicators while preserving their first-seen order.
+Defanged URLs and domains are refanged before validation. A single recognized entity still
+uses the normal investigation flow, including CVEs, ATT&CK techniques, malware, processes,
+and registry keys.
+
+- One to five indicators start after a quota-free extraction preview.
+- Six to twenty indicators require confirmation and can be removed before execution.
+- At most four investigations run concurrently, with a 45-second browser deadline per IOC.
+- Failed rows do not discard successful rows and are retried only when requested.
+- Selected completed rows can be saved to Workspace or exported as portable JSON/CSV.
+- Provider-call counts are estimates; reference/exposure lookups and provider-specific limits
+  can make actual consumption differ.
+
+`POST /api/v1/investigate/batch/preview` performs extraction and request estimation without
+contacting providers. `POST /api/v1/investigate/batch` remains compatible with the existing
+`{"query": "..."}` request and returns only safe error codes/messages; full exceptions are
+recorded server-side.
+
+---
+
 ## Health & Monitoring
 
 ThreatLens ships production-grade, **read-only** operational endpoints for liveness/readiness probes, uptime monitoring, and support. Every check is side-effect-free: it never runs an investigation, mutates state, or consumes third-party API quota. The one exception is `GET /health/ai`, which — only when AI is enabled — performs a single lightweight Ollama reachability probe (`/api/tags`), never a model generation.

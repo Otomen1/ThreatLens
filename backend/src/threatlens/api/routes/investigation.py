@@ -10,6 +10,7 @@ the work.
 from __future__ import annotations
 
 import asyncio
+import logging
 import time
 from typing import Annotated
 from uuid import uuid4
@@ -17,6 +18,8 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException
 
 from ...correlation import CorrelationService
+from ...entities.models import Entity
+from ...entities.types import EntityType
 from ...exposure import ExposureService
 from ...exposure import build_default_registry as build_exposure_registry
 from ...identity import IdentityService
@@ -25,13 +28,23 @@ from ...investigation import InvestigationService
 from ...providers import build_default_router
 from ...reasoning import reason
 from ...reference import build_default_reference_router
-from ...search import BatchIocLimitExceeded, detect, extract_iocs
+from ...search import BatchIocLimitExceeded, detect, extract_ioc_report
 from ...system import registry as metrics_registry
 from ...system.record import record_investigation
-from ..schemas import BatchInvestigationItem, BatchInvestigationResponse, DetectRequest, DetectResponse, InvestigationResponse
+from ..schemas import (
+    BatchInvestigationItem,
+    BatchInvestigationResponse,
+    BatchItemStatus,
+    BatchPreviewResponse,
+    DetectRequest,
+    DetectResponse,
+    InvestigationResponse,
+)
 from ..timing import elapsed_ms
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
+_FALLBACK_TYPES = {EntityType.FREETEXT, EntityType.UNKNOWN}
 
 # Process-wide investigation service. Built once; providers are stateless
 # aside from their (network-only) HTTP client.
@@ -110,15 +123,23 @@ async def investigate_ioc_batch(
 ) -> BatchInvestigationResponse:
     """Extract IOCs from pasted text and investigate each independently."""
     try:
-        entities = extract_iocs(request.query, detector=detect)
+        report = extract_ioc_report(request.query, detector=detect)
     except BatchIocLimitExceeded as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+    entities = list(report.entities)
     if not entities:
-        raise HTTPException(status_code=422, detail="No supported IOC was found in the pasted text.")
+        single = detect(request.query)
+        if single.type in _FALLBACK_TYPES:
+            raise HTTPException(
+                status_code=422,
+                detail="No supported IOC was found in the pasted text.",
+            )
+        entities = [single]
 
+    batch_request_id = uuid4()
     semaphore = asyncio.Semaphore(4)
 
-    async def run(entity):
+    async def run(entity: Entity) -> BatchInvestigationItem:
         async with semaphore:
             try:
                 # Use the existing endpoint path's implementation by retaining
@@ -140,15 +161,65 @@ async def investigate_ioc_batch(
                 )
                 return BatchInvestigationItem(
                     entity=entity,
-                    status="completed",
+                    status=BatchItemStatus.COMPLETED,
                     investigation=InvestigationResponse(
                         investigation_id=uuid4(), entity=entity, threat_intelligence=ti,
                         knowledge=knowledge, investigation_summary=summary, exposure=exposure,
                         correlation=correlation, identity=identity,
                     ),
                 )
-            except Exception as exc:  # One IOC must not discard successful rows.
-                return BatchInvestigationItem(entity=entity, status="failed", error=str(exc) or "Investigation failed.")
+            except Exception:  # One IOC must not discard successful rows.
+                logger.exception(
+                    "Batch request %s failed for entity type %s",
+                    batch_request_id,
+                    entity.type.value,
+                )
+                return BatchInvestigationItem(
+                    entity=entity,
+                    status=BatchItemStatus.FAILED,
+                    error="Investigation failed. You can retry this item.",
+                    error_code="investigation_failed",
+                    retryable=True,
+                )
 
     items = await asyncio.gather(*(run(entity) for entity in entities))
     return BatchInvestigationResponse(items=items, total=len(items))
+
+
+@router.post("/api/v1/investigate/batch/preview", response_model=BatchPreviewResponse)
+def preview_ioc_batch(
+    request: DetectRequest,
+    service: Annotated[InvestigationService, Depends(get_investigation_service)],
+) -> BatchPreviewResponse:
+    """Extract and estimate a batch without contacting intelligence providers."""
+    try:
+        report = extract_ioc_report(request.query, detector=detect)
+    except BatchIocLimitExceeded as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    entities = list(report.entities)
+    single = None
+    if not entities:
+        detected = detect(request.query)
+        if detected.type not in _FALLBACK_TYPES:
+            single = detected
+            entities = [detected]
+    if not entities:
+        raise HTTPException(status_code=422, detail="No supported indicator or entity was found.")
+    estimate = sum(service.estimate_ti_requests(entity) for entity in entities)
+    requires_confirmation = len(entities) >= 6
+    warning = None
+    if requires_confirmation:
+        warning = (
+            "Large batches may consume free-provider quotas. The estimate covers routed "
+            "threat-intelligence providers only."
+        )
+    return BatchPreviewResponse(
+        entities=entities,
+        supported=len(entities),
+        duplicates=report.duplicates,
+        invalid=report.invalid,
+        estimated_ti_requests=estimate,
+        requires_confirmation=requires_confirmation,
+        quota_warning=warning,
+        single_entity=single,
+    )

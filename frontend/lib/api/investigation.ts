@@ -270,9 +270,24 @@ export interface InvestigationResponse {
 
 export interface BatchInvestigationItem {
   entity: Entity;
-  status: "completed" | "failed";
+  status: BatchItemStatus;
   investigation: InvestigationResponse | null;
   error: string | null;
+  error_code: string | null;
+  retryable: boolean;
+}
+
+export type BatchItemStatus = "queued" | "running" | "completed" | "failed" | "cancelled";
+
+export interface BatchPreviewResponse {
+  entities: Entity[];
+  supported: number;
+  duplicates: number;
+  invalid: number;
+  estimated_ti_requests: number;
+  requires_confirmation: boolean;
+  quota_warning: string | null;
+  single_entity: Entity | null;
 }
 
 export interface BatchInvestigationResponse {
@@ -296,4 +311,12 @@ export function investigate(
 /** Extract supported IOCs from free-form text and investigate each one. */
 export function investigateBatch(query: string, signal?: AbortSignal): Promise<BatchInvestigationResponse> {
   return post<BatchInvestigationResponse>("/investigate/batch", { query }, signal);
+}
+
+/** Extract and estimate a batch without consuming provider quota. */
+export function previewInvestigationBatch(
+  query: string,
+  signal?: AbortSignal,
+): Promise<BatchPreviewResponse> {
+  return post<BatchPreviewResponse>("/investigate/batch/preview", { query }, signal);
 }

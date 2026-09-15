@@ -9,7 +9,13 @@ from __future__ import annotations
 
 from ..entities.models import Entity
 from .classifier import DetectionEngine, build_default_engine
-from .ioc_extract import MAX_BATCH_IOCS, BatchIocLimitExceeded, extract_iocs
+from .ioc_extract import (
+    MAX_BATCH_IOCS,
+    BatchIocLimitExceeded,
+    IocExtractionReport,
+    extract_ioc_report,
+    extract_iocs,
+)
 from .registry import EntityRegistry
 
 _default_engine: DetectionEngine = build_default_engine()
@@ -24,4 +30,14 @@ def detect(raw_input: str) -> Entity:
     return _default_engine.detect(raw_input)
 
 
-__all__ = ["detect", "extract_iocs", "MAX_BATCH_IOCS", "BatchIocLimitExceeded", "DetectionEngine", "EntityRegistry", "build_default_engine"]
+__all__ = [
+    "BatchIocLimitExceeded",
+    "DetectionEngine",
+    "EntityRegistry",
+    "IocExtractionReport",
+    "MAX_BATCH_IOCS",
+    "build_default_engine",
+    "detect",
+    "extract_ioc_report",
+    "extract_iocs",
+]
