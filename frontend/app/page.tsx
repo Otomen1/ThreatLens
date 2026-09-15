@@ -189,7 +189,7 @@ export default function HomePage() {
           {batch.items.map((item, index) => {
             const investigation = item.investigation;
             const isExpanded = expandedIoc === index;
-            const providers = investigation?.threat_intelligence.statistics.providers_ok ?? 0;
+            const providers = investigation?.threat_intelligence.providers.filter((provider) => provider.status === "ok").length ?? 0;
             return (
               <article key={`${item.entity.type}-${item.entity.normalized_value}`} className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/70">
                 <button
