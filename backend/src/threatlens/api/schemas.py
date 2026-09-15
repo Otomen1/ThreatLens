@@ -74,6 +74,22 @@ class InvestigationResponse(BaseModel):
     identity: IdentitySummary | None = None
 
 
+class BatchInvestigationItem(BaseModel):
+    """One independently processed IOC in a batch investigation."""
+
+    entity: Entity
+    status: str
+    investigation: InvestigationResponse | None = None
+    error: str | None = None
+
+
+class BatchInvestigationResponse(BaseModel):
+    """Grouped results for a free-form multi-IOC search."""
+
+    items: list[BatchInvestigationItem]
+    total: int
+
+
 class ExposureProviderStatusInfo(BaseModel):
     """A point-in-time health snapshot for one exposure provider, over the API."""
 

@@ -28,6 +28,7 @@ import {
   unlinkWorkspaceFromCase,
   updateCase,
   updateInvestigation,
+  investigateBatch,
   type InvestigationSummary,
 } from "./api";
 
@@ -90,6 +91,19 @@ describe("detect", () => {
       vi.fn().mockRejectedValue(new DOMException("aborted", "AbortError")),
     );
     await expect(detect("x")).rejects.toMatchObject({ name: "AbortError" });
+  });
+});
+
+describe("investigateBatch", () => {
+  it("POSTs free-form input to the batch investigation endpoint", async () => {
+    const payload = { total: 2, items: [] };
+    const fetchMock = stubFetch(200, payload);
+
+    await expect(investigateBatch("IOC=1.1.1.1 domain=example.com")).resolves.toEqual(payload);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(String(url)).toMatch(/\/investigate\/batch$/);
+    expect(JSON.parse(init.body as string)).toEqual({ query: "IOC=1.1.1.1 domain=example.com" });
   });
 });
 

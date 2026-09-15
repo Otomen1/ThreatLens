@@ -14,7 +14,7 @@ import time
 from typing import Annotated
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from ...correlation import CorrelationService
 from ...exposure import ExposureService
@@ -25,10 +25,10 @@ from ...investigation import InvestigationService
 from ...providers import build_default_router
 from ...reasoning import reason
 from ...reference import build_default_reference_router
-from ...search import detect
+from ...search import BatchIocLimitExceeded, detect, extract_iocs
 from ...system import registry as metrics_registry
 from ...system.record import record_investigation
-from ..schemas import DetectRequest, DetectResponse, InvestigationResponse
+from ..schemas import BatchInvestigationItem, BatchInvestigationResponse, DetectRequest, DetectResponse, InvestigationResponse
 from ..timing import elapsed_ms
 
 router = APIRouter()
@@ -101,3 +101,54 @@ async def investigate_entity(
         correlation=correlation,
         identity=identity,
     )
+
+
+@router.post("/api/v1/investigate/batch", response_model=BatchInvestigationResponse)
+async def investigate_ioc_batch(
+    request: DetectRequest,
+    service: Annotated[InvestigationService, Depends(get_investigation_service)],
+) -> BatchInvestigationResponse:
+    """Extract IOCs from pasted text and investigate each independently."""
+    try:
+        entities = extract_iocs(request.query, detector=detect)
+    except BatchIocLimitExceeded as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    if not entities:
+        raise HTTPException(status_code=422, detail="No supported IOC was found in the pasted text.")
+
+    semaphore = asyncio.Semaphore(4)
+
+    async def run(entity):
+        async with semaphore:
+            try:
+                # Use the existing endpoint path's implementation by retaining
+                # its full enrichment and deterministic reasoning sequence.
+                started = time.perf_counter()
+                ti, knowledge = await service.investigate(entity)
+                summary = reason(entity, ti, knowledge)
+                exposure, correlation, identity = await asyncio.gather(
+                    _exposure_service.investigate(entity),
+                    asyncio.to_thread(_correlation_service.correlate, summary),
+                    _identity_service.investigate(entity),
+                )
+                record_investigation(
+                    metrics_registry,
+                    threat_intelligence=ti,
+                    knowledge=knowledge,
+                    summary=summary,
+                    duration_ms=elapsed_ms(started),
+                )
+                return BatchInvestigationItem(
+                    entity=entity,
+                    status="completed",
+                    investigation=InvestigationResponse(
+                        investigation_id=uuid4(), entity=entity, threat_intelligence=ti,
+                        knowledge=knowledge, investigation_summary=summary, exposure=exposure,
+                        correlation=correlation, identity=identity,
+                    ),
+                )
+            except Exception as exc:  # One IOC must not discard successful rows.
+                return BatchInvestigationItem(entity=entity, status="failed", error=str(exc) or "Investigation failed.")
+
+    items = await asyncio.gather(*(run(entity) for entity in entities))
+    return BatchInvestigationResponse(items=items, total=len(items))

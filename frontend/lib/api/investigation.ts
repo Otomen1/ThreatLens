@@ -2,7 +2,7 @@
 // knowledge, then the deterministic Reasoning Engine). Every other subsystem
 // module builds on the Entity/InvestigationSummary types defined here.
 
-import { postQuery } from "./client";
+import { post, postQuery } from "./client";
 import type { CorrelationSummary } from "./workspace";
 import type { ExposureSummary } from "./exposure";
 
@@ -268,6 +268,18 @@ export interface InvestigationResponse {
   } | null;
 }
 
+export interface BatchInvestigationItem {
+  entity: Entity;
+  status: "completed" | "failed";
+  investigation: InvestigationResponse | null;
+  error: string | null;
+}
+
+export interface BatchInvestigationResponse {
+  items: BatchInvestigationItem[];
+  total: number;
+}
+
 /** Classify a query into a normalized entity (detection only). */
 export function detect(query: string, signal?: AbortSignal): Promise<DetectResponse> {
   return postQuery<DetectResponse>("/detect", query, signal);
@@ -279,4 +291,9 @@ export function investigate(
   signal?: AbortSignal,
 ): Promise<InvestigationResponse> {
   return postQuery<InvestigationResponse>("/investigate", query, signal);
+}
+
+/** Extract supported IOCs from free-form text and investigate each one. */
+export function investigateBatch(query: string, signal?: AbortSignal): Promise<BatchInvestigationResponse> {
+  return post<BatchInvestigationResponse>("/investigate/batch", { query }, signal);
 }
