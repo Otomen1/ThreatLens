@@ -62,6 +62,19 @@ export async function get<T>(path: string, signal?: AbortSignal): Promise<T> {
   return (await res.json()) as T;
 }
 
+/** GET while bypassing browser and intermediary caches after an explicit refresh. */
+export async function getUncached<T>(path: string, signal?: AbortSignal): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, { method: "GET", cache: "no-store", signal });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") throw err;
+    throw new ApiError("Could not reach the service.");
+  }
+  if (!res.ok) throw new ApiError(`Request failed (${res.status}).`, res.status);
+  return (await res.json()) as T;
+}
+
 /** PUT `body` to an API path and return the parsed JSON (used by the Workspace's update). */
 export async function put<T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> {
   let res: Response;

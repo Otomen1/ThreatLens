@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
+from collections import OrderedDict
 from datetime import UTC, datetime, timedelta
+from threading import Lock
 
 import httpx
 from pydantic import HttpUrl
@@ -19,6 +22,8 @@ from .logic import (
     stable_id,
 )
 from .models import (
+    FeedHomeResponse,
+    FeedHomeSection,
     FeedListResponse,
     FeedRefreshResult,
     FeedRegion,
@@ -33,12 +38,18 @@ from .storage import FeedStorage
 
 RETENTION_DAYS = 30
 PUBLIC_REFRESH_COOLDOWN = timedelta(minutes=30)
+HOME_CACHE_SECONDS = 300
+HOME_CACHE_SIZE = 32
 _logger = logging.getLogger("threatlens.threat_feed")
 
 
 class ThreatFeedService:
     def __init__(self, storage: FeedStorage) -> None:
         self.storage = storage
+        self._home_cache: OrderedDict[
+            tuple[str, str, int | None, int], tuple[float, FeedHomeResponse]
+        ] = OrderedDict()
+        self._home_cache_lock = Lock()
 
     async def refresh(self, *, force: bool = False) -> FeedRefreshResult:
         now = datetime.now(UTC)
@@ -81,7 +92,88 @@ class ThreatFeedService:
             next_refresh_at=now + PUBLIC_REFRESH_COOLDOWN,
         )
         self.storage.save_refresh(refresh)
+        if succeeded:
+            self.clear_home_cache()
         return refresh
+
+    def clear_home_cache(self) -> None:
+        with self._home_cache_lock:
+            self._home_cache.clear()
+
+    def home(
+        self,
+        *,
+        query: str | None = None,
+        topic: FeedTopic | None = None,
+        hours: int | None = None,
+        limit_per_region: int = 5,
+    ) -> FeedHomeResponse:
+        key = (
+            (query or "").strip().lower(),
+            topic.value if topic else "",
+            hours,
+            limit_per_region,
+        )
+        now_monotonic = time.monotonic()
+        with self._home_cache_lock:
+            cached = self._home_cache.get(key)
+            if cached and cached[0] > now_monotonic:
+                self._home_cache.move_to_end(key)
+                return cached[1]
+            if cached:
+                del self._home_cache[key]
+
+        snapshot = self.storage.home_snapshot()
+        now = datetime.now(UTC)
+        recent_cutoff = now - timedelta(hours=24)
+        filtered_cutoff = now - timedelta(hours=hours) if hours else None
+        needle = key[0]
+        sections: dict[FeedRegion, FeedHomeSection] = {}
+        for region in FeedRegion:
+            matching = tuple(
+                item
+                for item in snapshot.items
+                if item.region == region
+                and (topic is None or item.topic == topic)
+                and (filtered_cutoff is None or item.published_at >= filtered_cutoff)
+                and (
+                    not needle
+                    or needle in f"{item.title} {item.summary} {item.source_name}".lower()
+                )
+            )
+            sections[region] = FeedHomeSection(
+                items=matching[:limit_per_region], total=len(matching)
+            )
+
+        refreshed = datetime.fromisoformat(snapshot.last_refresh) if snapshot.last_refresh else None
+        summary = FeedSummary(
+            regions={
+                region: RegionCount(
+                    total=sum(item.region == region for item in snapshot.items),
+                    recent=sum(
+                        item.region == region and item.published_at >= recent_cutoff
+                        for item in snapshot.items
+                    ),
+                )
+                for region in FeedRegion
+            },
+            critical=sum(item.severity == "critical" for item in snapshot.items),
+            new_iocs=sum(
+                len(item.entities)
+                for item in snapshot.items
+                if item.published_at >= recent_cutoff
+            ),
+            last_refreshed_at=refreshed,
+            next_refresh_at=refreshed + PUBLIC_REFRESH_COOLDOWN if refreshed else None,
+            source_errors=sum(source.last_error_code is not None for source in snapshot.sources),
+        )
+        response = FeedHomeResponse(summary=summary, sections=sections, generated_at=now)
+        with self._home_cache_lock:
+            self._home_cache[key] = (now_monotonic + HOME_CACHE_SECONDS, response)
+            self._home_cache.move_to_end(key)
+            while len(self._home_cache) > HOME_CACHE_SIZE:
+                self._home_cache.popitem(last=False)
+        return response
 
     async def _collect(self, source: SourceDefinition, now: datetime) -> tuple[int, int]:
         entries = await fetch_source(source)

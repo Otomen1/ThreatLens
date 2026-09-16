@@ -101,6 +101,17 @@ class FeedSummary(BaseModel):
     source_errors: int = 0
 
 
+class FeedHomeSection(BaseModel):
+    items: tuple[ThreatFeedItem, ...] = ()
+    total: int = 0
+
+
+class FeedHomeResponse(BaseModel):
+    summary: FeedSummary
+    sections: dict[FeedRegion, FeedHomeSection]
+    generated_at: datetime
+
+
 class SourceEntry(BaseModel):
     guid: str | None = None
     title: str = Field(min_length=1, max_length=500)

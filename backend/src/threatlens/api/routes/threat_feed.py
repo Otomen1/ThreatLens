@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+import hashlib
 import hmac
+import json
 import os
-from typing import Annotated
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response
 
 from ...threat_feed import FeedStorage, ThreatFeedService
 from ...threat_feed.models import (
+    FeedHomeResponse,
     FeedListResponse,
     FeedRefreshResult,
     FeedRegion,
@@ -33,6 +36,44 @@ def get_threat_feed_service() -> ThreatFeedService:
 @router.get("/summary", response_model=FeedSummary)
 def summary(service: Annotated[ThreatFeedService, Depends(get_threat_feed_service)]) -> FeedSummary:
     return service.summary()
+
+
+@router.get("/home", response_model=FeedHomeResponse)
+def home(
+    request: Request,
+    response: Response,
+    service: Annotated[ThreatFeedService, Depends(get_threat_feed_service)],
+    topic: FeedTopic | None = None,
+    hours: Annotated[int | None, Query(ge=1, le=720)] = None,
+    query: Annotated[str | None, Query(max_length=200)] = None,
+    limit_per_region: Annotated[int, Query(ge=1, le=20)] = 5,
+) -> Any:
+    result = service.home(
+        query=query,
+        topic=topic,
+        hours=hours,
+        limit_per_region=limit_per_region,
+    )
+    identity = json.dumps(
+        {
+            "refresh": result.summary.last_refreshed_at.isoformat()
+            if result.summary.last_refreshed_at
+            else "",
+            "query": (query or "").strip().lower(),
+            "topic": topic.value if topic else "",
+            "hours": hours,
+            "limit": limit_per_region,
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    etag = f'"{hashlib.sha256(identity.encode()).hexdigest()}"'
+    cache_control = "public, s-maxage=300, stale-while-revalidate=3600"
+    if request.headers.get("if-none-match") == etag:
+        return Response(status_code=304, headers={"ETag": etag, "Cache-Control": cache_control})
+    response.headers["ETag"] = etag
+    response.headers["Cache-Control"] = cache_control
+    return result
 
 
 @router.get("/items", response_model=FeedListResponse)

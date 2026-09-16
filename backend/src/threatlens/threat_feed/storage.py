@@ -6,11 +6,19 @@ import importlib
 import os
 import sqlite3
 from collections.abc import Iterable
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
 
 from .models import FeedRefreshResult, FeedSourceStatus, ThreatFeedItem
+
+
+@dataclass(frozen=True)
+class FeedStorageSnapshot:
+    items: tuple[ThreatFeedItem, ...]
+    sources: tuple[FeedSourceStatus, ...]
+    last_refresh: str | None
 
 
 class FeedStorage:
@@ -110,6 +118,57 @@ class FeedStorage:
                 ).fetchall()
             return [ThreatFeedItem.model_validate_json(row[0]) for row in rows]
         return sorted(self.memory_items.values(), key=lambda item: item.published_at, reverse=True)
+
+    def home_snapshot(self) -> FeedStorageSnapshot:
+        if self.psycopg is not None:
+            with self.psycopg.connect(self.url) as db:
+                rows = db.execute(
+                    "SELECT 'item', payload FROM threat_feed_items "
+                    "UNION ALL SELECT 'source', payload FROM threat_feed_sources "
+                    "UNION ALL SELECT 'state', to_jsonb(value) FROM threat_feed_state "
+                    "WHERE key='last_refresh'"
+                ).fetchall()
+            items = tuple(
+                ThreatFeedItem.model_validate(payload)
+                for kind, payload in rows
+                if kind == "item"
+            )
+            sources = tuple(
+                FeedSourceStatus.model_validate(payload)
+                for kind, payload in rows
+                if kind == "source"
+            )
+            refresh = next(
+                (str(payload) for kind, payload in rows if kind == "state"), None
+            )
+        elif self.backend == "sqlite":
+            with sqlite3.connect(self.path) as db:
+                rows = db.execute(
+                    "SELECT 'item', payload FROM threat_feed_items "
+                    "UNION ALL SELECT 'source', payload FROM threat_feed_sources "
+                    "UNION ALL SELECT 'state', value FROM threat_feed_state "
+                    "WHERE key='last_refresh'"
+                ).fetchall()
+            items = tuple(
+                ThreatFeedItem.model_validate_json(payload)
+                for kind, payload in rows
+                if kind == "item"
+            )
+            sources = tuple(
+                FeedSourceStatus.model_validate_json(payload)
+                for kind, payload in rows
+                if kind == "source"
+            )
+            refresh = next((str(payload) for kind, payload in rows if kind == "state"), None)
+        else:
+            items = tuple(self.memory_items.values())
+            sources = tuple(self.memory_sources.values())
+            refresh = self.memory_state.get("last_refresh")
+        return FeedStorageSnapshot(
+            items=tuple(sorted(items, key=lambda item: item.published_at, reverse=True)),
+            sources=sources,
+            last_refresh=refresh,
+        )
 
     def get_item(self, item_id: str) -> ThreatFeedItem | None:
         return next((item for item in self.list_items() if item.id == item_id), None)
