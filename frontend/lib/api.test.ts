@@ -116,7 +116,12 @@ describe("previewInvestigationBatch", () => {
     await expect(previewInvestigationBatch("1.1.1.1")).resolves.toEqual(payload);
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(String(url)).toMatch(/\/investigate\/batch\/preview$/);
-    expect(JSON.parse(init.body as string)).toEqual({ query: "1.1.1.1" });
+    expect(JSON.parse(init.body as string)).toEqual({
+      query: "1.1.1.1",
+      scan_mode: "standard",
+      excluded_providers: [],
+      refresh: false,
+    });
   });
 });
 

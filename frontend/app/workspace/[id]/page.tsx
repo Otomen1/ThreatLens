@@ -11,6 +11,10 @@ import {
   getInvestigationReport,
   getInvestigationTimeline,
   updateInvestigation,
+  compareInvestigations,
+  listInvestigations,
+  type InvestigationComparison,
+  type WorkspaceListItem,
   type CorrelationSummary,
   type EvidenceGraph,
   type Timeline,
@@ -106,6 +110,7 @@ export default function WorkspaceDetailPage() {
             <DetailHeader record={state.record} onStatusChange={changeStatus} onGenerate={generateAndSaveDetections} />
 
             <DetailMetrics record={state.record} />
+            <ComparisonPanel record={state.record} />
 
             {state.record.investigation_summary && (
               <>
@@ -249,6 +254,17 @@ function DetailMetrics({ record }: { record: WorkspaceInvestigation }) {
 
 function Metric({ label, value }: { label: string; value: string | number }) {
   return <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 px-3 py-2.5"><p className="text-[11px] text-zinc-500">{label}</p><p className="mt-1 truncate text-sm font-medium capitalize text-zinc-200">{value}</p></div>;
+}
+
+function ComparisonPanel({ record }: { record: WorkspaceInvestigation }) {
+  const [options, setOptions] = useState<WorkspaceListItem[]>([]);
+  const [selected, setSelected] = useState("");
+  const [comparison, setComparison] = useState<InvestigationComparison | null>(null);
+  const [error, setError] = useState("");
+  useEffect(() => { void listInvestigations({ investigation_type: record.investigation_type }).then((result) => setOptions(result.investigations.filter((item) => item.id !== record.id))).catch(() => undefined); }, [record.id, record.investigation_type]);
+  async function run() { if (!selected) return; try { setError(""); setComparison(await compareInvestigations(selected, record.id)); } catch { setError("These records cannot be compared. Select snapshots of the same entity."); } }
+  if (options.length === 0) return null;
+  return <section className="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><div className="flex flex-wrap items-center gap-2"><h2 className="mr-auto text-sm font-semibold">Compare snapshots</h2><select aria-label="Comparison investigation" value={selected} onChange={(event) => setSelected(event.target.value)} className="max-w-xs rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs"><option value="">Select an earlier record</option>{options.map((item) => <option key={item.id} value={item.id}>{item.title} · {new Date(item.updated_at).toLocaleDateString()}</option>)}</select><button disabled={!selected} onClick={() => void run()} className="rounded-lg bg-sky-600 px-3 py-2 text-xs text-white disabled:opacity-40">Compare</button></div>{error && <p role="alert" className="mt-3 text-xs text-red-300">{error}</p>}{comparison && <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2"><p>Posture: {comparison.posture_before ?? "—"} → {comparison.posture_after ?? "—"}</p><p>Confidence: {comparison.confidence_before ?? "—"} → {comparison.confidence_after ?? "—"}</p><p>Findings: +{comparison.added_findings.length} / -{comparison.removed_findings.length} / {comparison.changed_findings.length} changed</p><p>Evidence: +{comparison.evidence_added.length} / -{comparison.evidence_removed.length}</p>{comparison.provider_changes.map((change) => <p key={change} className="text-amber-300">{change}</p>)}{comparison.limited && <p className="sm:col-span-2 text-zinc-500">{comparison.limitation}</p>}</div>}</section>;
 }
 
 /**

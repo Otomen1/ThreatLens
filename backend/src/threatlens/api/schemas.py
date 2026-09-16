@@ -27,10 +27,21 @@ from ..workspace import WorkspaceStatus
 MAX_QUERY_LENGTH = 4096
 
 
+class ScanMode(StrEnum):
+    """Quota-aware provider breadth for an investigation."""
+
+    FAST = "fast"
+    STANDARD = "standard"
+    FULL = "full"
+
+
 class DetectRequest(BaseModel):
     """A single detection request."""
 
     query: str = Field(min_length=1, max_length=MAX_QUERY_LENGTH)
+    scan_mode: ScanMode = ScanMode.STANDARD
+    excluded_providers: list[str] = Field(default_factory=list, max_length=20)
+    refresh: bool = False
 
     @field_validator("query")
     @classmethod
@@ -47,6 +58,15 @@ class DetectResponse(BaseModel):
 
     search_id: UUID
     entity: Entity
+
+
+class InvestigationCacheMetadata(BaseModel):
+    """Freshness information without exposing cache internals."""
+
+    status: str = "miss"
+    cached_at: datetime | None = None
+    expires_at: datetime | None = None
+    age_seconds: int | None = None
 
 
 class InvestigationResponse(BaseModel):
@@ -73,6 +93,9 @@ class InvestigationResponse(BaseModel):
     exposure: ExposureSummary | None = None
     correlation: CorrelationSummary | None = None
     identity: IdentitySummary | None = None
+    scan_mode: ScanMode = ScanMode.STANDARD
+    routed_providers: list[str] = Field(default_factory=list)
+    cache: InvestigationCacheMetadata = Field(default_factory=InvestigationCacheMetadata)
 
 
 class BatchItemStatus(StrEnum):
@@ -107,6 +130,10 @@ class BatchPreviewResponse(BaseModel):
     requires_confirmation: bool
     quota_warning: str | None = None
     single_entity: Entity | None = None
+    cached_items: int = 0
+    estimated_uncached_calls: int = 0
+    scan_mode: ScanMode = ScanMode.STANDARD
+    quota_warnings: list[str] = Field(default_factory=list)
 
 
 class BatchInvestigationResponse(BaseModel):

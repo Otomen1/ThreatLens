@@ -9,7 +9,9 @@ import {
   type BatchPreviewResponse,
   type Entity,
   type InvestigationResponse,
+  type InvestigationOptions,
 } from "@/lib/api";
+import { clearBatchSession, loadBatchSession, saveBatchSession, type StoredBatchSession } from "@/lib/batchSession";
 
 export interface BatchRow {
   entity: Entity;
@@ -39,6 +41,8 @@ export function useBatchInvestigation() {
   const runId = useRef(0);
   const previewId = useRef(0);
   const previewController = useRef<AbortController | null>(null);
+  const optionsRef = useRef<InvestigationOptions>({ scanMode: "standard" });
+  const [recoverable, setRecoverable] = useState<StoredBatchSession | null>(null);
   const controllers = useRef(new Set<AbortController>());
 
   const cancel = useCallback(() => {
@@ -77,7 +81,7 @@ export function useBatchInvestigation() {
         let timedOut = false;
         const timeout = window.setTimeout(() => { timedOut = true; controller.abort(); }, DEADLINE_MS);
         try {
-          const investigation = await investigate(entity.normalized_value, controller.signal);
+          const investigation = await investigate(entity.normalized_value, controller.signal, optionsRef.current);
           setRows((current) => current.map((row, rowIndex) => rowIndex === index ? { ...row, state: "completed", investigation, retryable: false, selected: true } : row));
         } catch (cause) {
           const aborted = cause instanceof DOMException && cause.name === "AbortError";
@@ -103,7 +107,7 @@ export function useBatchInvestigation() {
     await processTasks(nextRows.map((row, index) => ({ index, entity: row.entity })));
   }, [preview, processTasks]);
 
-  const prepare = useCallback(async (query: string) => {
+  const prepare = useCallback(async (query: string, options: InvestigationOptions = {}) => {
     cancel();
     const requestId = ++previewId.current;
     const controller = new AbortController();
@@ -113,7 +117,8 @@ export function useBatchInvestigation() {
     setPreview(null);
     setRows([]);
     try {
-      const nextPreview = await previewInvestigationBatch(query, controller.signal);
+      optionsRef.current = options;
+      const nextPreview = await previewInvestigationBatch(query, controller.signal, options);
       if (requestId !== previewId.current) return null;
       setPreview(nextPreview);
       if (!nextPreview.requires_confirmation) void start(nextPreview.entities);
@@ -135,6 +140,16 @@ export function useBatchInvestigation() {
     }));
   }, [processTasks]);
 
-  const clear = useCallback(() => { cancel(); setPreview(null); setRows([]); setError(null); }, [cancel]);
-  return { preview, setPreview, rows, setRows, previewing, running, error, prepare, start, retry, cancel, clear };
+  useEffect(() => { void loadBatchSession().then(setRecoverable).catch(() => undefined); }, []);
+  useEffect(() => {
+    if (preview && rows.length > 1) void saveBatchSession({ savedAt: Date.now(), preview, rows, options: optionsRef.current });
+  }, [preview, rows]);
+  const resume = useCallback(() => {
+    if (!recoverable) return;
+    optionsRef.current = recoverable.options;
+    setPreview(recoverable.preview); setRows(recoverable.rows); setRecoverable(null);
+  }, [recoverable]);
+  const discardRecovery = useCallback(() => { setRecoverable(null); void clearBatchSession(); }, []);
+  const clear = useCallback(() => { cancel(); setPreview(null); setRows([]); setError(null); void clearBatchSession(); }, [cancel]);
+  return { preview, setPreview, rows, setRows, previewing, running, error, prepare, start, retry, cancel, clear, recoverable, resume, discardRecovery };
 }

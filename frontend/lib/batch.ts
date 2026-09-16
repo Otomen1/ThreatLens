@@ -16,6 +16,14 @@ export function detectionEligible(investigation: InvestigationResponse): boolean
   return investigation.investigation_summary.findings.length > 0;
 }
 
+export function detectionEligibility(investigation: InvestigationResponse): { eligible: boolean; reason: string; formats: number } {
+  const findings = investigation.investigation_summary.findings;
+  const observable = new Set(["ipv4", "ipv6", "domain", "url", "md5", "sha1", "sha256"]);
+  const supported = findings.filter((finding) => observable.has(finding.subject_type) && finding.severity > 0);
+  if (supported.length === 0) return { eligible: false, reason: findings.length ? "Findings are not log-observable or actionable." : "No findings support rule generation.", formats: 0 };
+  return { eligible: true, reason: `${supported.length} finding${supported.length === 1 ? "" : "s"} support deterministic IOC rules.`, formats: 8 };
+}
+
 function csvCell(value: unknown): string {
   const text = String(value ?? "");
   return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;

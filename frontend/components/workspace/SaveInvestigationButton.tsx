@@ -3,12 +3,11 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { saveInvestigation, type Entity, type InvestigationSummary } from "@/lib/api";
+import { saveInvestigation, type InvestigationResponse } from "@/lib/api";
 import { entityLabel } from "@/lib/investigation";
 
 interface Props {
-  entity: Entity;
-  investigationSummary: InvestigationSummary;
+  investigation: InvestigationResponse;
 }
 
 type State =
@@ -24,8 +23,9 @@ type State =
  * Title/tags/status/severity can be refined afterward from the workspace
  * detail page — this button only needs one click to get a case saved.
  */
-export function SaveInvestigationButton({ entity, investigationSummary }: Props) {
+export function SaveInvestigationButton({ investigation }: Props) {
   const [state, setState] = useState<State>({ kind: "idle" });
+  const { entity, investigation_summary: investigationSummary } = investigation;
 
   async function save() {
     setState({ kind: "saving" });
@@ -34,6 +34,7 @@ export function SaveInvestigationButton({ entity, investigationSummary }: Props)
         title: `${entityLabel(entity.type)}: ${entity.value}`,
         investigation_type: entity.type,
         investigation_summary: investigationSummary,
+        investigation_snapshot: investigation,
       });
       setState({ kind: "saved", id: record.id });
     } catch (err) {

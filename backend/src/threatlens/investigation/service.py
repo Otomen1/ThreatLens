@@ -33,12 +33,52 @@ class InvestigationService:
         self._semaphore = asyncio.Semaphore(max(1, configured))
 
     async def _lookup(self, provider: Any, entity: Entity, *, reference: bool) -> Any:
-        async with self._semaphore:
-            return await (
-                provider.safe_lookup(entity) if reference else provider.safe_search(entity)
-            )
+        from ..system.telemetry import enter_provider, leave_provider
 
-    async def investigate(self, entity: Entity) -> tuple[AggregatedResult, AggregatedResult]:
+        async with self._semaphore:
+            token = enter_provider(provider.name)
+            try:
+                return await (
+                    provider.safe_lookup(entity) if reference else provider.safe_search(entity)
+                )
+            finally:
+                leave_provider(token)
+
+    def routed_provider_names(
+        self,
+        entity: Entity,
+        *,
+        scan_mode: str = "standard",
+        excluded_providers: frozenset[str] = frozenset(),
+    ) -> list[str]:
+        return [
+            provider.name
+            for provider in self._ti_providers(
+                entity, scan_mode=scan_mode, excluded_providers=excluded_providers
+            )
+        ]
+
+    def _ti_providers(
+        self,
+        entity: Entity,
+        *,
+        scan_mode: str,
+        excluded_providers: frozenset[str],
+    ) -> tuple[Any, ...]:
+        providers = tuple(
+            provider
+            for provider in self._ti_router.route(entity)
+            if provider.name not in excluded_providers
+        )
+        return providers[:1] if scan_mode == "fast" else providers
+
+    async def investigate(
+        self,
+        entity: Entity,
+        *,
+        scan_mode: str = "standard",
+        excluded_providers: frozenset[str] = frozenset(),
+    ) -> tuple[AggregatedResult, AggregatedResult]:
         """Run all routed providers concurrently; return (threat_intelligence, knowledge).
 
         Providers from both frameworks run in a single asyncio.gather — never
@@ -46,7 +86,9 @@ class InvestigationService:
         failed provider contributes its status but not its findings; it never
         blocks the other framework or the other providers within the same framework.
         """
-        ti_providers = self._ti_router.route(entity)
+        ti_providers = self._ti_providers(
+            entity, scan_mode=scan_mode, excluded_providers=excluded_providers
+        )
         ref_providers = self._ref_router.route(entity)
 
         ti_coros = [self._lookup(p, entity, reference=False) for p in ti_providers]
@@ -62,6 +104,14 @@ class InvestigationService:
         ref_aggregated = aggregate(ref_results, entity_type=entity.type, entity_value=entity.value)
         return ti_aggregated, ref_aggregated
 
-    def estimate_ti_requests(self, entity: Entity) -> int:
+    def estimate_ti_requests(
+        self,
+        entity: Entity,
+        *,
+        scan_mode: str = "standard",
+        excluded_providers: frozenset[str] = frozenset(),
+    ) -> int:
         """Return routed TI-provider count without making network requests."""
-        return len(self._ti_router.route(entity))
+        return len(
+            self._ti_providers(entity, scan_mode=scan_mode, excluded_providers=excluded_providers)
+        )

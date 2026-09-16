@@ -5,7 +5,7 @@
 
 import { del, get, post, put } from "./client";
 import type { DetectionPackage } from "./detection";
-import type { EntityType, InvestigationSummary } from "./investigation";
+import type { EntityType, InvestigationResponse, InvestigationSummary } from "./investigation";
 
 export type WorkspaceStatus = "open" | "in_progress" | "closed" | "archived";
 
@@ -94,6 +94,7 @@ export interface WorkspaceInvestigation {
   investigation_summary: InvestigationSummary | null;
   detection_package: DetectionPackage | null;
   correlation_summary: CorrelationSummary | null;
+  investigation_snapshot: InvestigationResponse | null;
 }
 
 /** One row of `GET /workspace` — metadata only, no nested engine outputs. */
@@ -124,6 +125,7 @@ export interface SaveInvestigationRequest {
   investigation_summary?: InvestigationSummary | null;
   detection_package?: DetectionPackage | null;
   correlation_summary?: CorrelationSummary | null;
+  investigation_snapshot?: InvestigationResponse | null;
 }
 
 /** Every field is optional; an omitted field leaves the saved value unchanged. */
@@ -137,6 +139,7 @@ export interface UpdateInvestigationRequest {
   investigation_summary?: InvestigationSummary | null;
   detection_package?: DetectionPackage | null;
   correlation_summary?: CorrelationSummary | null;
+  investigation_snapshot?: InvestigationResponse | null;
 }
 
 export interface WorkspaceListFilters {
@@ -145,6 +148,15 @@ export interface WorkspaceListFilters {
   investigation_type?: EntityType;
   tag?: string;
   q?: string;
+}
+
+export interface InvestigationComparison {
+  before_id: string; after_id: string; posture_before: number | null; posture_after: number | null;
+  confidence_before: number | null; confidence_after: number | null; limited: boolean;
+  limitation: string | null; evidence_added: string[]; evidence_removed: string[];
+  provider_changes: string[]; detection_changes: string[];
+  added_findings: Array<{ title: string }>; removed_findings: Array<{ title: string }>;
+  changed_findings: Array<{ title: string }>;
 }
 
 function buildQuery(filters: WorkspaceListFilters): string {
@@ -194,6 +206,12 @@ export function updateInvestigation(
 /** Delete a saved investigation. */
 export function deleteInvestigation(id: string, signal?: AbortSignal): Promise<void> {
   return del(`/workspace/${encodeURIComponent(id)}`, signal);
+}
+
+export function compareInvestigations(
+  beforeId: string, afterId: string, signal?: AbortSignal,
+): Promise<InvestigationComparison> {
+  return get<InvestigationComparison>(`/workspace/${encodeURIComponent(beforeId)}/compare/${encodeURIComponent(afterId)}`, signal);
 }
 
 // --- Investigation Timeline (Phase 8.1) ---

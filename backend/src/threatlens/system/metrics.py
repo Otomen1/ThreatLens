@@ -7,10 +7,9 @@ Engine, the Detection Knowledge Library, or the AI service. Callers in
 computed its (unchanged) response — recording is a pure side effect on data
 that already exists; it never influences what a route returns.
 
-Process-local, in-memory, reset on restart by design: a dashboard v1 has no
-monitoring stack, so incremental counters are the whole strategy (see
-``docs/architecture/PHASE-OPERATIONAL-DASHBOARD-V1.md``). A single lock
-guards every mutation; each recorder call is O(1).
+Most counters remain process-local. Provider quota snapshots and the latest
+500 sanitized HTTP outcomes are additionally persisted through the configured
+PostgreSQL or SQLite adapter. A single lock guards every mutation.
 """
 
 from __future__ import annotations
@@ -107,9 +106,16 @@ class MetricsRegistry:
     investigation_recommendations: RunningAverage = field(default_factory=RunningAverage)
     investigation_confidence: RunningAverage = field(default_factory=RunningAverage)
     backup_operations: dict[str, CallCounter] = field(default_factory=dict)
+    provider_quota: dict[str, dict[str, str | int | None]] = field(default_factory=dict)
+    provider_events: list[dict[str, str | int | bool | None]] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         self._lock = Lock()
+        from .operational_store import load_state
+
+        quota, events = load_state()
+        self.provider_quota.update(quota)
+        self.provider_events.extend(events)
 
     def reset(self) -> None:
         """Clear all counters in place (tests only — the running app never calls this)."""
@@ -129,6 +135,41 @@ class MetricsRegistry:
             self.investigation_recommendations = RunningAverage()
             self.investigation_confidence = RunningAverage()
             self.backup_operations.clear()
+            self.provider_quota.clear()
+            self.provider_events.clear()
+
+    def record_provider_http(
+        self, provider: str, *, status_code: int, headers: dict[str, str]
+    ) -> None:
+        """Record sanitized response state and advertised quota headers."""
+
+        def first(*names: str) -> str | None:
+            return next((headers[name] for name in names if name in headers), None)
+
+        with self._lock:
+            remaining = first(
+                "x-ratelimit-remaining", "ratelimit-remaining", "x-rate-limit-remaining"
+            )
+            limit = first("x-ratelimit-limit", "ratelimit-limit", "x-rate-limit-limit")
+            reset = first("x-ratelimit-reset", "ratelimit-reset", "x-rate-limit-reset")
+            self.provider_quota[provider] = {
+                "remaining": int(remaining) if remaining and remaining.isdigit() else None,
+                "limit": int(limit) if limit and limit.isdigit() else None,
+                "reset_at": reset,
+                "retry_after": headers.get("retry-after"),
+            }
+            self.provider_events.append(
+                {
+                    "provider": provider,
+                    "status_code": status_code,
+                    "rate_limited": status_code == 429,
+                    "timestamp": _now(),
+                }
+            )
+            del self.provider_events[:-500]
+            from .operational_store import save_event
+
+            save_event(provider, self.provider_quota[provider], self.provider_events[-1])
 
     def record_backup(self, operation: str, *, success: bool, latency_ms: float) -> None:
         """Record sanitized backup outcomes without storing user data."""

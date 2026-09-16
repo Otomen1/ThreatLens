@@ -266,6 +266,24 @@ export interface InvestigationResponse {
     findings: { provider: string; status: string; summary: string; evidence: unknown[]; assets: unknown[] }[];
     statistics: { providers_queried: number; providers_ok: number; total_findings: number; total_assets: number; categories: string[] };
   } | null;
+  scan_mode: ScanMode;
+  routed_providers: string[];
+  cache: InvestigationCacheMetadata;
+}
+
+export type ScanMode = "fast" | "standard" | "full";
+
+export interface InvestigationCacheMetadata {
+  status: "hit" | "miss" | "refreshed";
+  cached_at: string | null;
+  expires_at: string | null;
+  age_seconds: number | null;
+}
+
+export interface InvestigationOptions {
+  scanMode?: ScanMode;
+  excludedProviders?: string[];
+  refresh?: boolean;
 }
 
 export interface BatchInvestigationItem {
@@ -288,6 +306,10 @@ export interface BatchPreviewResponse {
   requires_confirmation: boolean;
   quota_warning: string | null;
   single_entity: Entity | null;
+  cached_items: number;
+  estimated_uncached_calls: number;
+  scan_mode: ScanMode;
+  quota_warnings: string[];
 }
 
 export interface BatchInvestigationResponse {
@@ -304,8 +326,14 @@ export function detect(query: string, signal?: AbortSignal): Promise<DetectRespo
 export function investigate(
   query: string,
   signal?: AbortSignal,
+  options: InvestigationOptions = {},
 ): Promise<InvestigationResponse> {
-  return postQuery<InvestigationResponse>("/investigate", query, signal);
+  return post<InvestigationResponse>("/investigate", {
+    query,
+    scan_mode: options.scanMode ?? "standard",
+    excluded_providers: options.excludedProviders ?? [],
+    refresh: options.refresh ?? false,
+  }, signal);
 }
 
 /** Extract supported IOCs from free-form text and investigate each one. */
@@ -317,6 +345,12 @@ export function investigateBatch(query: string, signal?: AbortSignal): Promise<B
 export function previewInvestigationBatch(
   query: string,
   signal?: AbortSignal,
+  options: InvestigationOptions = {},
 ): Promise<BatchPreviewResponse> {
-  return post<BatchPreviewResponse>("/investigate/batch/preview", { query }, signal);
+  return post<BatchPreviewResponse>("/investigate/batch/preview", {
+    query,
+    scan_mode: options.scanMode ?? "standard",
+    excluded_providers: options.excludedProviders ?? [],
+    refresh: options.refresh ?? false,
+  }, signal);
 }

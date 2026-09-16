@@ -150,7 +150,7 @@ export default function DashboardPage() {
               {
                 key: "config",
                 label: "Configuration",
-                content: <ConfigurationTab data={state.config} />,
+                content: <ConfigurationTab data={state.config} providers={state.usage.threat_intelligence} />,
               },
             ]}
           />

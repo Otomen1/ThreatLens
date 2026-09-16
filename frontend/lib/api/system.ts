@@ -70,6 +70,12 @@ export interface ProviderUsage {
   rate_limit_remaining: number | null;
   cache_hits: number;
   cache_misses: number;
+  rate_limit: number | null;
+  rate_limit_reset_at: string | null;
+  retry_after: string | null;
+  rate_limited_count: number;
+  last_safe_error_code: string | null;
+  suggested_action: string | null;
 }
 
 export interface KnowledgeProviderUsage {
@@ -141,6 +147,7 @@ export interface UsageResponse {
   investigations: InvestigationUsage;
   backups?: BackupOperationUsage[];
   timestamp: string;
+  recent_provider_events: Array<{ provider: string; status_code: number; rate_limited: boolean; timestamp: string }>;
 }
 
 export interface ConfigItem {

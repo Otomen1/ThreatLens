@@ -35,7 +35,11 @@ from pydantic import BaseModel, Field
 
 from ..correlation import CorrelationSummary
 from ..detection import DetectionPackage
+from ..entities.models import Entity
 from ..entities.types import EntityType
+from ..exposure import ExposureSummary
+from ..identity import IdentitySummary
+from ..providers import AggregatedResult
 from ..reasoning import InvestigationSummary, Severity
 
 WORKSPACE_FRAMEWORK_VERSION = "1.0"
@@ -51,6 +55,20 @@ class WorkspaceStatus(StrEnum):
     IN_PROGRESS = "in_progress"
     CLOSED = "closed"
     ARCHIVED = "archived"
+
+
+class InvestigationSnapshot(BaseModel):
+    """Complete optional snapshot for comparison; older records omit it."""
+
+    entity: Entity
+    threat_intelligence: AggregatedResult
+    knowledge: AggregatedResult
+    investigation_summary: InvestigationSummary
+    exposure: ExposureSummary | None = None
+    correlation: CorrelationSummary | None = None
+    identity: IdentitySummary | None = None
+    scan_mode: str = "standard"
+    routed_providers: list[str] = Field(default_factory=list)
 
 
 class WorkspaceInvestigation(BaseModel):
@@ -83,6 +101,7 @@ class WorkspaceInvestigation(BaseModel):
     investigation_summary: InvestigationSummary | None = None
     detection_package: DetectionPackage | None = None
     correlation_summary: CorrelationSummary | None = None
+    investigation_snapshot: InvestigationSnapshot | None = None
 
 
 class SaveInvestigationRequest(BaseModel):
@@ -102,6 +121,7 @@ class SaveInvestigationRequest(BaseModel):
     investigation_summary: InvestigationSummary | None = None
     detection_package: DetectionPackage | None = None
     correlation_summary: CorrelationSummary | None = None
+    investigation_snapshot: InvestigationSnapshot | None = None
 
 
 class UpdateInvestigationRequest(BaseModel):
@@ -124,3 +144,4 @@ class UpdateInvestigationRequest(BaseModel):
     investigation_summary: InvestigationSummary | None = None
     detection_package: DetectionPackage | None = None
     correlation_summary: CorrelationSummary | None = None
+    investigation_snapshot: InvestigationSnapshot | None = None

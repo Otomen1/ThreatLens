@@ -28,8 +28,10 @@ from threatlens.reasoning.engine import ENGINE_VERSION
 client = TestClient(app)
 
 
-def _investigate(query: str) -> dict[str, Any]:
-    response = client.post("/api/v1/investigate", json={"query": query})
+def _investigate(query: str, *, scan_mode: str = "standard") -> dict[str, Any]:
+    response = client.post(
+        "/api/v1/investigate", json={"query": query, "scan_mode": scan_mode}
+    )
     assert response.status_code == 200
     body: dict[str, Any] = response.json()
     return body
@@ -52,7 +54,7 @@ def test_investigate_top_level_contract() -> None:
 
 
 def test_investigate_includes_additive_context_projections() -> None:
-    body = _investigate("T1059")
+    body = _investigate("T1059", scan_mode="full")
     assert body["exposure"] is not None
     assert body["correlation"] is not None
     assert {"findings", "statistics", "metadata"}.issubset(body["exposure"])

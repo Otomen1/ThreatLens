@@ -3,7 +3,8 @@
 Wraps :mod:`httpx` with a request timeout and bounded retry-with-backoff for
 transient failures (timeouts, transport errors, 5xx), surfacing typed errors
 that providers map onto :class:`~threatlens.providers.results.IntelligenceResult`
-statuses. Deliberately small: no caching and no circuit breaker (later phases).
+statuses. Caching happens at the completed-investigation layer, while passive
+quota telemetry retains only allow-listed response headers.
 
 A custom ``transport`` can be injected so tests exercise the retry/error logic
 against ``httpx.MockTransport`` without touching the network.
@@ -14,7 +15,7 @@ from __future__ import annotations
 import asyncio
 import json
 from collections.abc import Awaitable, Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 import httpx
@@ -53,6 +54,7 @@ class HttpResponse:
 
     status_code: int
     text: str
+    headers: dict[str, str] = field(default_factory=dict)
 
     def json(self) -> Any:
         """Parse the body as JSON (raises ``ValueError`` on malformed input)."""
@@ -134,7 +136,24 @@ class HttpClient:
                     last_error = ProviderNetworkError(str(exc) or "transport error")
                 else:
                     if response.status_code < 500:
-                        return HttpResponse(status_code=response.status_code, text=response.text)
+                        from ..system.telemetry import observe_response
+
+                        safe_headers = {
+                            key.lower(): value for key, value in response.headers.items()
+                            if key.lower() in {
+                                "x-ratelimit-remaining", "ratelimit-remaining",
+                                "x-rate-limit-remaining", "x-ratelimit-limit",
+                                "ratelimit-limit", "x-rate-limit-limit",
+                                "x-ratelimit-reset", "ratelimit-reset",
+                                "x-rate-limit-reset", "retry-after",
+                            }
+                        }
+                        observe_response(response.status_code, safe_headers)
+                        return HttpResponse(
+                            status_code=response.status_code,
+                            text=response.text,
+                            headers=safe_headers,
+                        )
                     last_error = ProviderServerError(f"server error {response.status_code}")
 
                 if attempt < self._max_retries:

@@ -56,6 +56,19 @@ class ProviderUsage(BaseModel):
     rate_limit_remaining: int | None
     cache_hits: int
     cache_misses: int
+    rate_limit: int | None = None
+    rate_limit_reset_at: str | None = None
+    retry_after: str | None = None
+    rate_limited_count: int = 0
+    last_safe_error_code: str | None = None
+    suggested_action: str | None = None
+
+
+class ProviderEvent(BaseModel):
+    provider: str
+    status_code: int
+    rate_limited: bool
+    timestamp: str
 
 
 class KnowledgeProviderUsage(BaseModel):
@@ -147,6 +160,7 @@ class UsageResponse(BaseModel):
     investigations: InvestigationUsage
     backups: list[BackupOperationUsage] = Field(default_factory=list)
     timestamp: str
+    recent_provider_events: list[ProviderEvent] = Field(default_factory=list)
 
 
 class ConfigItem(BaseModel):

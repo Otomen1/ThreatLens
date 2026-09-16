@@ -323,6 +323,31 @@ contacting providers. `POST /api/v1/investigate/batch` remains compatible with t
 `{"query": "..."}` request and returns only safe error codes/messages; full exceptions are
 recorded server-side.
 
+### Personal quota controls
+
+- **Standard** is the default scan mode and uses every configured threat-intelligence
+  provider plus free offline knowledge. **Fast** uses the first compatible configured TI
+  provider. **Full** adds configured exposure and identity providers.
+- Results are cached for 12 hours by normalized entity, mode, routed providers, provider
+  configuration, and engine version. **Refresh now** bypasses the cache and replaces it only
+  after a successful investigation.
+- Provider exclusions apply to one request and unknown names are ignored safely.
+- The batch preview subtracts cache hits from its request estimate and warns when a provider
+  reports too little remaining quota. It never makes extra quota-check requests.
+- Interrupted browser batches can be resumed manually for 24 hours. Batch recovery is stored
+  only in IndexedDB and never contains credentials or authentication tokens.
+- Related indicators are optional, de-duplicated, capped at ten, and run through one normal
+  batch level only—there is no recursive expansion.
+- Dashboard → Configuration shows passive provider health, the last safe error, and reported
+  quota. “Not reported” means the provider supplied no authoritative quota header.
+- Saved records may contain the complete normalized snapshot, enabling same-entity comparison
+  without rerunning providers. Older summary-only records remain readable with a limitation
+  notice.
+
+These controls are designed for personal use and free-tier quotas. Quality and validation
+badges describe offline rule checks; they do not claim that a rule has run successfully in a
+live SIEM.
+
 ---
 
 ## Health & Monitoring

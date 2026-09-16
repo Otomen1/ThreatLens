@@ -26,6 +26,7 @@ from .schemas import (
     DetectionKnowledgeUsage,
     InvestigationUsage,
     KnowledgeProviderUsage,
+    ProviderEvent,
     ProviderUsage,
     UsageResponse,
 )
@@ -46,7 +47,9 @@ async def build_usage(
     from ..api.health import ai_health, knowledge_health, providers_health
 
     ti = providers_health()
-    ti_usage = [_provider_usage(item, metrics.ti_providers.get(item.name)) for item in ti.providers]
+    ti_usage = [
+        _provider_usage(item, metrics.ti_providers.get(item.name), metrics) for item in ti.providers
+    ]
 
     kb = knowledge_health()
     kb_usage = [_knowledge_usage(item, metrics.kb_providers.get(item.name)) for item in kb.datasets]
@@ -108,11 +111,39 @@ async def build_usage(
             for name, counter in sorted(metrics.backup_operations.items())
         ],
         timestamp=_now(),
+        recent_provider_events=[
+            ProviderEvent.model_validate(item) for item in metrics.provider_events[-50:]
+        ],
     )
 
 
-def _provider_usage(item: ProviderStatusItem, counter: CallCounter | None) -> ProviderUsage:
+def _provider_usage(
+    item: ProviderStatusItem, counter: CallCounter | None, metrics: MetricsRegistry
+) -> ProviderUsage:
     c = counter or CallCounter()
+    quota = metrics.provider_quota.get(item.name, {})
+    recent = [event for event in metrics.provider_events if event["provider"] == item.name]
+    status_value = recent[-1].get("status_code") if recent else None
+    last_status = status_value if isinstance(status_value, int) else None
+    error_code = (
+        "rate_limited"
+        if last_status == 429
+        else "unauthorized"
+        if last_status in {401, 403}
+        else "upstream_error"
+        if last_status is not None and last_status >= 500
+        else None
+    )
+    actions = {
+        "rate_limited": "Wait for the provider reset, then retry manually.",
+        "unauthorized": "Check the provider API key in Vercel.",
+        "upstream_error": "The provider is unavailable; retry later.",
+    }
+    action = actions.get(error_code) if error_code is not None else None
+    remaining = quota.get("remaining")
+    limit = quota.get("limit")
+    reset = quota.get("reset_at")
+    retry_after = quota.get("retry_after")
     return ProviderUsage(
         name=item.name,
         display_name=item.display_name,
@@ -124,9 +155,15 @@ def _provider_usage(item: ProviderStatusItem, counter: CallCounter | None) -> Pr
         success_rate=c.success_rate,
         avg_latency_ms=c.avg_latency_ms,
         last_request_at=c.last_request_at,
-        rate_limit_remaining=None,  # not exposed by any provider today
+        rate_limit_remaining=remaining if isinstance(remaining, int) else None,
         cache_hits=c.cache_hits,
         cache_misses=c.cache_misses,
+        rate_limit=limit if isinstance(limit, int) else None,
+        rate_limit_reset_at=reset if isinstance(reset, str) else None,
+        retry_after=retry_after if isinstance(retry_after, str) else None,
+        rate_limited_count=sum(1 for event in recent if event["rate_limited"]),
+        last_safe_error_code=error_code,
+        suggested_action=action,
     )
 
 

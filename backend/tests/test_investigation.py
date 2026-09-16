@@ -408,7 +408,10 @@ def test_investigate_unique_investigation_ids(client_with_mock_service) -> None:
     """Every request gets a distinct investigation_id."""
     client, _ = client_with_mock_service
     ids = {
-        client.post("/api/v1/investigate", json={"query": "8.8.8.8"}).json()["investigation_id"]
+        client.post(
+            "/api/v1/investigate",
+            json={"query": "8.8.8.8", "refresh": True},
+        ).json()["investigation_id"]
         for _ in range(3)
     }
     assert len(ids) == 3
@@ -437,7 +440,7 @@ def test_investigate_oversized_query_422(client_with_mock_service) -> None:
 def test_investigate_service_receives_detected_entity(client_with_mock_service) -> None:
     """The service's investigate() is called with the entity detected from the query."""
     client, mock_svc = client_with_mock_service
-    client.post("/api/v1/investigate", json={"query": "T1059"})
+    client.post("/api/v1/investigate", json={"query": "T1059", "refresh": True})
     assert mock_svc.investigate.called
     called_entity = mock_svc.investigate.call_args[0][0]
     assert called_entity.type == EntityType.MITRE_TECHNIQUE

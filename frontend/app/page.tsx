@@ -9,6 +9,8 @@ import { useBatchInvestigation } from "@/hooks/useBatchInvestigation";
 export default function HomePage() {
   const [query, setQuery] = useState("");
   const [timestamp, setTimestamp] = useState("");
+  const [scanMode, setScanMode] = useState<"fast" | "standard" | "full">("standard");
+  const [excludedProviders, setExcludedProviders] = useState<string[]>([]);
   const batch = useBatchInvestigation();
   const loading = batch.previewing || batch.running;
   const result = batch.preview?.entities.length === 1 ? batch.rows[0]?.investigation ?? null : null;
@@ -17,9 +19,9 @@ export default function HomePage() {
     const trimmed = query.trim();
     if (!trimmed) return;
 
-    await batch.prepare(trimmed);
+    await batch.prepare(trimmed, { scanMode, excludedProviders });
     setTimestamp(new Date().toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }));
-  }, [query, batch]);
+  }, [query, batch, scanMode, excludedProviders]);
 
   return (
     <main className="min-h-screen flex flex-col items-center px-4 py-12 sm:py-20">
@@ -100,6 +102,13 @@ export default function HomePage() {
           <p className="mt-2 text-center text-[11px] text-zinc-600">Paste free-form notes or a list; ThreatLens extracts up to 20 supported IOCs. Press Enter to search, Shift+Enter for a new line.</p>
         </div>
 
+        <div className="flex flex-wrap items-center justify-center gap-3 text-xs">
+          <label className="text-zinc-500">Scan mode <select value={scanMode} onChange={(event) => setScanMode(event.target.value as typeof scanMode)} className="ml-2 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-zinc-200"><option value="fast">Fast</option><option value="standard">Standard</option><option value="full">Full</option></select></label>
+          <details className="relative"><summary className="cursor-pointer rounded-lg border border-zinc-800 px-3 py-2 text-zinc-400">Provider exclusions ({excludedProviders.length})</summary><div className="absolute right-0 z-20 mt-2 w-52 space-y-2 rounded-xl border border-zinc-800 bg-zinc-950 p-3 shadow-xl">{["malwarebazaar", "urlhaus", "abuseipdb", "otx", "virustotal"].map((provider) => <label key={provider} className="flex items-center gap-2 text-zinc-300"><input type="checkbox" checked={excludedProviders.includes(provider)} onChange={(event) => setExcludedProviders((current) => event.target.checked ? [...current, provider] : current.filter((item) => item !== provider))} />{provider}</label>)}</div></details>
+        </div>
+
+        {batch.recoverable && !batch.preview && <div className="rounded-xl border border-sky-500/30 bg-sky-500/10 p-4 text-sm text-sky-200"><p>A previous batch can be recovered.</p><div className="mt-3 flex gap-2"><button onClick={batch.resume} className="rounded-lg bg-sky-600 px-3 py-2 text-xs text-white">Resume previous batch</button><button onClick={batch.discardRecovery} className="rounded-lg border border-sky-500/30 px-3 py-2 text-xs">Discard</button></div></div>}
+
         {/* Error */}
         {batch.error && (
           <div
@@ -137,7 +146,8 @@ export default function HomePage() {
       {/* Investigation workspace — wider than the search box */}
       {result && !batch.error && (
         <div className="w-full max-w-5xl mt-10">
-          <InvestigationWorkspace data={result} timestamp={timestamp} />
+          <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 p-3 text-xs text-zinc-400"><span className={result.cache.status === "hit" ? "text-emerald-300" : "text-zinc-300"}>{result.cache.status === "hit" ? `Cached result · ${result.cache.age_seconds ?? 0}s old` : result.cache.status === "refreshed" ? "Freshly refreshed" : "Fresh provider result"}</span><span>· {result.scan_mode} scan · {result.routed_providers.length} TI providers</span><button onClick={() => void batch.prepare(query.trim(), { scanMode, excludedProviders, refresh: true })} className="ml-auto underline text-sky-300">Refresh now</button></div>
+          <InvestigationWorkspace data={result} timestamp={timestamp} onInvestigateRelated={(related) => { setQuery(related); void batch.prepare(related, { scanMode: "standard" }); }} />
         </div>
       )}
 

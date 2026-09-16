@@ -171,8 +171,6 @@ def get_investigation(
         return service.get(investigation_id)
     except InvestigationNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
-
-
 @router.get("/api/v1/workspace/{investigation_id}/timeline", response_model=Timeline)
 def get_investigation_timeline(
     investigation_id: UUID,
@@ -252,6 +250,8 @@ def compare_investigations(
         return compare(service.get(investigation_id), service.get(other_id))
     except InvestigationNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.put("/api/v1/workspace/{investigation_id}", response_model=WorkspaceInvestigation)

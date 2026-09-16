@@ -73,6 +73,7 @@ class WorkspaceService:
             investigation_summary=request.investigation_summary,
             detection_package=request.detection_package,
             correlation_summary=request.correlation_summary,
+            investigation_snapshot=request.investigation_snapshot,
         )
         self._storage.save(record)
         return record

@@ -12,6 +12,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
+from datetime import UTC, datetime
 from typing import Annotated
 from uuid import uuid4
 
@@ -24,7 +25,7 @@ from ...exposure import ExposureService
 from ...exposure import build_default_registry as build_exposure_registry
 from ...identity import IdentityService
 from ...identity import build_default_registry as build_identity_registry
-from ...investigation import InvestigationService
+from ...investigation import InvestigationCache, InvestigationService, cache_key
 from ...providers import build_default_router
 from ...reasoning import reason
 from ...reference import build_default_reference_router
@@ -38,6 +39,7 @@ from ..schemas import (
     BatchPreviewResponse,
     DetectRequest,
     DetectResponse,
+    InvestigationCacheMetadata,
     InvestigationResponse,
 )
 from ..timing import elapsed_ms
@@ -54,6 +56,7 @@ _investigation_service = InvestigationService(
 _exposure_service = ExposureService(build_exposure_registry())
 _correlation_service = CorrelationService()
 _identity_service = IdentityService(build_identity_registry())
+_investigation_cache = InvestigationCache()
 
 
 def get_investigation_service() -> InvestigationService:
@@ -86,17 +89,52 @@ async def investigate_entity(
     Providers that fail contribute their status, not an exception.
     """
     entity = detect(request.query)
+    return await _run_investigation(entity, request=request, service=service)
+
+
+async def _run_investigation(
+    entity: Entity, *, request: DetectRequest, service: InvestigationService
+) -> InvestigationResponse:
+    excluded = frozenset(request.excluded_providers)
+    routed = service.routed_provider_names(
+        entity, scan_mode=request.scan_mode.value, excluded_providers=excluded
+    )
+    key = cache_key(
+        entity_type=entity.type.value,
+        value=entity.normalized_value,
+        scan_mode=request.scan_mode.value,
+        providers=routed,
+    )
+    cache_enabled = service is _investigation_service
+    if cache_enabled and not request.refresh:
+        cached = _investigation_cache.get(key)
+        if cached is not None:
+            now = datetime.now(UTC)
+            response = InvestigationResponse.model_validate(cached.payload)
+            return response.model_copy(
+                update={
+                    "cache": InvestigationCacheMetadata(
+                        status="hit",
+                        cached_at=cached.cached_at,
+                        expires_at=cached.expires_at,
+                        age_seconds=max(0, int((now - cached.cached_at).total_seconds())),
+                    )
+                }
+            )
     _start = time.perf_counter()
-    threat_intelligence, knowledge = await service.investigate(entity)
+    threat_intelligence, knowledge = await service.investigate(
+        entity, scan_mode=request.scan_mode.value, excluded_providers=excluded
+    )
     _duration_ms = elapsed_ms(_start)
     investigation_summary = reason(entity, threat_intelligence, knowledge)
     # These are additive downstream views. Exposure remains descriptive and
     # correlation consumes the frozen summary without changing its findings.
-    exposure, correlation, identity = await asyncio.gather(
-        _exposure_service.investigate(entity),
-        asyncio.to_thread(_correlation_service.correlate, investigation_summary),
-        _identity_service.investigate(entity),
-    )
+    correlation = await asyncio.to_thread(_correlation_service.correlate, investigation_summary)
+    exposure = identity = None
+    if request.scan_mode.value == "full":
+        exposure, identity = await asyncio.gather(
+            _exposure_service.investigate(entity), _identity_service.investigate(entity)
+        )
     record_investigation(
         metrics_registry,
         threat_intelligence=threat_intelligence,
@@ -104,7 +142,7 @@ async def investigate_entity(
         summary=investigation_summary,
         duration_ms=_duration_ms,
     )
-    return InvestigationResponse(
+    response = InvestigationResponse(
         investigation_id=uuid4(),
         entity=entity,
         threat_intelligence=threat_intelligence,
@@ -113,6 +151,21 @@ async def investigate_entity(
         exposure=exposure,
         correlation=correlation,
         identity=identity,
+        scan_mode=request.scan_mode,
+        routed_providers=routed,
+    )
+    if not cache_enabled:
+        return response
+    entry = _investigation_cache.set(key, response)
+    return response.model_copy(
+        update={
+            "cache": InvestigationCacheMetadata(
+                status="refreshed" if request.refresh else "miss",
+                cached_at=entry.cached_at,
+                expires_at=entry.expires_at,
+                age_seconds=0,
+            )
+        }
     )
 
 
@@ -142,31 +195,11 @@ async def investigate_ioc_batch(
     async def run(entity: Entity) -> BatchInvestigationItem:
         async with semaphore:
             try:
-                # Use the existing endpoint path's implementation by retaining
-                # its full enrichment and deterministic reasoning sequence.
-                started = time.perf_counter()
-                ti, knowledge = await service.investigate(entity)
-                summary = reason(entity, ti, knowledge)
-                exposure, correlation, identity = await asyncio.gather(
-                    _exposure_service.investigate(entity),
-                    asyncio.to_thread(_correlation_service.correlate, summary),
-                    _identity_service.investigate(entity),
-                )
-                record_investigation(
-                    metrics_registry,
-                    threat_intelligence=ti,
-                    knowledge=knowledge,
-                    summary=summary,
-                    duration_ms=elapsed_ms(started),
-                )
+                investigation = await _run_investigation(entity, request=request, service=service)
                 return BatchInvestigationItem(
                     entity=entity,
                     status=BatchItemStatus.COMPLETED,
-                    investigation=InvestigationResponse(
-                        investigation_id=uuid4(), entity=entity, threat_intelligence=ti,
-                        knowledge=knowledge, investigation_summary=summary, exposure=exposure,
-                        correlation=correlation, identity=identity,
-                    ),
+                    investigation=investigation,
                 )
             except Exception:  # One IOC must not discard successful rows.
                 logger.exception(
@@ -205,7 +238,30 @@ def preview_ioc_batch(
             entities = [detected]
     if not entities:
         raise HTTPException(status_code=422, detail="No supported indicator or entity was found.")
-    estimate = sum(service.estimate_ti_requests(entity) for entity in entities)
+    excluded = frozenset(request.excluded_providers)
+    cached_items = 0
+    estimate = 0
+    provider_estimates: dict[str, int] = {}
+    for entity in entities:
+        routed = service.routed_provider_names(
+            entity, scan_mode=request.scan_mode.value, excluded_providers=excluded
+        )
+        key = cache_key(
+            entity_type=entity.type.value,
+            value=entity.normalized_value,
+            scan_mode=request.scan_mode.value,
+            providers=routed,
+        )
+        if (
+            service is _investigation_service
+            and not request.refresh
+            and _investigation_cache.get(key) is not None
+        ):
+            cached_items += 1
+        else:
+            estimate += len(routed)
+            for provider in routed:
+                provider_estimates[provider] = provider_estimates.get(provider, 0) + 1
     requires_confirmation = len(entities) >= 6
     warning = None
     if requires_confirmation:
@@ -213,6 +269,14 @@ def preview_ioc_batch(
             "Large batches may consume free-provider quotas. The estimate covers routed "
             "threat-intelligence providers only."
         )
+    quota_warnings = []
+    for provider, requests in sorted(provider_estimates.items()):
+        remaining = metrics_registry.provider_quota.get(provider, {}).get("remaining")
+        if isinstance(remaining, int) and requests >= remaining:
+            quota_warnings.append(
+                f"{provider} reports {remaining} requests remaining; "
+                f"this batch estimates {requests}."
+            )
     return BatchPreviewResponse(
         entities=entities,
         supported=len(entities),
@@ -222,4 +286,8 @@ def preview_ioc_batch(
         requires_confirmation=requires_confirmation,
         quota_warning=warning,
         single_entity=single,
+        cached_items=cached_items,
+        estimated_uncached_calls=estimate,
+        scan_mode=request.scan_mode,
+        quota_warnings=quota_warnings,
     )

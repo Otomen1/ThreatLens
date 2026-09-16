@@ -21,13 +21,15 @@ import { ReferenceSection } from "./investigation/ReferenceSection";
 import { RelationshipSection } from "./investigation/RelationshipSection";
 import { ThreatSummaryCard } from "./investigation/ThreatSummaryCard";
 import { ContextSignalsCard } from "./investigation/ContextSignalsCard";
+import { RelatedExpansion } from "./investigation/RelatedExpansion";
 
 interface Props {
   data: InvestigationResponse;
   timestamp: string;
+  onInvestigateRelated?: (query: string) => void;
 }
 
-export function InvestigationWorkspace({ data, timestamp }: Props) {
+export function InvestigationWorkspace({ data, timestamp, onInvestigateRelated }: Props) {
   const { entity, threat_intelligence, knowledge, investigation_id } = data;
   const summary = data.investigation_summary;
   const { exposure, correlation } = data;
@@ -62,7 +64,7 @@ export function InvestigationWorkspace({ data, timestamp }: Props) {
       {/* ── 0. Save to Workspace (Phase 8.0 — persistence, separate from search) ── */}
       {summary && (
         <div className="flex justify-end">
-          <SaveInvestigationButton entity={entity} investigationSummary={summary} />
+          <SaveInvestigationButton investigation={data} />
         </div>
       )}
 
@@ -84,6 +86,7 @@ export function InvestigationWorkspace({ data, timestamp }: Props) {
       <ProviderAgreementCard result={threat_intelligence} />
 
       <ContextSignalsCard exposure={exposure} correlation={correlation} />
+      <RelatedExpansion entity={entity} relationships={allRelationships} onInvestigate={onInvestigateRelated} />
 
       {/* ── 3. Recommendations (rollup, priority-ordered) ─────────── */}
       {summary && <RecommendationRollup recommendations={summary.recommendations} />}
