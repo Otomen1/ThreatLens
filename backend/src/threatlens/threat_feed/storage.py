@@ -58,28 +58,43 @@ class FeedStorage:
         )
 
     def save_items(self, items: Iterable[ThreatFeedItem]) -> int:
-        added = 0
-        for item in items:
-            if self.get_item(item.id) is not None:
-                continue
-            payload = item.model_dump_json()
-            if self.psycopg is not None:
-                with self.psycopg.connect(self.url) as db:
-                    db.execute(
+        candidates = list(items)
+        if not candidates:
+            return 0
+        if self.psycopg is not None:
+            with self.psycopg.connect(self.url) as db:
+                existing = {
+                    str(row[0])
+                    for row in db.execute("SELECT id FROM threat_feed_items").fetchall()
+                }
+                new_items = [item for item in candidates if item.id not in existing]
+                with db.cursor() as cursor:
+                    cursor.executemany(
                         "INSERT INTO threat_feed_items VALUES (%s,%s,%s::jsonb) "
                         "ON CONFLICT DO NOTHING",
-                        (item.id, item.published_at.isoformat(), payload),
+                        [
+                            (item.id, item.published_at.isoformat(), item.model_dump_json())
+                            for item in new_items
+                        ],
                     )
-            elif self.backend == "sqlite":
-                with sqlite3.connect(self.path) as db:
-                    db.execute(
-                        "INSERT OR IGNORE INTO threat_feed_items VALUES (?,?,?)",
-                        (item.id, item.published_at.isoformat(), payload),
-                    )
-            else:
-                self.memory_items[item.id] = item
-            added += 1
-        return added
+            return len(new_items)
+        if self.backend == "sqlite":
+            with sqlite3.connect(self.path) as db:
+                existing = {
+                    str(row[0]) for row in db.execute("SELECT id FROM threat_feed_items").fetchall()
+                }
+                new_items = [item for item in candidates if item.id not in existing]
+                db.executemany(
+                    "INSERT OR IGNORE INTO threat_feed_items VALUES (?,?,?)",
+                    [
+                        (item.id, item.published_at.isoformat(), item.model_dump_json())
+                        for item in new_items
+                    ],
+                )
+            return len(new_items)
+        new_items = [item for item in candidates if item.id not in self.memory_items]
+        self.memory_items.update({item.id: item for item in new_items})
+        return len(new_items)
 
     def list_items(self) -> list[ThreatFeedItem]:
         if self.psycopg is not None:
