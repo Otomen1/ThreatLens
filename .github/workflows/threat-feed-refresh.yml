@@ -1,0 +1,27 @@
+name: Refresh Threat Feed
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refresh production threat feed
+        env:
+          REFRESH_URL: ${{ secrets.THREAT_FEED_REFRESH_URL }}
+          CRON_SECRET: ${{ secrets.THREAT_FEED_CRON_SECRET }}
+        run: |
+          test -n "$REFRESH_URL"
+          test -n "$CRON_SECRET"
+          curl --fail-with-body --silent --show-error \
+            --retry 2 --retry-all-errors \
+            --max-time 300 \
+            -X POST \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$REFRESH_URL"

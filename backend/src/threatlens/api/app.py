@@ -34,6 +34,7 @@ from .routes import (
     exposure,
     identity,
     investigation,
+    threat_feed,
     workspace,
 )
 from .routes.ai import get_ai_service as get_ai_service
@@ -144,7 +145,8 @@ async def protect_api(request: Request, call_next: RequestResponseEndpoint) -> R
     are rate-limited per client IP.
     """
     path = request.url.path
-    if _API_KEY and path.startswith("/api/v1") and path not in _PUBLIC_PATHS:
+    is_public = path in _PUBLIC_PATHS or path.startswith("/api/v1/threat-feed")
+    if _API_KEY and path.startswith("/api/v1") and not is_public:
         supplied = request.headers.get("x-api-key", "")
         if not hmac.compare_digest(supplied, _API_KEY):
             return JSONResponse(status_code=401, content={"detail": "Invalid API key"})
@@ -184,6 +186,7 @@ app.include_router(
 
 # Core entity detection + investigation (TI + reference providers, reasoning).
 app.include_router(investigation.router)
+app.include_router(threat_feed.router)
 
 # Investigation Workspace: a persistence layer over completed investigations
 # (save/load/update/delete/list), plus two read-only, derived sibling views â€”

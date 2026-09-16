@@ -7,7 +7,10 @@ import { InvestigationWorkspace } from "@/components/InvestigationWorkspace";
 import { useBatchInvestigation } from "@/hooks/useBatchInvestigation";
 
 export default function HomePage() {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return new URLSearchParams(window.location.search).get("q") ?? "";
+  });
   const [timestamp, setTimestamp] = useState("");
   const [scanMode, setScanMode] = useState<"fast" | "standard" | "full">("standard");
   const [excludedProviders, setExcludedProviders] = useState<string[]>([]);

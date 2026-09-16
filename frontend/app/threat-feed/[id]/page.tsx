@@ -1,0 +1,18 @@
+"use client";
+
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { getFeedItem, type FeedItem } from "@/lib/api/threatFeed";
+import { bookmarks, markViewed, toggleBookmark } from "@/lib/threatFeedState";
+
+export default function ThreatFeedDetailPage() {
+  const { id } = useParams<{ id: string }>(); const [item, setItem] = useState<FeedItem | null>(null); const [error, setError] = useState(""); const [saved, setSaved] = useState(false);
+  useEffect(() => { setSaved(bookmarks().has(id)); void getFeedItem(id).then((value) => { setItem(value); markViewed(value.id); }).catch(() => setError("This feed item is unavailable.")); }, [id]);
+  if (error) return <main className="mx-auto max-w-3xl px-4 py-14"><p className="rounded-xl border border-red-900 bg-red-950/30 p-4 text-red-300">{error}</p></main>;
+  if (!item) return <main className="mx-auto max-w-3xl px-4 py-14 text-sm text-zinc-500">Loading report…</main>;
+  return <main className="min-h-screen px-4 py-10"><article className="mx-auto max-w-3xl space-y-6"><Link href="/threat-feed" className="text-sm text-zinc-500 hover:text-zinc-200">← Back to Threat Feed</Link><header className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6"><div className="flex flex-wrap gap-2 text-xs text-zinc-500"><span>{item.source_name}</span><time>{new Date(item.published_at).toLocaleString()}</time><span className="rounded border border-zinc-700 px-2 py-0.5">{item.topic.replaceAll("_", " ")}</span></div><h1 className="mt-4 text-2xl font-semibold leading-tight">{item.title}</h1><div className="mt-5 flex flex-wrap gap-2"><a href={item.url} target="_blank" rel="noreferrer" className="rounded-lg bg-sky-600 px-3 py-2 text-sm font-medium text-white hover:bg-sky-500">Read at publisher ↗</a><button onClick={() => setSaved(toggleBookmark(item.id))} className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-800">{saved ? "Bookmarked" : "Bookmark locally"}</button></div></header>
+  <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6"><h2 className="font-medium">Structured summary</h2><p className="mt-3 whitespace-pre-line text-sm leading-6 text-zinc-300">{item.summary}</p><p className="mt-4 text-xs text-zinc-500">Generated deterministically from publisher-supplied metadata. Open the source for full context.</p></section>
+  <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6"><h2 className="font-medium">Why this appears in {item.region.replaceAll("_", " ")}</h2><ul className="mt-3 space-y-2 text-sm text-zinc-400">{item.region_reasons.map((reason) => <li key={reason}>• {reason}</li>)}</ul></section>
+  <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6"><h2 className="font-medium">Source-reported entities</h2><p className="mt-1 text-xs text-amber-300">Unverified — not automatically treated as malicious.</p>{item.entities.length === 0 ? <p className="mt-4 text-sm text-zinc-500">No supported entities were present in the source metadata.</p> : <div className="mt-4 space-y-2">{item.entities.map((entity) => <div key={`${entity.type}-${entity.normalized_value}`} className="flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-950 p-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="break-all font-mono text-sm text-zinc-200">{entity.value}</p><p className="text-xs text-zinc-600">{entity.type} · source-reported · unverified</p></div><Link href={`/?q=${encodeURIComponent(entity.normalized_value)}`} className="rounded-lg border border-sky-600/40 px-3 py-2 text-center text-xs text-sky-300 hover:bg-sky-500/10">Investigate</Link></div>)}</div>}</section></article></main>;
+}

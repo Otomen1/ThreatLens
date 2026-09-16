@@ -1,5 +1,16 @@
 # ThreatLens
 
+## Threat Feed
+
+ThreatLens includes a public, read-only Threat Feed at `/threat-feed`. It collects compact publisher metadata from trusted cybersecurity news and official advisory sources, retains it for 30 days, and routes each item into Global, Malaysia, or Southeast Asia. Summaries and entity extraction are deterministic; full articles remain at the publisher, and extracted entities are labelled source-reported and unverified.
+
+Public refreshes are durably limited to once every 30 minutes. For six-hour scheduled refreshes, set `THREAT_FEED_CRON_SECRET` in Vercel, then add these GitHub repository secrets:
+
+- `THREAT_FEED_REFRESH_URL`: `https://your-domain/api/v1/threat-feed/refresh/scheduled`
+- `THREAT_FEED_CRON_SECRET`: the same long random value configured in Vercel
+
+The workflow can also be started manually from GitHub Actions. Read state and bookmarks stay in the current browser and are not included in database backups. Source failures are isolated and never delete previously collected items.
+
 **A search-first, deterministic threat-intelligence and investigation platform.**
 
 [![CI](https://github.com/Otomen1/ThreatLens/actions/workflows/ci.yml/badge.svg)](https://github.com/Otomen1/ThreatLens/actions/workflows/ci.yml)

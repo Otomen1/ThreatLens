@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/browser";
 
 const links = [
   ["/", "Search"],
+  ["/threat-feed", "Threat Feed"],
   ["/workspace", "Workspace"],
   ["/detections", "Detections"],
   ["/cases", "Cases"],

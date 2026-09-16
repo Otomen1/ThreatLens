@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getBackupHistory, restoreBackup, testBackup, validateBackup, type BackupHistoryEntry, type BackupPreview } from "@/lib/api";
+import { getFeedSources, type FeedSource } from "@/lib/api/threatFeed";
 
 export default function SettingsPage() {
   const [bundle, setBundle] = useState<unknown>(null);
@@ -9,8 +10,10 @@ export default function SettingsPage() {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [history, setHistory] = useState<BackupHistoryEntry[]>([]);
+  const [feedSources, setFeedSources] = useState<FeedSource[]>([]);
 
   useEffect(() => { void getBackupHistory().then((result) => setHistory(result.entries)).catch(() => undefined); }, []);
+  useEffect(() => { void getFeedSources().then(setFeedSources).catch(() => undefined); }, []);
 
   async function verifyTestRestore() {
     if (!bundle || !preview?.valid) return;
@@ -69,6 +72,7 @@ export default function SettingsPage() {
           {message && <p className="rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-sm text-zinc-300" role="status">{message}</p>}
           {history.length > 0 && <div className="border-t border-zinc-800 pt-5"><h3 className="text-sm font-medium text-zinc-200">Recent backup activity</h3><div className="mt-3 space-y-2">{history.slice(0, 6).map((entry) => <div key={`${entry.timestamp}-${entry.operation}`} className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs"><span className="capitalize text-zinc-300">{entry.operation} · {entry.status}</span><span className="text-zinc-500">{entry.investigations} investigations · {entry.cases} cases · {new Date(entry.timestamp).toLocaleString()}</span></div>)}</div><p className="mt-2 text-[11px] text-zinc-600">Activity history is process-local and resets when the server restarts.</p></div>}
         </section>
+        <section className="space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-5"><div><h2 className="font-medium text-white">Threat Feed sources</h2><p className="mt-1 text-sm text-zinc-500">Passive source status. These checks never spend threat-intelligence quota.</p></div>{feedSources.map((source) => <div key={source.id} className="flex flex-col gap-2 rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-sm sm:flex-row sm:items-center sm:justify-between"><div><p className="text-zinc-200">{source.name}</p><p className="text-xs text-zinc-600">{source.kind} · {source.last_success_at ? `last success ${new Date(source.last_success_at).toLocaleString()}` : "not refreshed yet"}</p></div><span className={`text-xs ${source.last_error_code ? "text-amber-300" : "text-emerald-300"}`}>{source.last_error_code ? source.last_error ?? source.last_error_code : source.enabled ? "Ready" : "Disabled"}</span></div>)}</section>
       </div>
     </main>
   );
