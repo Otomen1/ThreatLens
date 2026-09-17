@@ -168,7 +168,8 @@ Production: `npm run build && npm start`. The frontend also deploys to Vercel (s
 - Every generated rule includes an explainable 0–100 readiness score and evidence-freshness status. These are triage aids, not proof that a rule will work in a live SIEM.
 - Investigation results show provider agreement while keeping malicious, suspicious, benign, unknown, no-data, and failed lookups distinct.
 - With `THREATLENS_STORAGE_BACKEND=postgres`, both investigations and Cases use `DATABASE_URL`.
-- The authenticated **Settings** page downloads a versioned JSON backup, validates it, and can run an isolated in-memory test restore before a non-destructive live restore. Restore adds missing records and updates matching IDs only when the backup record is newer; it never deletes records. Backups never contain environment variables or API keys.
+- The authenticated **Settings** page downloads a versioned JSON backup, validates it, and can run an isolated in-memory test restore before a non-destructive live restore. Restore adds missing records and updates matching IDs only when the backup record is newer; it never deletes records. PostgreSQL restores commit investigations and cases in one transaction. Backups are limited to 10 MB and 5,000 records per collection, and never contain environment variables or API keys.
+- Private API routes validate the signed-in Supabase access token. Health and Threat Feed routes remain public; automation may optionally use `THREATLENS_API_KEY` as a server-side service credential. Never expose that service key through a `NEXT_PUBLIC_` variable.
 - CI runs Ruff, strict mypy, backend/frontend tests, a production build, mocked-auth Playwright, and a high-confidence credential scan. Dependabot checks Python, npm, and GitHub Actions weekly at no cost.
 
 ### Ollama (optional — AI explanations)

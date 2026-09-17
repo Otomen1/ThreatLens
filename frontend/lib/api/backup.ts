@@ -1,4 +1,4 @@
-import { get, post } from "./client";
+import { ApiError, authorizedFetch, get, post } from "./client";
 
 export interface BackupPreview {
   valid: boolean;
@@ -40,4 +40,10 @@ export function testBackup(bundle: unknown): Promise<BackupTestResult> {
 
 export function getBackupHistory(): Promise<{ entries: BackupHistoryEntry[] }> {
   return get<{ entries: BackupHistoryEntry[] }>("/backup/history");
+}
+
+export async function downloadBackup(): Promise<Blob> {
+  const response = await authorizedFetch("/backup", { method: "GET" });
+  if (!response.ok) throw new ApiError(`Request failed (${response.status}).`, response.status);
+  return response.blob();
 }

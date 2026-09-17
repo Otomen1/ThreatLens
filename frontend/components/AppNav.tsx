@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/browser";
 
@@ -21,6 +21,7 @@ const AUTHENTICATED_LINKS = new Set(["/workspace", "/detections", "/cases", "/se
 
 export function AppNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const [signedIn, setSignedIn] = useState(false);
   useEffect(() => {
     const client = createClient();
@@ -31,7 +32,8 @@ export function AppNav() {
 
   async function signOut() {
     await createClient().auth.signOut();
-    window.location.assign("/");
+    router.push("/");
+    router.refresh();
   }
   return (
     <nav className="sticky top-0 z-40 border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur" aria-label="Primary navigation">

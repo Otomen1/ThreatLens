@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict
 
-from .models import WorkspaceInvestigation
+from .models import InvestigationSnapshot, WorkspaceInvestigation
 
 
 class FindingChange(BaseModel):
@@ -122,28 +122,28 @@ def compare(
     )
 
 
-def _evidence_keys(snapshot: object | None) -> set[str]:
+def _evidence_keys(snapshot: InvestigationSnapshot | None) -> set[str]:
     if snapshot is None:
         return set()
     return {
         f"{item.evidence.type}:{item.evidence.summary}:{item.evidence.value or ''}"
-        for item in snapshot.threat_intelligence.evidence  # type: ignore[attr-defined]
+        for item in snapshot.threat_intelligence.evidence
     }
 
 
-def _provider_states(snapshot: object | None) -> dict[str, str]:
+def _provider_states(snapshot: InvestigationSnapshot | None) -> dict[str, str]:
     if snapshot is None:
         return {}
     return {
         item.provider: item.status.value
-        for item in snapshot.threat_intelligence.providers  # type: ignore[attr-defined]
+        for item in snapshot.threat_intelligence.providers
     }
 
 
-def _conflict(snapshot: object | None) -> bool | None:
+def _conflict(snapshot: InvestigationSnapshot | None) -> bool | None:
     if snapshot is None:
         return None
-    return snapshot.threat_intelligence.agreement.conflicted  # type: ignore[attr-defined,no-any-return]
+    return snapshot.threat_intelligence.agreement.conflicted
 
 
 def _detection_changes(

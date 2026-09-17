@@ -8,6 +8,9 @@ node_modules/
 # Generated
 next-env.d.ts
 *.tsbuildinfo
+AGENTS.md
+CLAUDE.md
+test-results/
 
 # Vercel
 .vercel

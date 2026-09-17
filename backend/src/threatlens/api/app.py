@@ -23,6 +23,7 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import RequestResponseEndpoint
 
 from ..system import build_system_router
+from .auth import supabase_auth_config, verify_supabase_token
 from .health import router as health_router
 from .routes import (
     ai,
@@ -68,6 +69,7 @@ _PUBLIC_PATHS = {
     "/api/v1/ready",
     "/api/v1/version",
 }
+_MAX_BACKUP_BYTES = 10_000_000
 
 app = FastAPI(
     title="ThreatLens API",
@@ -137,21 +139,37 @@ async def request_context(request: Request, call_next: RequestResponseEndpoint) 
 
 @app.middleware("http")
 async def protect_api(request: Request, call_next: RequestResponseEndpoint) -> Response:
-    """Protect deployed API instances when an API key is configured.
+    """Protect private API routes with Supabase auth or a service API key.
 
-    Local development remains unchanged when ``THREATLENS_API_KEY`` is unset;
-    deployed instances should always set it through the platform secret store.
-    Health probes stay public, while all other API routes require the key and
-    are rate-limited per client IP.
+    Local development remains unchanged when neither authentication mechanism
+    is configured.  Browser requests use their Supabase bearer token; scripts
+    may use the optional service API key.  Public health and Threat Feed routes
+    remain accessible without either credential.
     """
     path = request.url.path
     is_public = path in _PUBLIC_PATHS or path.startswith("/api/v1/threat-feed")
-    if _API_KEY and path.startswith("/api/v1") and not is_public:
+    if request.method == "OPTIONS":
+        return await call_next(request)
+    if request.method == "POST" and path.startswith("/api/v1/backup"):
+        content_length = request.headers.get("content-length")
+        if content_length:
+            try:
+                if int(content_length) > _MAX_BACKUP_BYTES:
+                    return JSONResponse(status_code=413, content={"detail": "Backup is too large"})
+            except ValueError:
+                return JSONResponse(status_code=400, content={"detail": "Invalid content length"})
+    is_private_api = path.startswith("/api/v1") and not is_public
+    auth_config = supabase_auth_config()
+    if is_private_api and (auth_config is not None or _API_KEY):
         supplied = request.headers.get("x-api-key", "")
-        if not hmac.compare_digest(supplied, _API_KEY):
-            return JSONResponse(status_code=401, content={"detail": "Invalid API key"})
+        api_key_valid = bool(_API_KEY) and hmac.compare_digest(supplied, _API_KEY)
+        bearer = request.headers.get("authorization", "")
+        token = bearer[7:].strip() if bearer.lower().startswith("bearer ") else ""
+        user_valid = bool(token and auth_config and await verify_supabase_token(token, auth_config))
+        if not api_key_valid and not user_valid:
+            return JSONResponse(status_code=401, content={"detail": "Authentication required"})
 
-        if _RATE_LIMIT > 0:
+        if _RATE_LIMIT > 0 and api_key_valid:
             now = time.monotonic()
             client = request.client.host if request.client else "unknown"
             with _RATE_LOCK:

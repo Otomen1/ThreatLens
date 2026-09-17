@@ -14,150 +14,90 @@ export class ApiError extends Error {
   }
 }
 
-/**
- * POST `body` to an API path and return the parsed JSON.
- *
- * Pass an {@link AbortSignal} to cancel an in-flight request; an abort
- * propagates as a `DOMException` named `AbortError` (re-thrown, not wrapped).
- */
-export async function post<T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> {
-  let res: Response;
-  try {
-    res = await fetch(`${API_BASE}${path}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal,
-    });
-  } catch (err) {
-    if (err instanceof DOMException && err.name === "AbortError") throw err;
-    throw new ApiError("Could not reach the service.");
-  }
-
-  if (!res.ok) {
-    let message = `Request failed (${res.status}).`;
-    if (res.status === 404) message = "Not found.";
-    if (res.status === 422) message = "That request could not be processed.";
-    throw new ApiError(message, res.status);
-  }
-
-  return (await res.json()) as T;
+async function accessToken(): Promise<string | undefined> {
+  if (
+    typeof window === "undefined"
+    || !process.env.NEXT_PUBLIC_SUPABASE_URL
+    || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+  ) return undefined;
+  const { createClient } = await import("@/lib/supabase/browser");
+  const { data } = await createClient().auth.getSession();
+  return data.session?.access_token;
 }
 
-/** POST `{ query }` to an API path and return the parsed JSON. */
+function errorMessage(status: number): string {
+  if (status === 401) return "Please sign in again.";
+  if (status === 404) return "Not found.";
+  if (status === 409) return "That change is not allowed from the current state.";
+  if (status === 413) return "That file is too large.";
+  if (status === 422) return "That request could not be processed.";
+  return `Request failed (${status}).`;
+}
+
+/** Fetch an API path with the signed-in user's Supabase access token. */
+export async function authorizedFetch(
+  path: string,
+  init: RequestInit = {},
+): Promise<Response> {
+  const token = await accessToken();
+  const headers = new Headers(init.headers);
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  try {
+    return await fetch(`${API_BASE}${path}`, { ...init, headers });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") throw error;
+    throw new ApiError("Could not reach the service.");
+  }
+}
+
+async function request<T>(
+  path: string,
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
+  body?: unknown,
+  signal?: AbortSignal,
+  cache?: RequestCache,
+): Promise<T> {
+  const headers = body === undefined ? undefined : { "Content-Type": "application/json" };
+  const response = await authorizedFetch(path, {
+    method,
+    headers,
+    body: body === undefined ? undefined : JSON.stringify(body),
+    signal,
+    cache,
+  });
+  if (!response.ok) throw new ApiError(errorMessage(response.status), response.status);
+  if (response.status === 204) return undefined as T;
+  return (await response.json()) as T;
+}
+
+export function post<T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> {
+  return request<T>(path, "POST", body, signal);
+}
+
 export function postQuery<T>(path: string, query: string, signal?: AbortSignal): Promise<T> {
   return post<T>(path, { query }, signal);
 }
 
-/** GET an API path and return the parsed JSON (used by read-only health checks). */
-export async function get<T>(path: string, signal?: AbortSignal): Promise<T> {
-  let res: Response;
-  try {
-    res = await fetch(`${API_BASE}${path}`, { method: "GET", signal });
-  } catch (err) {
-    if (err instanceof DOMException && err.name === "AbortError") throw err;
-    throw new ApiError("Could not reach the service.");
-  }
-  if (!res.ok) throw new ApiError(`Request failed (${res.status}).`, res.status);
-  return (await res.json()) as T;
+export function get<T>(path: string, signal?: AbortSignal): Promise<T> {
+  return request<T>(path, "GET", undefined, signal);
 }
 
-/** GET while bypassing browser and intermediary caches after an explicit refresh. */
-export async function getUncached<T>(path: string, signal?: AbortSignal): Promise<T> {
-  let res: Response;
-  try {
-    res = await fetch(`${API_BASE}${path}`, { method: "GET", cache: "no-store", signal });
-  } catch (err) {
-    if (err instanceof DOMException && err.name === "AbortError") throw err;
-    throw new ApiError("Could not reach the service.");
-  }
-  if (!res.ok) throw new ApiError(`Request failed (${res.status}).`, res.status);
-  return (await res.json()) as T;
+export function getUncached<T>(path: string, signal?: AbortSignal): Promise<T> {
+  return request<T>(path, "GET", undefined, signal, "no-store");
 }
 
-/** PUT `body` to an API path and return the parsed JSON (used by the Workspace's update). */
-export async function put<T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> {
-  let res: Response;
-  try {
-    res = await fetch(`${API_BASE}${path}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal,
-    });
-  } catch (err) {
-    if (err instanceof DOMException && err.name === "AbortError") throw err;
-    throw new ApiError("Could not reach the service.");
-  }
-
-  if (!res.ok) {
-    let message = `Request failed (${res.status}).`;
-    if (res.status === 404) message = "Not found.";
-    if (res.status === 422) message = "That request could not be processed.";
-    throw new ApiError(message, res.status);
-  }
-
-  return (await res.json()) as T;
+export function put<T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> {
+  return request<T>(path, "PUT", body, signal);
 }
 
-/** PATCH `body` to an API path and return the parsed JSON (used by Case Management's partial update). */
-export async function patch<T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> {
-  let res: Response;
-  try {
-    res = await fetch(`${API_BASE}${path}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal,
-    });
-  } catch (err) {
-    if (err instanceof DOMException && err.name === "AbortError") throw err;
-    throw new ApiError("Could not reach the service.");
-  }
-
-  if (!res.ok) {
-    let message = `Request failed (${res.status}).`;
-    if (res.status === 404) message = "Not found.";
-    if (res.status === 409) message = "That change is not allowed from the current state.";
-    if (res.status === 422) message = "That request could not be processed.";
-    throw new ApiError(message, res.status);
-  }
-
-  return (await res.json()) as T;
+export function patch<T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> {
+  return request<T>(path, "PATCH", body, signal);
 }
 
-/** DELETE an API path. Resolves with no value on success (the API returns 204). */
-export async function del(path: string, signal?: AbortSignal): Promise<void> {
-  let res: Response;
-  try {
-    res = await fetch(`${API_BASE}${path}`, { method: "DELETE", signal });
-  } catch (err) {
-    if (err instanceof DOMException && err.name === "AbortError") throw err;
-    throw new ApiError("Could not reach the service.");
-  }
-  if (!res.ok) {
-    const message = res.status === 404 ? "Not found." : `Request failed (${res.status}).`;
-    throw new ApiError(message, res.status);
-  }
+export function del(path: string, signal?: AbortSignal): Promise<void> {
+  return request<void>(path, "DELETE", undefined, signal);
 }
 
-/**
- * DELETE an API path and return the parsed JSON response body — for
- * endpoints that return the updated resource (e.g. unlinking a Workspace
- * investigation from a case) rather than a bare `204`. Prefer {@link del}
- * for the more common "204, no body" case.
- */
-export async function delWithBody<T>(path: string, signal?: AbortSignal): Promise<T> {
-  let res: Response;
-  try {
-    res = await fetch(`${API_BASE}${path}`, { method: "DELETE", signal });
-  } catch (err) {
-    if (err instanceof DOMException && err.name === "AbortError") throw err;
-    throw new ApiError("Could not reach the service.");
-  }
-  if (!res.ok) {
-    const message = res.status === 404 ? "Not found." : `Request failed (${res.status}).`;
-    throw new ApiError(message, res.status);
-  }
-  return (await res.json()) as T;
+export function delWithBody<T>(path: string, signal?: AbortSignal): Promise<T> {
+  return request<T>(path, "DELETE", undefined, signal);
 }

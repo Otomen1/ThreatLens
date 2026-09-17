@@ -1,9 +1,11 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/browser";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -14,7 +16,8 @@ export default function LoginPage() {
     const { error } = await createClient().auth.signInWithPassword({ email, password });
     setBusy(false);
     if (error) { setMessage(error.message); return; }
-    window.location.assign("/workspace");
+    router.push("/workspace");
+    router.refresh();
   }
 
   return <main className="min-h-screen px-4 py-16"><div className="mx-auto max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
