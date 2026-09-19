@@ -40,11 +40,27 @@ function NavLink({ item, pathname, onNavigate }: { item: NavItem; pathname: stri
 function NavMenu({ name, label, href, items, pathname, openMenu, setOpenMenu }: { name: MenuName; label: string; href: string; items: NavItem[]; pathname: string; openMenu: MenuName | null; setOpenMenu: (menu: MenuName | null) => void }) {
   const open = openMenu === name;
   const active = items.some((item) => isActive(pathname, item.href));
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+  }, []);
+
+  function openOnHover() {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = null;
+    setOpenMenu(name);
+  }
+
+  function closeAfterPointerLeaves() {
+    closeTimer.current = setTimeout(() => setOpenMenu(null), 180);
+  }
+
   return (
     <div
       className="relative flex shrink-0 items-center"
-      onMouseEnter={() => setOpenMenu(name)}
-      onMouseLeave={() => setOpenMenu(null)}
+      onMouseEnter={openOnHover}
+      onMouseLeave={closeAfterPointerLeaves}
     >
       <Link href={href} aria-current={isActive(pathname, href) ? "page" : undefined} className={`rounded-l-lg py-1.5 pl-3 pr-1 text-xs transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${active ? "bg-zinc-800 text-white" : "text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200"}`}>{label}</Link>
       <button type="button" aria-label={`Open ${label} menu`} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpenMenu(open ? null : name)} className={`rounded-r-lg py-1.5 pl-1 pr-2 text-xs transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${active ? "bg-zinc-800 text-zinc-300" : "text-zinc-600 hover:bg-zinc-900 hover:text-zinc-200"}`}>
