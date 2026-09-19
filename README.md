@@ -282,7 +282,8 @@ IPv4 only — GreyNoise's own API scope, not a ThreatLens choice. Reports intern
 | `HIBP_API_KEY` | *(unset)* | Optional HIBP API credential for email breach checks. |
 
 The Identity workspace provides source-attributed email exposure checks and a
-password exposure check. Email lookup requires `IDENTITY_ENABLED=true` and a
+password exposure check plus a browser-only cryptographic password generator.
+Email lookup requires `IDENTITY_ENABLED=true` and a
 valid `HIBP_API_KEY`; HIBP access may have its own account requirements. The
 password is SHA-1 hashed in the browser and only the first five hash characters
 are sent for a range lookup. Plaintext passwords and complete hashes are never

@@ -17,6 +17,7 @@ import {
   type IdentityHistoryRecord,
 } from "@/lib/identityHistory";
 import { checkPasswordExposure } from "@/lib/passwordExposure";
+import { generatePassword } from "@/lib/passwordGenerator";
 
 type Tab = "email" | "password";
 type Notice = { tone: "error" | "success" | "info"; message: string } | null;
@@ -75,6 +76,15 @@ export default function IdentityPage() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
   const [passwordCount, setPasswordCount] = useState<number | null>(null);
+  const [generatedPassword, setGeneratedPassword] = useState("");
+  const [passwordLength, setPasswordLength] = useState(20);
+  const [generatorOptions, setGeneratorOptions] = useState({
+    lowercase: true,
+    uppercase: true,
+    numbers: true,
+    symbols: true,
+  });
+  const [copied, setCopied] = useState(false);
   const [confirmClear, setConfirmClear] = useState<"email" | "all" | null>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
 
@@ -134,6 +144,27 @@ export default function IdentityPage() {
     if (scope === "email") setEmailResult(null);
     setConfirmClear(null);
     setNotice({ tone: "success", message: scope === "email" ? "History for this email was cleared." : "All browser-local identity history was cleared." });
+  }
+
+  function createPassword() {
+    try {
+      setGeneratedPassword(generatePassword({ length: passwordLength, ...generatorOptions }));
+      setCopied(false);
+      setNotice({ tone: "success", message: "A password was generated locally in this browser." });
+    } catch (error) {
+      setNotice({ tone: "error", message: error instanceof Error ? error.message : "Could not generate a password." });
+    }
+  }
+
+  async function copyGeneratedPassword() {
+    if (!generatedPassword) return;
+    try {
+      await navigator.clipboard.writeText(generatedPassword);
+      setCopied(true);
+      setNotice({ tone: "success", message: "Generated password copied to the clipboard." });
+    } catch {
+      setNotice({ tone: "error", message: "Clipboard access was unavailable. Select and copy the password manually." });
+    }
   }
 
   const currentCount = breachCount(emailResult);
@@ -209,6 +240,7 @@ export default function IdentityPage() {
             )}
           </section>
         ) : (
+          <div className="space-y-5">
           <section className="space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900 p-5 sm:p-6">
             <div><h2 className="text-base font-semibold text-white">Check a password privately</h2><p className="mt-1 text-sm text-zinc-500">Your browser hashes the password first. Only the first five hash characters are sent, and neither the password nor its full hash is stored.</p></div>
             <form onSubmit={(event) => void submitPassword(event)} className="flex flex-col gap-3 sm:flex-row">
@@ -218,6 +250,39 @@ export default function IdentityPage() {
             </form>
             {passwordCount !== null && <div className={`rounded-xl border p-5 ${passwordCount > 0 ? "border-amber-500/30 bg-amber-500/10" : "border-emerald-500/30 bg-emerald-500/10"}`}><p className={`text-lg font-semibold ${passwordCount > 0 ? "text-amber-200" : "text-emerald-200"}`}>{passwordCount > 0 ? `Found ${passwordCount.toLocaleString()} time${passwordCount === 1 ? "" : "s"} in the exposure dataset` : "Not found in this exposure dataset"}</p><p className="mt-2 text-sm text-zinc-400">{passwordCount > 0 ? "Stop using this password and replace it anywhere it is reused." : "This result is not a guarantee that the password is safe. Use a unique password and a password manager."}</p></div>}
           </section>
+
+          <section className="space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900 p-5 sm:p-6">
+            <div>
+              <h2 className="text-base font-semibold text-white">Generate a strong password</h2>
+              <p className="mt-1 text-sm text-zinc-500">Generated with your browser&apos;s cryptographic random-number generator. Nothing is sent or saved.</p>
+            </div>
+            <div>
+              <div className="flex items-center justify-between gap-4">
+                <label htmlFor="password-length" className="text-sm text-zinc-300">Length</label>
+                <output htmlFor="password-length" className="font-mono text-sm text-white">{passwordLength}</output>
+              </div>
+              <input id="password-length" type="range" min="12" max="64" value={passwordLength} onChange={(event) => setPasswordLength(Number(event.target.value))} className="mt-3 w-full accent-sky-500" />
+            </div>
+            <fieldset>
+              <legend className="text-sm text-zinc-300">Character types</legend>
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {([
+                  ["lowercase", "Lowercase"],
+                  ["uppercase", "Uppercase"],
+                  ["numbers", "Numbers"],
+                  ["symbols", "Symbols"],
+                ] as const).map(([key, label]) => (
+                  <label key={key} className="flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-950/50 px-3 py-2 text-sm text-zinc-300">
+                    <input type="checkbox" checked={generatorOptions[key]} onChange={(event) => setGeneratorOptions((current) => ({ ...current, [key]: event.target.checked }))} className="accent-sky-500" />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <button type="button" onClick={createPassword} className="w-full rounded-xl bg-white px-5 py-3 text-sm font-semibold text-black sm:w-auto">Generate password</button>
+            {generatedPassword && <div className="flex flex-col gap-3 sm:flex-row"><label className="sr-only" htmlFor="generated-password">Generated password</label><input id="generated-password" readOnly value={generatedPassword} className="min-w-0 flex-1 rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 font-mono text-sm text-white" /><button type="button" onClick={() => void copyGeneratedPassword()} className="rounded-xl border border-zinc-700 px-5 py-3 text-sm text-zinc-200 hover:bg-zinc-800">{copied ? "Copied" : "Copy"}</button></div>}
+          </section>
+          </div>
         )}
 
         <ProviderDiagnostics status={status} />

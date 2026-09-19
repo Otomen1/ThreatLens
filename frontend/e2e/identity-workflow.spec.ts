@@ -83,3 +83,13 @@ test("checks a password without sending plaintext", async ({ page }) => {
   expect(requestBody).toBeNull();
   await expect(page.getByLabel("Password to check")).toHaveValue("");
 });
+
+test("generates a password entirely in the browser", async ({ page }) => {
+  await page.goto("/identity");
+  await page.getByRole("tab", { name: "Password Exposure" }).click();
+  await page.getByLabel("Length").fill("24");
+  await page.getByRole("button", { name: "Generate password" }).click();
+  const generated = page.getByLabel("Generated password");
+  await expect(generated).toHaveValue(/^.{24}$/);
+  await expect(page.getByText(/generated locally/i)).toBeVisible();
+});
