@@ -23,8 +23,7 @@ from ...entities.models import Entity
 from ...entities.types import EntityType
 from ...exposure import ExposureService
 from ...exposure import build_default_registry as build_exposure_registry
-from ...identity import IdentityService
-from ...identity import build_default_registry as build_identity_registry
+from ...identity.runtime import service as identity_service
 from ...investigation import InvestigationCache, InvestigationService, cache_key
 from ...providers import build_default_router
 from ...reasoning import reason
@@ -55,7 +54,6 @@ _investigation_service = InvestigationService(
 )
 _exposure_service = ExposureService(build_exposure_registry())
 _correlation_service = CorrelationService()
-_identity_service = IdentityService(build_identity_registry())
 _investigation_cache = InvestigationCache()
 
 
@@ -133,7 +131,7 @@ async def _run_investigation(
     exposure = identity = None
     if request.scan_mode.value == "full":
         exposure, identity = await asyncio.gather(
-            _exposure_service.investigate(entity), _identity_service.investigate(entity)
+            _exposure_service.investigate(entity), identity_service.investigate(entity)
         )
     record_investigation(
         metrics_registry,

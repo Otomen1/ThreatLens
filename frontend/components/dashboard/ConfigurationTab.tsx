@@ -48,6 +48,17 @@ export function ConfigurationTab({ data, providers = [] }: Props) {
         </div>
       </section>
 
+      <section className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+        <div className="px-5 pt-5 pb-3">
+          <h2 className="text-sm font-semibold text-white">Identity Intelligence</h2>
+          <p className="mt-1 text-xs text-zinc-500">
+            Email exposure uses HIBP when enabled and configured. Password checks never store or
+            transmit plaintext passwords.
+          </p>
+        </div>
+        {(data.identity ?? []).map((item) => <ConfigRow key={item.name} item={item} />)}
+      </section>
+
       <section className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900"><div className="px-5 pb-3 pt-5"><h2 className="text-sm font-semibold text-white">Passive provider diagnostics</h2><p className="mt-1 text-xs text-zinc-500">Based only on observed requests; no quota-consuming probes are performed.</p></div>{providers.map((provider) => <div key={provider.name} className="border-t border-zinc-800 px-4 py-3 text-xs"><div className="flex items-center justify-between"><span className="text-zinc-200">{provider.display_name}</span><span className={provider.last_safe_error_code ? "text-amber-300" : "text-emerald-300"}>{provider.last_safe_error_code ?? (provider.configured ? "healthy / not yet observed" : "not configured")}</span></div><div className="mt-2 flex flex-wrap gap-3 text-zinc-500"><span>Requests {provider.requests}</span><span>Rate limited {provider.rate_limited_count}</span><span>Quota {provider.rate_limit_remaining === null ? "Not reported" : `${provider.rate_limit_remaining}/${provider.rate_limit ?? "?"}`}</span>{provider.rate_limit_reset_at && <span>Reset {provider.rate_limit_reset_at}</span>}</div>{provider.suggested_action && <p className="mt-2 text-amber-200">{provider.suggested_action}</p>}</div>)}</section>
 
       <section className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">

@@ -1,4 +1,4 @@
-"""Canonical models for the Identity Intelligence Framework (Phase 6.0).
+"""Canonical models for the Identity Intelligence Framework.
 
 Mirrors ``exposure/models.py`` (which itself mirrors ``providers/models.py``):
 closed vocabularies plus frozen Pydantic value objects. Identity Intelligence
@@ -35,7 +35,7 @@ class IdentityCapability(StrEnum):
     """A kind of identity fact a provider can report.
 
     Doubles as both a provider's declared capability (for routing) and a
-    finding's category — there is no live data yet to justify two separate
+    finding's category — the shared vocabulary keeps those contracts aligned
     taxonomies (see ``exposure/models.py::ExposureCapability`` and
     ``providers/types.py::ProviderCapability`` for the same single-enum choice
     in the sibling frameworks). Spans both breach-intelligence providers
@@ -322,9 +322,8 @@ class IdentitySummary(BaseModel):
     """Every provider's identity findings about one entity, merged.
 
     The canonical output of :class:`~threatlens.identity.service.IdentityService`.
-    With zero providers registered (Phase 6.0), every summary is empty by
-    construction — the real aggregation path, not a special-cased stub;
-    future providers populate it without changing this contract.
+    Empty summaries remain valid when the subsystem is disabled, no provider
+    supports the entity, or no provider is configured.
     """
 
     model_config = ConfigDict(frozen=True)

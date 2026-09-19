@@ -1,4 +1,4 @@
-"""Identity Intelligence Framework (Phase 6.0 — architecture only).
+"""Identity Intelligence Framework.
 
 Threat Intelligence (``providers/``) answers "is this IOC malicious?" and
 Exposure Intelligence (``exposure/``) answers "where is this entity exposed?"
@@ -10,12 +10,10 @@ registry, or provider logic with the other frameworks — dependency flows one
 way, inward from this package to ``entities/`` only. Nothing in the frozen
 subsystems imports from here, and this package imports from none of them.
 
-Phase 6.0 ships the framework — models, provider interface, registry, config,
-cache, service — with **zero** concrete providers; every code path
-(registration, routing, aggregation, the service) is already real and tested
-against an empty registry, exactly as Exposure Intelligence's Phase 5.0
-framework-only milestone was. Phase 6.1+ registers concrete providers (HIBP,
-Entra ID, Okta, …) against this unmodified contract.
+The framework includes an optional HIBP email-breach provider, a one-hour
+process-local cache, dedicated API routes, and a browser-local personal
+workspace. Password exposure checks use a hash-prefix range lookup and never
+send or persist plaintext passwords.
 """
 
 from __future__ import annotations

@@ -83,16 +83,15 @@ class IdentityRegistry:
 
 
 def build_default_registry() -> IdentityRegistry:
-    """Build the default identity-provider registry.
-
-    Phase 6.0 ships **zero** concrete providers, so this returns an empty
-    registry — the routing, aggregation, and service paths are all real and
-    tested against it. A Phase 6.1+ provider (HIBP, Entra ID, Okta, …)
-    registers here exactly as ``exposure.registry.build_default_registry``
-    registers Shodan/Censys/GreyNoise, without changing this function's shape.
-    """
+    """Build the configured identity-provider registry."""
+    from .config import IdentityConfig
     from .providers import HibpProvider
 
+    config = IdentityConfig.from_env()
     registry = IdentityRegistry()
-    registry.register(HibpProvider())
+    registry.register(
+        HibpProvider(
+            enabled=config.provider_overrides.get("hibp", True), timeout=config.timeout
+        )
+    )
     return registry

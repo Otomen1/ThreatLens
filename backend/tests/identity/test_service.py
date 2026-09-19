@@ -29,6 +29,9 @@ def _entity(entity_type: EntityType = EntityType.EMAIL, value: str = "a@b.com") 
 
 
 class _FakeOkProvider(IdentityProvider):
+    def __init__(self) -> None:
+        self.calls = 0
+
     @property
     def metadata(self) -> IdentityProviderMetadata:
         return IdentityProviderMetadata(
@@ -39,6 +42,7 @@ class _FakeOkProvider(IdentityProvider):
         )
 
     async def lookup(self, entity: Entity) -> IdentityFinding:
+        self.calls += 1
         return IdentityFinding(
             provider=self.name,
             provider_display_name=self.metadata.display_name,
@@ -78,9 +82,8 @@ class TestEmptyRegistry:
         assert summary.entity_type == EntityType.DOMAIN
         assert summary.entity_value == "example.com"
 
-    async def test_default_registry_frozen_version_is_pre_1_0(self) -> None:
-        # Framework-only phase: version stays pre-1.0 until providers are validated.
-        assert IDENTITY_FRAMEWORK_VERSION == "0.1.0"
+    async def test_identity_provider_version_is_stable(self) -> None:
+        assert IDENTITY_FRAMEWORK_VERSION == "1.0.0"
 
 
 class TestWithProviders:
@@ -127,3 +130,29 @@ class TestWithProviders:
         # Everything but the wall-clock generated_at must be identical.
         assert first.model_dump(exclude={"metadata"}) == second.model_dump(exclude={"metadata"})
         assert [f.provider for f in first.findings] == [f.provider for f in second.findings]
+
+    async def test_success_is_cached_and_refresh_bypasses_cache(self) -> None:
+        registry = IdentityRegistry()
+        provider = _FakeOkProvider()
+        registry.register(provider)
+        service = IdentityService(registry)
+
+        _, first_cached = await service.investigate_with_cache_state(_entity())
+        _, second_cached = await service.investigate_with_cache_state(_entity())
+        _, refresh_cached = await service.investigate_with_cache_state(_entity(), refresh=True)
+
+        assert first_cached is False
+        assert second_cached is True
+        assert refresh_cached is False
+        assert provider.calls == 2
+
+    async def test_failures_are_not_cached(self) -> None:
+        registry = IdentityRegistry()
+        registry.register(_FakeFailingProvider())
+        service = IdentityService(registry)
+
+        _, first_cached = await service.investigate_with_cache_state(_entity())
+        _, second_cached = await service.investigate_with_cache_state(_entity())
+
+        assert first_cached is False
+        assert second_cached is False

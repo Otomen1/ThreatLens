@@ -183,5 +183,6 @@ class ConfigStatusResponse(BaseModel):
 
     threat_intelligence: list[ConfigItem]
     knowledge: list[ConfigItem]
+    identity: list[ConfigItem] = Field(default_factory=list)
     ai: AIConfigStatus
     timestamp: str

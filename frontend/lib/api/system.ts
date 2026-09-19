@@ -166,6 +166,7 @@ export interface AIConfigStatus {
 export interface ConfigStatusResponse {
   threat_intelligence: ConfigItem[];
   knowledge: ConfigItem[];
+  identity: ConfigItem[];
   ai: AIConfigStatus;
   timestamp: string;
 }

@@ -1,11 +1,4 @@
-"""Environment-driven configuration for the Identity Intelligence Framework.
-
-Mirrors ``exposure/config.py``. Identity Intelligence is **off by default** —
-Phase 6.0 ships no providers, so there is nothing to enable yet; the settings
-exist so a later phase's providers configure against a stable contract without
-changing callers. No secrets here — provider credentials belong to each
-provider's own settings in a later phase.
-"""
+"""Environment-driven configuration for Identity Intelligence."""
 
 from __future__ import annotations
 
@@ -49,6 +42,9 @@ class IdentityConfig:
             cache_ttl = _DEFAULT_CACHE_TTL
         raw_rate_limit = (source.get("IDENTITY_RATE_LIMIT_PER_MINUTE", "") or "").strip()
         rate_limit = int(raw_rate_limit) if raw_rate_limit.isdigit() else None
+        overrides: dict[str, bool] = {}
+        if source.get("HIBP_ENABLED") is not None:
+            overrides["hibp"] = _truthy(source.get("HIBP_ENABLED"))
         return cls(
             enabled=_truthy(source.get("IDENTITY_ENABLED")),
             cache_enabled=_truthy(source.get("IDENTITY_CACHE_ENABLED"))
@@ -57,4 +53,5 @@ class IdentityConfig:
             cache_ttl_seconds=cache_ttl,
             timeout=timeout,
             rate_limit_per_minute=rate_limit,
+            provider_overrides=overrides,
         )

@@ -10,6 +10,7 @@ contract.
 
 from __future__ import annotations
 
+import logging
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -129,12 +130,14 @@ class IdentityProvider(ABC):
         """
         try:
             return await self.lookup(entity)
-        except Exception as exc:
+        except Exception:
+            logging.getLogger(__name__).exception(
+                "Identity provider %s failed for entity type %s", self.name, entity.type.value
+            )
             return self._fail(
                 entity,
                 IdentityStatus.ERROR,
                 "Provider raised an unexpected error",
-                detail=str(exc),
             )
 
     # --- implemented by concrete providers in a later phase ---

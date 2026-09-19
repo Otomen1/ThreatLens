@@ -34,9 +34,8 @@ def merge_findings(
 ) -> IdentitySummary:
     """Merge per-provider findings for one entity into an :class:`IdentitySummary`.
 
-    An empty ``findings`` sequence (Phase 6.0's only real case, since zero
-    providers are registered) yields a well-formed, empty summary — the same
-    code path a future non-empty call uses.
+    An empty ``findings`` sequence yields a well-formed empty summary through
+    the same code path used for configured provider results.
     """
     generated_at = now or datetime.now(UTC)
     with_data = [f for f in findings if f.has_findings]

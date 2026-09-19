@@ -1,10 +1,4 @@
-"""Cache abstractions for the Identity Intelligence Framework (interfaces only).
-
-No persistence implementation, no Redis, no database — just the interface a
-future provider or service layer caches lookups against, plus an in-memory
-default. Concrete persistent backends are a later phase's concern; nothing
-here is wired into ``IdentityService`` yet.
-"""
+"""Process-local cache abstractions used by Identity Intelligence."""
 
 from __future__ import annotations
 

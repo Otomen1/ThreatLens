@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import StrEnum
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
@@ -170,20 +171,47 @@ class ExposureFrameworkStatus(BaseModel):
     summary: ExposureSummary | None = None
 
 
-class IdentityFrameworkStatus(BaseModel):
-    """Identity Intelligence Framework status (Phase 6.0 — framework only).
+class IdentityProviderStatusInfo(BaseModel):
+    name: str
+    display_name: str
+    enabled: bool
+    configured: bool
+    status: str
+    detail: str | None = None
 
-    A pure readiness probe: framework version and registered-provider count.
-    An optional descriptive identity lookup may be included in ``summary``.
-    Mirrors the Phase 5.0 exposure framework-status probe; a later phase adds
-    per-provider health and an optional lookup exactly as exposure did.
-    """
+
+class IdentityFrameworkStatus(BaseModel):
+    """Identity Intelligence status and optional backward-compatible lookup."""
 
     status: str
     message: str
     framework_version: str
     providers_registered: int
+    enabled: bool = False
+    providers: list[IdentityProviderStatusInfo] = Field(default_factory=list)
     summary: IdentitySummary | None = None
+
+
+class IdentityEmailCheckRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=320)
+    refresh: bool = False
+
+
+class IdentityEmailCheckResponse(BaseModel):
+    summary: IdentitySummary
+    cache_status: Literal["hit", "miss", "refreshed", "disabled"]
+    checked_at: datetime
+
+
+class PasswordHashSuffix(BaseModel):
+    suffix: str = Field(pattern=r"^[A-F0-9]{35}$")
+    count: int = Field(ge=0)
+
+
+class PasswordRangeResponse(BaseModel):
+    prefix: str = Field(pattern=r"^[A-F0-9]{5}$")
+    suffixes: list[PasswordHashSuffix]
+    checked_at: datetime
 
 
 class CorrelationFrameworkStatus(BaseModel):

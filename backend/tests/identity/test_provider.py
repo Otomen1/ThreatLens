@@ -102,7 +102,7 @@ class TestSafeLookup:
         finding = await _RaisingProvider().safe_lookup(_entity())
         assert finding.is_error is True
         assert finding.error is not None
-        assert "network exploded" in (finding.error.detail or "")
+        assert finding.error.detail is None
 
     async def test_never_raises(self) -> None:
         # The whole point of safe_lookup: a buggy provider never propagates.

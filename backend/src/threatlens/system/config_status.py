@@ -9,6 +9,7 @@ provider/model *names*.
 
 from __future__ import annotations
 
+import os
 from datetime import UTC, datetime
 
 from ..ai.config import AISettings
@@ -25,6 +26,8 @@ def build_config_status() -> ConfigStatusResponse:
     ti = providers_health()
     kb = knowledge_health()
     ai_settings = AISettings.from_env()
+    from ..identity.runtime import config as identity_config
+    from ..identity.runtime import registry as identity_registry
 
     return ConfigStatusResponse(
         threat_intelligence=[
@@ -44,6 +47,17 @@ def build_config_status() -> ConfigStatusResponse:
                 enabled=item.enabled,
             )
             for item in kb.datasets
+        ],
+        identity=[
+            ConfigItem(
+                name=provider.name,
+                display_name=provider.metadata.display_name,
+                configured=bool(os.getenv("HIBP_API_KEY", "").strip())
+                if provider.name == "hibp"
+                else False,
+                enabled=identity_config.enabled and provider.enabled,
+            )
+            for provider in identity_registry.providers
         ],
         ai=AIConfigStatus(
             provider=ai_settings.provider,

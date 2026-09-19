@@ -1,5 +1,12 @@
 # Phase 6.0 — Identity Intelligence Framework
 
+> Historical design note: Phase 6.0 established the framework. The current
+> implementation is Identity Intelligence v1.0 with an optional HIBP email
+> provider, shared caching, dedicated email/password endpoints, Full-scan
+> integration, and browser-local history. The current behavior is documented
+> in the root README; statements below describing an empty registry are kept
+> only as the original phase record.
+
 ## Status
 
 Complete. Architecture only — **zero concrete providers**. Opens a new

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 from datetime import UTC, datetime
 from typing import Any
@@ -23,18 +24,30 @@ from ..models import (
 )
 from ..provider import IdentityProvider
 
+logger = logging.getLogger(__name__)
+
 
 class HibpProvider(IdentityProvider):
-    def __init__(self, *, client: HttpClient | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        client: HttpClient | None = None,
+        enabled: bool | None = None,
+        timeout: float | None = None,
+    ) -> None:
         self._api_key = os.getenv("HIBP_API_KEY", "").strip()
-        self._enabled = os.getenv("HIBP_ENABLED", "true").strip().lower() in {
+        env_enabled = os.getenv("HIBP_ENABLED", "true").strip().lower() in {
             "1",
             "true",
             "yes",
             "on",
         }
+        self._enabled = env_enabled if enabled is None else enabled
         self._base_url = os.getenv("HIBP_BASE_URL", "https://haveibeenpwned.com/api/v3").rstrip("/")
-        self._client = client or HttpClient(timeout=float(os.getenv("HIBP_TIMEOUT", "10")))
+        resolved_timeout = (
+            timeout if timeout is not None else float(os.getenv("HIBP_TIMEOUT", "10"))
+        )
+        self._client = client or HttpClient(timeout=resolved_timeout)
 
     @property
     def metadata(self) -> IdentityProviderMetadata:
@@ -62,21 +75,29 @@ class HibpProvider(IdentityProvider):
                 headers={"hibp-api-key": self._api_key, "user-agent": "ThreatLens/1.2"},
             )
         except ProviderTimeout as exc:
+            logger.warning("HIBP identity request timed out", exc_info=exc)
             return self._fail(
                 entity,
                 IdentityStatus.TIMEOUT,
                 "HIBP request timed out",
                 retryable=True,
-                detail=str(exc),
             )
         except ProviderHttpError as exc:
+            logger.warning("HIBP identity request failed", exc_info=exc)
             return self._fail(
-                entity, IdentityStatus.ERROR, "HIBP request failed", retryable=True, detail=str(exc)
+                entity, IdentityStatus.ERROR, "HIBP request failed", retryable=True
             )
         if response.status_code == 404:
             return self._not_found(entity.type, entity.value)
         if response.status_code in {401, 403}:
             return self._fail(entity, IdentityStatus.UNAUTHORIZED, "HIBP rejected the API key")
+        if response.status_code == 429:
+            return self._fail(
+                entity,
+                IdentityStatus.RATE_LIMITED,
+                "HIBP rate limit reached",
+                retryable=True,
+            )
         if response.status_code != 200:
             return self._fail(
                 entity,
@@ -87,8 +108,9 @@ class HibpProvider(IdentityProvider):
         try:
             breaches = response.json()
         except ValueError as exc:
+            logger.warning("HIBP identity response contained invalid JSON", exc_info=exc)
             return self._fail(
-                entity, IdentityStatus.ERROR, "HIBP returned invalid JSON", detail=str(exc)
+                entity, IdentityStatus.ERROR, "HIBP returned invalid JSON"
             )
         if not isinstance(breaches, list):
             return self._fail(entity, IdentityStatus.ERROR, "HIBP returned an unexpected response")
@@ -100,6 +122,10 @@ class HibpProvider(IdentityProvider):
                 data={
                     "domain": item.get("Domain", ""),
                     "data_classes": item.get("DataClasses", []),
+                    "breach_date": item.get("BreachDate", ""),
+                    "added_date": item.get("AddedDate", ""),
+                    "pwn_count": item.get("PwnCount", 0),
+                    "verified": item.get("IsVerified", False),
                 },
             )
             for item in breaches

@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_PREFIXES = ["/workspace", "/detections", "/cases", "/settings"];
+const PROTECTED_PREFIXES = ["/workspace", "/detections", "/cases", "/settings", "/identity"];
 
 export async function proxy(request: NextRequest) {
   if (process.env.NODE_ENV !== "production" && process.env.THREATLENS_E2E_AUTH_BYPASS === "1") {
@@ -34,5 +34,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/workspace/:path*", "/detections/:path*", "/cases/:path*", "/settings/:path*"],
+  matcher: ["/workspace/:path*", "/detections/:path*", "/cases/:path*", "/settings/:path*", "/identity/:path*"],
 };
