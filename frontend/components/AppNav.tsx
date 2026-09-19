@@ -41,7 +41,11 @@ function NavMenu({ name, label, href, items, pathname, openMenu, setOpenMenu }: 
   const open = openMenu === name;
   const active = items.some((item) => isActive(pathname, item.href));
   return (
-    <div className="relative flex shrink-0 items-center">
+    <div
+      className="relative flex shrink-0 items-center"
+      onMouseEnter={() => setOpenMenu(name)}
+      onMouseLeave={() => setOpenMenu(null)}
+    >
       <Link href={href} aria-current={isActive(pathname, href) ? "page" : undefined} className={`rounded-l-lg py-1.5 pl-3 pr-1 text-xs transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${active ? "bg-zinc-800 text-white" : "text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200"}`}>{label}</Link>
       <button type="button" aria-label={`Open ${label} menu`} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpenMenu(open ? null : name)} className={`rounded-r-lg py-1.5 pl-1 pr-2 text-xs transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${active ? "bg-zinc-800 text-zinc-300" : "text-zinc-600 hover:bg-zinc-900 hover:text-zinc-200"}`}>
         <span aria-hidden="true" className={`inline-block transition-transform ${open ? "rotate-180" : ""}`}>⌄</span>
