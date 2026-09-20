@@ -53,7 +53,7 @@ function NavMenu({ name, label, href, items, pathname, openMenu, setOpenMenu }: 
   }
 
   function closeAfterPointerLeaves() {
-    closeTimer.current = setTimeout(() => setOpenMenu(null), 180);
+    closeTimer.current = setTimeout(() => setOpenMenu(null), 350);
   }
 
   return (
@@ -67,8 +67,10 @@ function NavMenu({ name, label, href, items, pathname, openMenu, setOpenMenu }: 
         <span aria-hidden="true" className={`inline-block transition-transform ${open ? "rotate-180" : ""}`}>⌄</span>
       </button>
       {open && (
-        <div role="menu" aria-label={label} className="absolute left-0 top-full mt-2 min-w-44 rounded-xl border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl shadow-black/40">
-          {items.map((item) => <Link role="menuitem" key={item.href} href={item.href} onClick={() => setOpenMenu(null)} aria-current={isActive(pathname, item.href) ? "page" : undefined} className={`block rounded-lg px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${isActive(pathname, item.href) ? "bg-zinc-800 text-white" : "text-zinc-400 hover:bg-zinc-900 hover:text-white"}`}>{item.label}</Link>)}
+        <div className="absolute left-0 top-full min-w-44 pt-2">
+          <div role="menu" aria-label={label} className="rounded-xl border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl shadow-black/40">
+            {items.map((item) => <Link role="menuitem" key={item.href} href={item.href} onClick={() => setOpenMenu(null)} aria-current={isActive(pathname, item.href) ? "page" : undefined} className={`block rounded-lg px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${isActive(pathname, item.href) ? "bg-zinc-800 text-white" : "text-zinc-400 hover:bg-zinc-900 hover:text-white"}`}>{item.label}</Link>)}
+          </div>
         </div>
       )}
     </div>
