@@ -4,6 +4,7 @@ import "./globals.css";
 
 import { SystemStatus } from "@/components/SystemStatus";
 import { AppNav } from "@/components/AppNav";
+import { AppEnhancements } from "@/components/AppEnhancements";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -36,7 +37,7 @@ export default function RootLayout({
       <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans bg-zinc-950 text-white antialiased`}>
         <SystemStatus />
         <AppNav />
-        {children}
+        <AppEnhancements>{children}</AppEnhancements>
       </body>
     </html>
   );

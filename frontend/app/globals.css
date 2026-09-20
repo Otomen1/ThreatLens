@@ -26,6 +26,18 @@ button:disabled {
   cursor: not-allowed;
 }
 
+@keyframes ui-enter { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes page-enter { from { opacity: 0.75; } to { opacity: 1; } }
+@keyframes route-progress { from { transform: translateX(-120%); } to { transform: translateX(420%); } }
+@keyframes skeleton-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@keyframes data-pulse { 0%, 100% { box-shadow: none; } 50% { box-shadow: 0 0 0 1px rgb(56 189 248 / 0.28); } }
+
+.animate-ui-enter { animation: ui-enter 150ms ease-out; }
+.animate-page-enter { animation: page-enter 140ms ease-out; }
+.route-progress > span { animation: route-progress 1.1s ease-in-out infinite; }
+.skeleton { background-image: linear-gradient(90deg, rgb(24 24 27), rgb(39 39 42), rgb(24 24 27)); background-size: 200% 100%; animation: skeleton-shimmer 1.4s linear infinite; }
+.animate-data-pulse { animation: data-pulse 700ms ease-out; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     scroll-behavior: auto !important;
