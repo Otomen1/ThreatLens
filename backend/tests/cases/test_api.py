@@ -51,6 +51,22 @@ def _save_investigation(client: TestClient, **overrides: object) -> dict:
     return res.json()
 
 
+class TestNavigationSummary:
+    def test_counts_workspace_and_open_cases(self, client: TestClient) -> None:
+        _save_investigation(client)
+        _create(client, status="open")
+        _create(client, status="in_progress")
+        _create(client, status="closed")
+
+        response = client.get("/api/v1/workspace/navigation-summary")
+
+        assert response.status_code == 200
+        assert response.json()["investigations"] == 1
+        assert response.json()["draft_detections"] == 0
+        assert response.json()["open_cases"] == 2
+        assert "generated_at" in response.json()
+
+
 class TestCreateCase:
     def test_returns_201(self, client: TestClient) -> None:
         res = client.post("/api/v1/cases", json={"title": "Case"})

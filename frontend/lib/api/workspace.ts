@@ -150,6 +150,13 @@ export interface WorkspaceListFilters {
   q?: string;
 }
 
+export interface NavigationSummary {
+  investigations: number;
+  draft_detections: number;
+  open_cases: number;
+  generated_at: string;
+}
+
 export interface InvestigationComparison {
   before_id: string; after_id: string; posture_before: number | null; posture_after: number | null;
   confidence_before: number | null; confidence_after: number | null; limited: boolean;
@@ -206,6 +213,10 @@ export function updateInvestigation(
 /** Delete a saved investigation. */
 export function deleteInvestigation(id: string, signal?: AbortSignal): Promise<void> {
   return del(`/workspace/${encodeURIComponent(id)}`, signal);
+}
+
+export function getNavigationSummary(signal?: AbortSignal): Promise<NavigationSummary> {
+  return get<NavigationSummary>("/workspace/navigation-summary", signal);
 }
 
 export function compareInvestigations(

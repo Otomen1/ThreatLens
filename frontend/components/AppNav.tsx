@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { createClient } from "@/lib/supabase/browser";
+import { getNavigationSummary, type NavigationSummary } from "@/lib/api";
 
 type NavItem = { href: string; label: string };
 type MenuName = "workspace" | "intelligence";
@@ -37,7 +38,7 @@ function NavLink({ item, pathname, onNavigate }: { item: NavItem; pathname: stri
   );
 }
 
-function NavMenu({ name, label, href, items, pathname, openMenu, setOpenMenu }: { name: MenuName; label: string; href: string; items: NavItem[]; pathname: string; openMenu: MenuName | null; setOpenMenu: (menu: MenuName | null) => void }) {
+function NavMenu({ name, label, href, items, pathname, openMenu, setOpenMenu, counts = {} }: { name: MenuName; label: string; href: string; items: NavItem[]; pathname: string; openMenu: MenuName | null; setOpenMenu: (menu: MenuName | null) => void; counts?: Record<string, number> }) {
   const open = openMenu === name;
   const active = items.some((item) => isActive(pathname, item.href));
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -68,8 +69,8 @@ function NavMenu({ name, label, href, items, pathname, openMenu, setOpenMenu }: 
       </button>
       {open && (
         <div className="absolute left-0 top-full min-w-44 pt-2">
-          <div role="menu" aria-label={label} className="rounded-xl border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl shadow-black/40">
-            {items.map((item) => <Link role="menuitem" key={item.href} href={item.href} onClick={() => setOpenMenu(null)} aria-current={isActive(pathname, item.href) ? "page" : undefined} className={`block rounded-lg px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${isActive(pathname, item.href) ? "bg-zinc-800 text-white" : "text-zinc-400 hover:bg-zinc-900 hover:text-white"}`}>{item.label}</Link>)}
+          <div role="menu" aria-label={label} className="animate-ui-enter rounded-xl border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl shadow-black/40">
+            {items.map((item) => <Link role="menuitem" key={item.href} href={item.href} onClick={() => setOpenMenu(null)} aria-current={isActive(pathname, item.href) ? "page" : undefined} className={`flex items-center justify-between gap-4 rounded-lg px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${isActive(pathname, item.href) ? "bg-zinc-800 text-white" : "text-zinc-400 hover:bg-zinc-900 hover:text-white"}`}><span>{item.label}</span>{counts[item.href] !== undefined && <span className="rounded-full bg-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-400">{counts[item.href]}</span>}</Link>)}
           </div>
         </div>
       )}
@@ -84,6 +85,7 @@ export function AppNav() {
   const [signedIn, setSignedIn] = useState(false);
   const [openMenu, setOpenMenu] = useState<MenuName | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [summary, setSummary] = useState<NavigationSummary | null>(null);
 
   useEffect(() => {
     const client = createClient();
@@ -91,6 +93,28 @@ export function AppNav() {
     const { data: subscription } = client.auth.onAuthStateChange((_event, session) => setSignedIn(Boolean(session?.user)));
     return () => subscription.subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!signedIn) return;
+    const key = "threatlens:navigation-summary:v1";
+    try {
+      const cached = JSON.parse(localStorage.getItem(key) ?? "null") as { savedAt: number; value: NavigationSummary } | null;
+      if (cached && Date.now() - cached.savedAt < 60_000) setSummary(cached.value);
+    } catch { localStorage.removeItem(key); }
+    const controller = new AbortController();
+    function refreshSummary() {
+      getNavigationSummary(controller.signal).then((value) => {
+        setSummary(value);
+        localStorage.setItem(key, JSON.stringify({ savedAt: Date.now(), value }));
+      }).catch(() => undefined);
+    }
+    refreshSummary();
+    window.addEventListener("threatlens:navigation-summary-invalidated", refreshSummary);
+    return () => {
+      controller.abort();
+      window.removeEventListener("threatlens:navigation-summary-invalidated", refreshSummary);
+    };
+  }, [signedIn]);
 
   useEffect(() => {
     setOpenMenu(null);
@@ -122,13 +146,14 @@ export function AppNav() {
   }
 
   const closeMobile = () => setMobileOpen(false);
+  const workspaceCounts: Record<string, number> = summary ? { "/workspace": summary.investigations, "/detections": summary.draft_detections, "/cases": summary.open_cases } : {};
   return (
     <nav ref={navRef} className="sticky top-0 z-40 border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur" aria-label="Primary navigation">
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4">
         <Link href="/" className="mr-2 text-sm font-semibold tracking-tight text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500">ThreatLens</Link>
         <div className="hidden items-center gap-1 md:flex">
           {PUBLIC_LINKS.map((item) => <NavLink key={item.href} item={item} pathname={pathname} />)}
-          {signedIn && <NavMenu name="workspace" label="Workspace" href="/workspace" items={WORKSPACE_LINKS} pathname={pathname} openMenu={openMenu} setOpenMenu={setOpenMenu} />}
+          {signedIn && <NavMenu name="workspace" label="Workspace" href="/workspace" items={WORKSPACE_LINKS} pathname={pathname} openMenu={openMenu} setOpenMenu={setOpenMenu} counts={workspaceCounts} />}
           <NavMenu name="intelligence" label="Intelligence" href="/exposure" items={INTELLIGENCE_LINKS} pathname={pathname} openMenu={openMenu} setOpenMenu={setOpenMenu} />
           <NavLink item={{ href: "/dashboard", label: "Dashboard" }} pathname={pathname} />
           {signedIn && <NavLink item={{ href: "/settings", label: "Settings" }} pathname={pathname} />}
@@ -146,7 +171,7 @@ export function AppNav() {
               <NavLink item={{ href: "/dashboard", label: "Dashboard" }} pathname={pathname} onNavigate={closeMobile} />
               {signedIn && <NavLink item={{ href: "/settings", label: "Settings" }} pathname={pathname} onNavigate={closeMobile} />}
             </div>
-            {signedIn && <MobileGroup label="Workspace" items={WORKSPACE_LINKS} pathname={pathname} onNavigate={closeMobile} />}
+            {signedIn && <MobileGroup label="Workspace" items={WORKSPACE_LINKS} pathname={pathname} onNavigate={closeMobile} counts={workspaceCounts} />}
             <MobileGroup label="Intelligence" items={INTELLIGENCE_LINKS} pathname={pathname} onNavigate={closeMobile} />
             <div className="border-t border-zinc-800 pt-3">
               {signedIn ? <button type="button" onClick={signOut} className="w-full rounded-lg px-3 py-2 text-left text-xs text-zinc-400 hover:bg-zinc-900">Sign out</button> : <NavLink item={{ href: "/login", label: "Sign in" }} pathname={pathname} onNavigate={closeMobile} />}
@@ -158,11 +183,11 @@ export function AppNav() {
   );
 }
 
-function MobileGroup({ label, items, pathname, onNavigate }: { label: string; items: NavItem[]; pathname: string; onNavigate: () => void }) {
+function MobileGroup({ label, items, pathname, onNavigate, counts = {} }: { label: string; items: NavItem[]; pathname: string; onNavigate: () => void; counts?: Record<string, number> }) {
   return (
     <section aria-label={label}>
       <p className="mb-1 px-3 text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-600">{label}</p>
-      <div className="grid grid-cols-2 gap-1">{items.map((item) => <NavLink key={item.href} item={item} pathname={pathname} onNavigate={onNavigate} />)}</div>
+      <div className="grid grid-cols-2 gap-1">{items.map((item) => <div key={item.href} className="relative"><NavLink item={item} pathname={pathname} onNavigate={onNavigate} />{counts[item.href] !== undefined && <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-zinc-800 px-1.5 text-[10px] text-zinc-500">{counts[item.href]}</span>}</div>)}</div>
     </section>
   );
 }

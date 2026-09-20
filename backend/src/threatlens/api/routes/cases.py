@@ -11,6 +11,7 @@ Workspace-adjacent route.
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import Annotated
 from uuid import UUID
 
@@ -34,7 +35,9 @@ from ...cases import (
     SQLiteCaseStorage,
     UpdateCaseRequest,
 )
+from ...workspace import WorkspaceService
 from ...workspace.exceptions import InvestigationNotFoundError
+from ..schemas import NavigationSummary
 from .workspace import get_workspace_service
 
 router = APIRouter()
@@ -103,6 +106,29 @@ def list_cases(
     """
     cases = service.list(status=status, priority=priority, tag=tag, owner=owner, title=title)
     return CaseListResponse(cases=cases, total=len(cases))
+
+
+@router.get("/api/v1/workspace/navigation-summary", response_model=NavigationSummary)
+def navigation_summary(
+    cases: Annotated[CaseService, Depends(get_case_service)],
+    workspace: Annotated[WorkspaceService, Depends(get_workspace_service)],
+) -> NavigationSummary:
+    """Return lightweight personal-workspace counts without running any engines."""
+    investigations = workspace.snapshot()
+    draft_detections = sum(
+        artifact.review_status.value == "draft"
+        for record in investigations
+        for artifact in (record.detection_package.artifacts if record.detection_package else ())
+    )
+    open_cases = sum(
+        case.status in {CaseStatus.OPEN, CaseStatus.IN_PROGRESS} for case in cases.snapshot()
+    )
+    return NavigationSummary(
+        investigations=len(investigations),
+        draft_detections=draft_detections,
+        open_cases=open_cases,
+        generated_at=datetime.now(UTC),
+    )
 
 
 @router.get("/api/v1/cases/{case_id}", response_model=Case)

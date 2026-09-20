@@ -206,6 +206,11 @@ app.include_router(
 app.include_router(investigation.router)
 app.include_router(threat_feed.router)
 
+# Case routes are registered first because their compact navigation summary
+# has a static /workspace/navigation-summary path that must precede the
+# Workspace router's /workspace/{investigation_id} UUID route.
+app.include_router(cases.router)
+
 # Investigation Workspace: a persistence layer over completed investigations
 # (save/load/update/delete/list), plus two read-only, derived sibling views â€”
 # an investigation timeline (Phase 8.1) and an evidence relationship graph
@@ -218,7 +223,6 @@ app.include_router(workspace.router)
 # only). Depends on the Workspace service above to confirm a linked id
 # exists; never reads, mutates, or recomputes an investigation's content,
 # and Workspace itself has no notion of cases.
-app.include_router(cases.router)
 app.include_router(backup.router)
 
 # Downstream, optional AI explanation of a completed investigation.

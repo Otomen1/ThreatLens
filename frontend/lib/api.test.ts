@@ -17,6 +17,7 @@ import {
   getInvestigationGraph,
   getInvestigationReport,
   getInvestigationTimeline,
+  getNavigationSummary,
   health,
   identityFrameworkStatus,
   linkWorkspaceToCase,
@@ -480,6 +481,15 @@ describe("saveInvestigation", () => {
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(init.signal).toBe(controller.signal);
+  });
+});
+
+describe("getNavigationSummary", () => {
+  it("loads compact workspace counts", async () => {
+    const fetchMock = stubFetch(200, { investigations: 4, draft_detections: 7, open_cases: 2, generated_at: "2026-09-20T00:00:00Z" });
+    const result = await getNavigationSummary();
+    expect(result.draft_detections).toBe(7);
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("/workspace/navigation-summary"), expect.objectContaining({ method: "GET" }));
   });
 });
 

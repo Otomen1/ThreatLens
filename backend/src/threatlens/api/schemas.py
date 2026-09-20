@@ -255,3 +255,12 @@ class WorkspaceListResponse(BaseModel):
 
     investigations: list[WorkspaceListItem]
     total: int
+
+
+class NavigationSummary(BaseModel):
+    """Small read-only count snapshot for authenticated navigation badges."""
+
+    investigations: int
+    draft_detections: int
+    open_cases: int
+    generated_at: datetime
