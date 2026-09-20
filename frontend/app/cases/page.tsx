@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { LoadingRows } from "@/components/ui/Skeleton";
+import { useToast } from "@/components/ui/ToastProvider";
 import {
   createCase,
   listCases,
@@ -33,6 +35,7 @@ const PRIORITY_OPTIONS: { value: CasePriority | ""; label: string }[] = [
 ];
 
 export default function CasesPage() {
+  const { notify } = useToast();
   const [state, setState] = useState<State>({ kind: "loading" });
   const [title, setTitle] = useState("");
   const [status, setStatus] = useState<CaseStatus | "">("");
@@ -96,6 +99,12 @@ export default function CasesPage() {
             try {
               await createCase(request);
               await load();
+              localStorage.removeItem("threatlens:navigation-summary:v1");
+              window.dispatchEvent(new Event("threatlens:navigation-summary-invalidated"));
+              notify("Case created.");
+            } catch (error) {
+              notify("Case could not be created.", "error");
+              throw error;
             } finally {
               setCreating(false);
             }
@@ -156,11 +165,7 @@ export default function CasesPage() {
           />
         </div>
 
-        {state.kind === "loading" && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-center text-sm text-zinc-500">
-            Loading cases…
-          </div>
-        )}
+        {state.kind === "loading" && <LoadingRows label="Loading cases" />}
 
         {state.kind === "error" && (
           <div
@@ -196,18 +201,20 @@ function NewCaseForm({
   creating: boolean;
   onCreate: (request: { title: string; priority: CasePriority; owner?: string }) => Promise<void>;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("focus") === "create");
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState<CasePriority>("medium");
   const [owner, setOwner] = useState("");
 
   async function submit() {
     if (!title.trim()) return;
-    await onCreate({ title: title.trim(), priority, owner: owner.trim() || undefined });
-    setTitle("");
-    setOwner("");
-    setPriority("medium");
-    setOpen(false);
+    try {
+      await onCreate({ title: title.trim(), priority, owner: owner.trim() || undefined });
+      setTitle("");
+      setOwner("");
+      setPriority("medium");
+      setOpen(false);
+    } catch { /* The parent keeps the form open and shows a toast. */ }
   }
 
   if (!open) {
@@ -224,6 +231,7 @@ function NewCaseForm({
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 space-y-3">
       <input
+        data-focus="create"
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value)}

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { exposureFrameworkStatus, type ExposureFrameworkStatus } from "@/lib/api";
 import { ExposureFindingCard } from "@/components/exposure/ExposureFindingCard";
+import { LoadingRows } from "@/components/ui/Skeleton";
 
 type State =
   | { kind: "loading" }
@@ -91,11 +92,7 @@ export default function ExposurePage() {
           </p>
         </header>
 
-        {state.kind === "loading" && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-center text-sm text-zinc-500">
-            Checking framework status…
-          </div>
-        )}
+        {state.kind === "loading" && <LoadingRows label="Checking exposure framework status" />}
 
         {state.kind === "error" && (
           <div

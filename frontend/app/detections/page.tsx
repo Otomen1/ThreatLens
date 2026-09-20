@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { getInvestigation, listInvestigations, testDetection, updateInvestigation, type DetectionArtifact, type DetectionReviewStatus, type WorkspaceInvestigation } from "@/lib/api";
+import { LoadingRows } from "@/components/ui/Skeleton";
+import { CopyButton } from "@/components/ui/CopyButton";
+import { useToast } from "@/components/ui/ToastProvider";
 import { detectionLanguageLabel, detectionSeverityClass, detectionSeverityLabel, artifactFilename } from "@/lib/detection";
 import { readDetectionVersions, versionHistoryExportName, withDetectionVersion } from "@/lib/detectionVersioning";
 
@@ -133,7 +136,7 @@ export default function DetectionsPage() {
           <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))} aria-label="Rules per page" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value={10}>10 per page</option><option value={25}>25 per page</option><option value={50}>50 per page</option></select>
           <label className="flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-400"><input type="checkbox" checked={showExcluded} onChange={(e) => setShowExcluded(e.target.checked)} /> Show excluded</label>
         </div>
-        {state === "loading" && <Panel>Loading generated detections…</Panel>}
+        {state === "loading" && <LoadingRows rows={4} label="Loading generated detections" />}
         {state === "error" && <Panel>Could not load saved detections. Check that the Workspace API is available.</Panel>}
         {state === "ready" && rules.length === 0 && <Panel>No generated detections match this view. Generate detections from an investigation, then save it to the Workspace.</Panel>}
         {state === "ready" && groups.length > 0 && <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-zinc-500">{groups.length} IOC{groups.length === 1 ? "" : "s"} · {rules.length} generated rule{rules.length === 1 ? "" : "s"} · {rules.filter((rule) => rule.review_status === "approved").length} approved</p><div className="flex flex-wrap gap-2"><button type="button" onClick={exportRules} className="rounded-lg border border-sky-500/30 px-3 py-1.5 text-xs text-sky-300 hover:bg-sky-500/10">Export filtered JSON</button>{selectedGroups.size > 1 && <><button type="button" onClick={exportSelectedSigma} className="rounded-lg border border-indigo-500/30 px-3 py-1.5 text-xs text-indigo-300 hover:bg-indigo-500/10">Export selected Sigma</button><button type="button" onClick={saveSelectedSigma} className="rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs text-emerald-300 hover:bg-emerald-500/10">Save combined draft</button></>}<button type="button" onClick={() => { setExpandAll(true); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Expand all</button><button type="button" onClick={() => { setExpandAll(false); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Collapse all</button></div></div>}
@@ -190,6 +193,7 @@ function IocGroup({ group, selected, onSelect, expandAll, expandSignal, onUpdate
 }
 
 function RuleCard({ rule, onUpdated }: { rule: Rule; onUpdated: (record: WorkspaceInvestigation) => void }) {
+  const { notify } = useToast();
   const [sample, setSample] = useState('{"event_type":"process_start","Image":"powershell.exe"}');
   const [testResult, setTestResult] = useState<string | null>(null);
   const [note, setNote] = useState(rule.review_note ?? "");
@@ -205,13 +209,16 @@ function RuleCard({ rule, onUpdated }: { rule: Rule; onUpdated: (record: Workspa
     const pkg = { ...record.detection_package, artifacts: record.detection_package.artifacts.map((item) => item.id === rule.id ? withDetectionVersion(item, { ...item, review_status: status, reviewed_at: new Date().toISOString(), reviewed_by: "local-analyst" }) : item) };
     const updated = await updateInvestigation(record.id, { detection_package: pkg });
     onUpdated(updated);
+    localStorage.removeItem("threatlens:navigation-summary:v1");
+    window.dispatchEvent(new Event("threatlens:navigation-summary-invalidated"));
+    notify(`Detection marked ${status}.`);
   }
   async function saveNote() {
     const record = await getInvestigation(rule.investigationId);
     if (!record.detection_package) return;
     const pkg = { ...record.detection_package, artifacts: record.detection_package.artifacts.map((item) => item.id === rule.id ? withDetectionVersion(item, { ...item, review_note: note }) : item) };
     const updated = await updateInvestigation(record.id, { detection_package: pkg });
-    onUpdated(updated); setNoteSaved(true); setTimeout(() => setNoteSaved(false), 1800);
+    onUpdated(updated); setNoteSaved(true); notify("Analyst note saved."); setTimeout(() => setNoteSaved(false), 1800);
   }
   async function toggleExclusion() {
     const record = await getInvestigation(rule.investigationId);
@@ -223,6 +230,7 @@ function RuleCard({ rule, onUpdated }: { rule: Rule; onUpdated: (record: Workspa
   function download() {
     const blob = new Blob([rule.content], { type: "text/plain" });
     const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = artifactFilename(rule); link.click(); URL.revokeObjectURL(link.href);
+    notify("Detection rule downloaded.");
   }
   async function runTest() {
     try {
@@ -245,7 +253,7 @@ function RuleCard({ rule, onUpdated }: { rule: Rule; onUpdated: (record: Workspa
       {rule.description && <p className="text-sm text-zinc-400">{rule.description}</p>}
       <pre className="max-h-[420px] overflow-auto rounded-xl border border-zinc-800 bg-zinc-950 p-4 font-mono text-xs leading-5 text-zinc-300">{rule.content || "No rule content was generated."}</pre>
       {versions.length > 0 && <details className="rounded-xl border border-zinc-800 bg-zinc-950 p-3"><summary className="cursor-pointer text-xs font-medium text-zinc-300">Version history ({versions.length})</summary><div className="mt-3 space-y-2">{versions.map((version) => <div key={version.version} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zinc-800 p-2 text-xs"><span className="text-zinc-400">v{version.version} · {version.changed_fields.join(", ")} · {new Date(version.created_at).toLocaleString()}</span><button type="button" onClick={() => downloadVersion(version.version, version.content)} className="rounded border border-zinc-700 px-2 py-1 text-zinc-300 hover:bg-zinc-800">Export v{version.version}</button></div>)}</div></details>}
-      <div className="flex flex-wrap gap-2"><button type="button" onClick={() => navigator.clipboard?.writeText(rule.content)} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800">Copy rule</button><button type="button" onClick={download} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800">Download</button><button type="button" onClick={toggleExclusion} className="rounded-lg border border-amber-500/30 px-3 py-1.5 text-xs text-amber-300 hover:bg-amber-500/10">{rule.metadata?.excluded === "true" ? "Restore" : "Exclude"}</button><button type="button" onClick={() => review("reviewed")} className="rounded-lg border border-sky-500/30 px-3 py-1.5 text-xs text-sky-300 hover:bg-sky-500/10">Mark reviewed</button><button type="button" onClick={() => review("approved")} className="rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs text-emerald-300 hover:bg-emerald-500/10">Approve</button><button type="button" onClick={() => review("rejected")} className="rounded-lg border border-red-500/30 px-3 py-1.5 text-xs text-red-300 hover:bg-red-500/10">Reject</button></div>
+      <div className="flex flex-wrap gap-2"><CopyButton value={rule.content} label="Copy rule" className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800" /><button type="button" onClick={download} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800">Download</button><button type="button" onClick={toggleExclusion} className="rounded-lg border border-amber-500/30 px-3 py-1.5 text-xs text-amber-300 hover:bg-amber-500/10">{rule.metadata?.excluded === "true" ? "Restore" : "Exclude"}</button><button type="button" onClick={() => review("reviewed")} className="rounded-lg border border-sky-500/30 px-3 py-1.5 text-xs text-sky-300 hover:bg-sky-500/10">Mark reviewed</button><button type="button" onClick={() => review("approved")} className="rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs text-emerald-300 hover:bg-emerald-500/10">Approve</button><button type="button" onClick={() => review("rejected")} className="rounded-lg border border-red-500/30 px-3 py-1.5 text-xs text-red-300 hover:bg-red-500/10">Reject</button></div>
       <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3"><label htmlFor={`note-${rule.id}`} className="text-xs font-medium text-zinc-300">Analyst note</label><textarea id={`note-${rule.id}`} value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="Record tuning decisions, exceptions, or review context…" className="mt-2 w-full rounded-lg border border-zinc-800 bg-zinc-900 p-2 text-xs text-zinc-300 placeholder-zinc-600" /><button type="button" onClick={saveNote} className="mt-2 rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800">{noteSaved ? "Saved" : "Save note"}</button></div>
       <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3"><p className="text-xs font-medium text-zinc-300">Offline sample test</p><p className="mt-1 text-[11px] text-zinc-600">One JSON log per line. This never contacts a SIEM.</p><textarea value={sample} onChange={(e) => setSample(e.target.value)} rows={3} className="mt-2 w-full rounded-lg border border-zinc-800 bg-zinc-900 p-2 font-mono text-xs text-zinc-300" /><button onClick={runTest} className="mt-2 rounded-lg border border-indigo-500/30 px-3 py-1.5 text-xs text-indigo-300 hover:bg-indigo-500/10">Test samples</button>{testResult && <p className="mt-2 text-xs text-zinc-400">{testResult}</p>}</div>
     </div>

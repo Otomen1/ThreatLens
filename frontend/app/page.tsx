@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { BatchWorkspace } from "@/components/batch/BatchWorkspace";
 import { InvestigationWorkspace } from "@/components/InvestigationWorkspace";
 import { useBatchInvestigation } from "@/hooks/useBatchInvestigation";
 
 export default function HomePage() {
+  const searchRef = useRef<HTMLTextAreaElement>(null);
   const [query, setQuery] = useState(() => {
     if (typeof window === "undefined") return "";
     return new URLSearchParams(window.location.search).get("q") ?? "";
@@ -17,6 +18,10 @@ export default function HomePage() {
   const batch = useBatchInvestigation();
   const loading = batch.previewing || batch.running;
   const result = batch.preview?.entities.length === 1 ? batch.rows[0]?.investigation ?? null : null;
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("focus") === "search") searchRef.current?.focus();
+  }, []);
 
   const runSearch = useCallback(async () => {
     const trimmed = query.trim();
@@ -77,6 +82,8 @@ export default function HomePage() {
               <path d="m21 21-4.35-4.35" />
             </svg>
             <textarea
+              ref={searchRef}
+              data-focus="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => {

@@ -16,6 +16,7 @@ import { ApiConsumptionTab } from "@/components/dashboard/ApiConsumptionTab";
 import { ConfigurationTab } from "@/components/dashboard/ConfigurationTab";
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
 import { SystemHealthTab } from "@/components/dashboard/SystemHealthTab";
+import { LoadingRows } from "@/components/ui/Skeleton";
 
 // Read-only: refreshing this page never triggers an investigation, a
 // detection generation, or an AI call. Auto-refresh is capped well above the
@@ -100,11 +101,7 @@ export default function DashboardPage() {
           </div>
         </header>
 
-        {state.kind === "loading" && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-center text-sm text-zinc-500">
-            Loading operational status…
-          </div>
-        )}
+        {state.kind === "loading" && <LoadingRows rows={4} label="Loading operational status" />}
 
         {state.kind === "error" && (
           <div

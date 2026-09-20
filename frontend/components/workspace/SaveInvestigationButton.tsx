@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { saveInvestigation, type InvestigationResponse } from "@/lib/api";
 import { entityLabel } from "@/lib/investigation";
+import { useToast } from "@/components/ui/ToastProvider";
 
 interface Props {
   investigation: InvestigationResponse;
@@ -24,6 +25,7 @@ type State =
  * detail page — this button only needs one click to get a case saved.
  */
 export function SaveInvestigationButton({ investigation }: Props) {
+  const { notify } = useToast();
   const [state, setState] = useState<State>({ kind: "idle" });
   const { entity, investigation_summary: investigationSummary } = investigation;
 
@@ -37,7 +39,11 @@ export function SaveInvestigationButton({ investigation }: Props) {
         investigation_snapshot: investigation,
       });
       setState({ kind: "saved", id: record.id });
+      localStorage.removeItem("threatlens:navigation-summary:v1");
+      window.dispatchEvent(new Event("threatlens:navigation-summary-invalidated"));
+      notify("Investigation saved to Workspace.");
     } catch (err) {
+      notify("Investigation could not be saved.", "error");
       setState({
         kind: "error",
         message: err instanceof Error ? err.message : "Could not save.",

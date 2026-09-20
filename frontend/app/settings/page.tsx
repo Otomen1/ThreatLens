@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { downloadBackup, getBackupHistory, restoreBackup, testBackup, validateBackup, type BackupHistoryEntry, type BackupPreview } from "@/lib/api";
 import { getFeedSources, type FeedSource } from "@/lib/api/threatFeed";
+import { useToast } from "@/components/ui/ToastProvider";
 
 export default function SettingsPage() {
+  const { notify } = useToast();
   const [bundle, setBundle] = useState<unknown>(null);
   const [preview, setPreview] = useState<BackupPreview | null>(null);
   const [message, setMessage] = useState("");
@@ -51,9 +53,13 @@ export default function SettingsPage() {
       setBusy(true);
       const result = await restoreBackup(bundle);
       setMessage(`Restore complete: ${result.investigations_added + result.cases_added} added, ${result.investigations_updated + result.cases_updated} updated, ${result.investigations_skipped + result.cases_skipped} kept.`);
+      localStorage.removeItem("threatlens:navigation-summary:v1");
+      window.dispatchEvent(new Event("threatlens:navigation-summary-invalidated"));
+      notify("Backup restored with a safe merge.");
       setHistory((await getBackupHistory()).entries);
     } catch {
       setMessage("Restore failed. No records were intentionally deleted.");
+      notify("Backup restore failed; no records were intentionally deleted.", "error");
     } finally {
       setBusy(false);
     }
@@ -70,8 +76,10 @@ export default function SettingsPage() {
       anchor.click();
       URL.revokeObjectURL(url);
       setMessage("Backup downloaded.");
+      notify("Backup downloaded.");
     } catch {
       setMessage("Backup download failed.");
+      notify("Backup download failed.", "error");
     } finally {
       setBusy(false);
     }
@@ -81,7 +89,7 @@ export default function SettingsPage() {
     <main className="min-h-screen px-4 py-10 sm:py-14">
       <div className="mx-auto max-w-3xl space-y-6">
         <header><h1 className="text-2xl font-semibold">Settings</h1><p className="mt-1 text-sm text-zinc-500">Manage portable copies of your ThreatLens data.</p></header>
-        <section className="space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+        <section data-focus="backup" tabIndex={-1} className="space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
           <div><h2 className="font-medium text-white">Data Management</h2><p className="mt-1 text-sm text-zinc-500">Backups contain investigations, detection history, and cases. API keys and passwords are never included.</p></div>
           <button disabled={busy} type="button" onClick={() => void download()} className="inline-flex rounded-lg border border-sky-500/30 px-3 py-2 text-sm text-sky-300 hover:bg-sky-500/10 disabled:opacity-50">Download backup</button>
           <div className="border-t border-zinc-800 pt-5"><label className="block text-sm font-medium text-zinc-200" htmlFor="backup-file">Restore from backup</label><input id="backup-file" className="mt-3 block w-full rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-sm" type="file" accept="application/json,.json" onChange={(event) => void chooseFile(event.target.files?.[0])} /></div>
