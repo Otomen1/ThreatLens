@@ -13,6 +13,7 @@ from threatlens.entities.types import EntityType
 from threatlens.investigation import InvestigationService
 from threatlens.providers import AggregatedResult, ProviderSummary
 from threatlens.providers.results import ResultStatus
+from threatlens.system.metrics import registry
 
 client = TestClient(app)
 
@@ -69,6 +70,20 @@ def test_investigate_updates_provider_and_investigation_counters(
 
     assert body["investigations"]["executed"] == 1
     assert body["investigations"]["avg_duration_ms"] is not None
+
+
+def test_usage_prefers_durable_provider_events_for_request_totals() -> None:
+    registry.record_provider_http("abuseipdb", status_code=200, headers={})
+    registry.record_provider_http("abuseipdb", status_code=429, headers={"retry-after": "60"})
+
+    body = client.get("/api/v1/system/usage").json()
+    abuseipdb = next(p for p in body["threat_intelligence"] if p["name"] == "abuseipdb")
+
+    assert abuseipdb["requests"] == 2
+    assert abuseipdb["successful"] == 1
+    assert abuseipdb["failed"] == 1
+    assert abuseipdb["success_rate"] == 50.0
+    assert abuseipdb["last_request_at"] is not None
 
 
 def test_ai_usage_reflects_disabled_default() -> None:

@@ -123,6 +123,30 @@ def _provider_usage(
     c = counter or CallCounter()
     quota = metrics.provider_quota.get(item.name, {})
     recent = [event for event in metrics.provider_events if event["provider"] == item.name]
+    # HTTP events are durable, unlike the process-local aggregate counters. On
+    # serverless hosts the usage request may run in a different instance from
+    # the investigation, so prefer the event ledger whenever it has data.
+    # The ledger is intentionally bounded to the latest 500 events.
+    requests = len(recent) if recent else c.requests
+    successful = 0
+    if recent:
+        for event in recent:
+            event_status = event.get("status_code")
+            if (
+                isinstance(event_status, int)
+                and not isinstance(event_status, bool)
+                and (event_status < 400 or event_status == 404)
+            ):
+                successful += 1
+    else:
+        successful = c.successes
+    failed = requests - successful if recent else c.failures
+    success_rate = round(100 * successful / requests, 1) if requests else None
+    last_request_at = (
+        str(recent[-1]["timestamp"])
+        if recent and recent[-1].get("timestamp") is not None
+        else c.last_request_at
+    )
     status_value = recent[-1].get("status_code") if recent else None
     last_status = status_value if isinstance(status_value, int) else None
     error_code = (
@@ -149,12 +173,12 @@ def _provider_usage(
         display_name=item.display_name,
         configured=item.configured,
         enabled=item.enabled,
-        requests=c.requests,
-        successful=c.successes,
-        failed=c.failures,
-        success_rate=c.success_rate,
+        requests=requests,
+        successful=successful,
+        failed=failed,
+        success_rate=success_rate,
         avg_latency_ms=c.avg_latency_ms,
-        last_request_at=c.last_request_at,
+        last_request_at=last_request_at,
         rate_limit_remaining=remaining if isinstance(remaining, int) else None,
         cache_hits=c.cache_hits,
         cache_misses=c.cache_misses,

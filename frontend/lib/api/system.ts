@@ -7,7 +7,7 @@
 // endpoint here is GET and side-effect-free: none can trigger an
 // investigation, a detection generation, or an AI call.
 
-import { get } from "./client";
+import { get, getUncached } from "./client";
 
 export interface HealthStatus {
   status: string;
@@ -178,7 +178,7 @@ export function systemHealth(signal?: AbortSignal): Promise<SystemHealthResponse
 
 /** Section 2 — incremental request/latency counters. Never includes a secret. */
 export function systemUsage(signal?: AbortSignal): Promise<UsageResponse> {
-  return get<UsageResponse>("/system/usage", signal);
+  return getUncached<UsageResponse>("/system/usage", signal);
 }
 
 /** Section 3 — configured/enabled booleans only. Never includes a credential. */

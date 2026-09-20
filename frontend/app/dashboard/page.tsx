@@ -62,8 +62,15 @@ export default function DashboardPage() {
   useEffect(() => {
     load();
     const interval = setInterval(load, AUTO_REFRESH_MS);
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") void load();
+    };
+    window.addEventListener("focus", refreshWhenVisible);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
     return () => {
       clearInterval(interval);
+      window.removeEventListener("focus", refreshWhenVisible);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
       abortRef.current?.abort();
     };
   }, [load]);
