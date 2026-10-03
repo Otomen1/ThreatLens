@@ -6,6 +6,7 @@ const items = [{ id: "domain", type: "domain", value: "evil.test", original: "ev
 test.beforeEach(async ({ page }) => {
   await page.route("**/api/v1/**", (route) => {
     const url = new URL(route.request().url());
+    if (url.pathname.endsWith("/ioc-reports/one/changes")) return route.fulfill({ json: { items: [{ id: "rev", commit: "c".repeat(40), parser_version: "1.0", observed_at: now, changed_fields: [], added: [{ ...items[0], id: "new", value: "latest.test" }], removed: [items[0]] }], total: 1, page: 1, page_size: 5, limited: true } });
     if (url.pathname.endsWith("/ioc-reports/one")) return route.fulfill({ json: { report, indicators: items } });
     if (url.pathname.endsWith("/ioc-reports")) return route.fulfill({ json: { items: url.searchParams.get("vendor") === "eset" ? [] : [report], total: 1, page: 1, page_size: 20, unique_indicators: 2, recent_indicators: 2, sources: [{ vendor: "sophoslabs", name: "SophosLabs", url: "https://github.com/sophoslabs/IoCs", enabled: false, license: "Redistribution not verified", status: "license_pending", last_success_at: null, pending: 0, skipped: 0, safe_error: "Import disabled pending redistribution review.", next_attempt_at: null }], generated_at: now } });
     if (url.pathname.endsWith("/indicators")) return route.fulfill({ json: { items: items.map((item) => ({ ...item, vendors: ["talos"], reports: [report], activity_at: now })), total: 2, page: 1, page_size: 20 } });
@@ -34,8 +35,11 @@ test("public IOC reports, filters, provenance, export and explicit investigation
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export selected CSV" }).click();
   expect((await download).suggestedFilename()).toBe("threatlens-iocs-one.csv");
-  await page.getByRole("button", { name: "Bookmark report" }).click();
-  expect(await page.evaluate(() => localStorage.getItem("threatlens.feed.iocs.bookmarks"))).toContain("one");
+  await expect(page.getByRole("heading", { name: "Observed IOC changes" })).toBeVisible();
+  await page.getByText(/\+1 \/ −1/).click();
+  await expect(page.getByText("latest[.]test", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Save locally" }).click();
+  expect(await page.evaluate(() => localStorage.getItem("threatlens.feed.saved.v1"))).toContain("one");
   expect(errors).toEqual([]);
 });
 

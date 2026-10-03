@@ -2,6 +2,61 @@
 
 ## Threat Feed
 
+### Workflow: freshness, search, related intelligence, and Saved
+
+The four existing feed tabs remain public. The shared **Search** control searches
+retained News, Vulnerabilities, and IOC report metadata without making provider
+requests. CVEs and normalized IOCs match exactly; other terms match stored compact
+report text. Each result group has independent paging. **Find PoC & Tools** only
+prepares the CVE input: sign-in and an explicit Search remain required.
+
+Related intelligence uses explicit CVE/IOC references and canonical article links,
+not fuzzy campaign matching. Shared infrastructure does not establish a shared
+campaign. Collection freshness is separate from publication time and browser-cache
+age. A last successful scheduled collection older than eight hours is labelled
+stale; pending, unavailable, disabled, and never-checked sources remain distinct.
+PoC results retain their own checked time and temporary-cache semantics.
+
+**Saved** is browser-local and versioned, with at most 500 compact bookmarks,
+20 per page, and inline confirmation before clearing all. Existing News/IOC
+bookmark IDs migrate on first access. Records that expired or cannot be loaded
+remain bookmarked and show an unavailable state. No articles, IOC lists, API keys,
+tokens, or PoC results are retained in Saved or synchronized to Supabase.
+
+Stored views support newest/oldest activity ordering, removable URL filter chips,
+and Reset Filters; resetting preserves the active tab. Regional-targeting evidence
+is separate from News section routing. Targeting badges require explicit source
+wording about affected or targeted audiences; publisher location and `.my` hosting
+alone are insufficient. Vulnerability badges identify targeting described by a
+related report rather than asserting that the CVE itself targets a country.
+
+### Observed IOC revisions
+
+Current reports start as the baseline. Subsequent content/metadata changes record
+normalized additions and removals, changed fields, commit/parser identity, and
+observation time transactionally with current content and collection progress.
+Unsupported source updates retain previous content; explicit deletion records
+withdrawal. History is not a complete vendor archive or proof of current activity.
+
+Retention is 30 days, at most ten revisions per report, and 20 MiB of serialized
+history globally. Oldest entries are evicted when necessary, with limited-history
+disclosure; current indicators are never removed merely to meet history limits.
+Per-report JSON exports retain attribution and license notices. This public feed
+dataset remains outside personal investigation backups.
+
+The schema is supplied in `supabase/migrations/202610030003_feed_workflow.sql`, with
+equivalent SQLite/in-memory behavior and PostgreSQL row-level security. Backend
+schema initialization creates the compatible table with the existing database
+role; production rollout still requires verifying its database permissions.
+
+New public, stored-data-only endpoints: `/api/v1/threat-feed/status`,
+`/api/v1/threat-feed/search`, `/api/v1/threat-feed/related/{kind}/{id}`, and
+`/api/v1/threat-feed/ioc-reports/{id}/changes`. Related kinds are `news`,
+`vulnerability`, and `ioc`. Public successful reads retain five-minute CDN caching;
+search/related warm-instance caches are bounded and invalidated after collection.
+Errors and private PoC results are not added to those caches. No paid service,
+new source subscription, automatic investigation, or alerting is introduced.
+
 ThreatLens includes a public, read-only Threat Feed at `/threat-feed`. It collects compact publisher metadata from trusted cybersecurity news and official advisory sources, retains it for 30 days, and routes each item into Global, Malaysia, or Southeast Asia. Summaries and entity extraction are deterministic; full articles remain at the publisher, and extracted entities are labelled source-reported and unverified.
 
 Public refreshes are durably limited to once every 30 minutes. For six-hour scheduled refreshes, set `THREAT_FEED_CRON_SECRET` in Vercel, then add these GitHub repository secrets:
