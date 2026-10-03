@@ -1,6 +1,6 @@
 """Public passive reads; external collection uses the existing leased refresh."""
 
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 
@@ -32,6 +32,7 @@ def list_records(
     hours: Annotated[int, Query(ge=1, le=720)] = 168,
     page: Annotated[int, Query(ge=1, le=10000)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
+    sort: Literal["newest", "oldest"] = "newest",
 ) -> ReportList | IndicatorList:
     response.headers["Cache-Control"] = "public, s-maxage=300, stale-while-revalidate=3600"
     return listing(
@@ -42,6 +43,7 @@ def list_records(
         hours=hours,
         page=page,
         page_size=page_size,
+        sort=sort,
         view="indicators" if request.url.path.endswith("/indicators") else "reports",
     )
 
@@ -74,3 +76,15 @@ def report_indicators(
         "page": page,
         "page_size": page_size,
     }
+
+
+@router.get("/ioc-reports/{report_id}/changes")
+def changes(
+    report_id: str,
+    response: Response,
+    db: Annotated[IocStorage, Depends(storage)],
+    page: Annotated[int, Query(ge=1, le=10000)] = 1,
+) -> dict[str, object]:
+    detail(report_id, db)
+    response.headers["Cache-Control"] = "public, s-maxage=300, stale-while-revalidate=3600"
+    return db.changes(report_id, page)

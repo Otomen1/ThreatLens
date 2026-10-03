@@ -5,12 +5,13 @@ import os
 import sqlite3
 from collections.abc import Iterator
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from threading import Lock
 from typing import Any
 from weakref import WeakKeyDictionary
 
 from ..threat_feed.storage import FeedStorage
+from .history import MAX_HISTORY_BYTES, MAX_REVISIONS, IocRevision, maintain, revision
 from .models import Indicator, IocReport
 
 _stores: WeakKeyDictionary[FeedStorage, "IocStorage"] = WeakKeyDictionary()
@@ -38,6 +39,7 @@ class IocStorage:
         self.memory = not self.pg and feed.backend != "sqlite"
         self.reports: dict[str, IocReport] = {}
         self.indicators: dict[str, tuple[Indicator, ...]] = {}
+        self.history: dict[str, IocRevision] = {}
         if (feed.backend == "postgres" or os.getenv("VERCEL")) and not self.pg:
             raise ValueError("Durable IOC database is unavailable")
         if not self.memory:
@@ -82,11 +84,65 @@ class IocStorage:
                     or edges - old_edges + len(indicators) > MAX_ASSOCIATIONS
                 ):
                     raise StorageCapacity
+                old_report = self.reports.get(report.id)
+                entry = revision(
+                    report,
+                    indicators,
+                    (old_report, self.indicators[report.id]) if old_report else None,
+                )
+                if entry:
+                    self.history[entry.id] = entry
+                counts: dict[str, int] = {}
+                size = 0
+                for history_item in sorted(
+                    self.history.values(), key=lambda r: (r.observed_at, r.id), reverse=True
+                ):
+                    counts[history_item.report_id] = counts.get(history_item.report_id, 0) + 1
+                    length = len(history_item.model_dump_json().encode())
+                    if (
+                        history_item.observed_at < report.collected_at - timedelta(days=30)
+                        or counts[history_item.report_id] > MAX_REVISIONS
+                        or size + length > MAX_HISTORY_BYTES
+                    ):
+                        self.history.pop(history_item.id)
+                        self.feed.memory_state[f"ioc_history_limited:{history_item.report_id}"] = (
+                            "true"
+                        )
+                    else:
+                        size += length
                 self.reports[report.id] = report
                 self.indicators[report.id] = indicators
                 self.feed.memory_state.update(state)
             return
         with self.connection() as db:
+            old_row = db.execute(
+                self.sql("SELECT payload FROM threat_feed_ioc_reports WHERE id=?"), (report.id,)
+            ).fetchone()
+            old_items = (
+                db.execute(
+                    self.sql(
+                        "SELECT i.payload,e.original FROM threat_feed_indicators i JOIN "
+                        "threat_feed_report_indicators e ON e.indicator_id=i.id WHERE e.report_id=?"
+                    ),
+                    (report.id,),
+                ).fetchall()
+                if old_row
+                else []
+            )
+            old = (
+                (
+                    IocReport.model_validate(self.decode(old_row[0])),
+                    tuple(
+                        Indicator.model_validate(self.decode(p)).model_copy(
+                            update={"original": original}
+                        )
+                        for p, original in old_items
+                    ),
+                )
+                if old_row
+                else None
+            )
+            entry = revision(report, indicators, old)
             count = db.execute("SELECT COUNT(*) FROM threat_feed_ioc_reports").fetchone()[0]
             exists = db.execute(
                 self.sql("SELECT 1 FROM threat_feed_ioc_reports WHERE id=?"), (report.id,)
@@ -154,6 +210,36 @@ class IocStorage:
                     ),
                     (key, value),
                 )
+            maintain(db, self.sql, entry, self.pg, report.collected_at - timedelta(days=30))
+
+    def changes(self, report_id: str, page: int = 1) -> dict[str, Any]:
+        cutoff = datetime.now(UTC) - timedelta(days=30)
+        if self.memory:
+            items = [
+                r
+                for r in self.history.values()
+                if r.report_id == report_id and r.observed_at >= cutoff
+            ]
+        else:
+            with self.connection() as db:
+                rows = db.execute(
+                    self.sql(
+                        "SELECT payload FROM threat_feed_ioc_revisions "
+                        "WHERE report_id=? AND observed_at>=? "
+                        "ORDER BY observed_at DESC,id DESC"
+                    ),
+                    (report_id, cutoff.isoformat()),
+                ).fetchall()
+            items = [IocRevision.model_validate(self.decode(r[0])) for r in rows]
+        items.sort(key=lambda r: (r.observed_at, r.id), reverse=True)
+        return {
+            "items": items[(page - 1) * 5 : page * 5],
+            "total": len(items),
+            "page": page,
+            "page_size": 5,
+            "limited": self.feed.state(f"ioc_history_limited:{report_id}") == "true",
+            "baseline": "Changes observed by ThreatLens only; no vendor archive implied.",
+        }
 
     def detail(self, report_id: str) -> tuple[IocReport, tuple[Indicator, ...]] | None:
         if self.memory:
@@ -252,12 +338,17 @@ class IocStorage:
 
     def prune(self, cutoff: datetime) -> None:
         if self.memory:
+            for revision_id, entry in list(self.history.items()):
+                if entry.observed_at < cutoff:
+                    self.history.pop(revision_id)
+                    self.feed.memory_state[f"ioc_history_limited:{entry.report_id}"] = "true"
             for key in list(self.reports):
                 if self.reports[key].activity_at < cutoff:
                     self.reports.pop(key)
                     self.indicators.pop(key, None)
             return
         with self.connection() as db:
+            maintain(db, self.sql, None, self.pg, cutoff)
             db.execute(
                 self.sql("DELETE FROM threat_feed_ioc_reports WHERE activity_at<?"),
                 (cutoff.isoformat(),),
@@ -289,6 +380,12 @@ def schema(postgres: bool) -> list[str]:
         "CREATE INDEX IF NOT EXISTS ioc_indicator_type_idx ON threat_feed_indicators(type)",
         "CREATE INDEX IF NOT EXISTS ioc_edges_indicator_idx "
         "ON threat_feed_report_indicators(indicator_id)",
+        "CREATE TABLE IF NOT EXISTS threat_feed_ioc_revisions(id text PRIMARY KEY,"
+        "report_id text NOT NULL REFERENCES threat_feed_ioc_reports(id) ON DELETE CASCADE,"
+        "observed_at text NOT NULL,bytes integer NOT NULL,"
+        f"payload {payload} NOT NULL)",
+        "CREATE INDEX IF NOT EXISTS ioc_revisions_report_idx "
+        "ON threat_feed_ioc_revisions(report_id,observed_at DESC)",
     ]
     if postgres:
         statements.extend(
@@ -297,6 +394,7 @@ def schema(postgres: bool) -> list[str]:
                 "threat_feed_ioc_reports",
                 "threat_feed_indicators",
                 "threat_feed_report_indicators",
+                "threat_feed_ioc_revisions",
             )
         )
     return statements

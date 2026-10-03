@@ -11,7 +11,7 @@ from .parsers import normalize
 from .storage import IocStorage
 
 _cache: OrderedDict[
-    tuple[int, str, str, str, int, int, int, str], tuple[float, ReportList | IndicatorList]
+    tuple[int, str, str, str, int, int, int, str, str], tuple[float, ReportList | IndicatorList]
 ] = OrderedDict()
 _lock = Lock()
 
@@ -31,8 +31,9 @@ def listing(
     page: int = 1,
     page_size: int = 20,
     view: str = "reports",
+    sort: str = "newest",
 ) -> ReportList | IndicatorList:
-    key = (id(storage), query, vendor, kind, hours, page, page_size, view)
+    key = (id(storage), query, vendor, kind, hours, page, page_size, view, sort)
     with _lock:
         cached = _cache.get(key)
         if cached and cached[0] > time.monotonic():
@@ -43,6 +44,7 @@ def listing(
     records = storage.snapshot(
         query=query, vendor=vendor, kind=kind, cutoff=now - timedelta(hours=hours)
     )
+    records.sort(key=lambda pair: (pair[0].activity_at, pair[0].id), reverse=sort != "oldest")
     groups: dict[str, IndicatorRow] = {}
     for report, indicators in records:
         for item in indicators:
@@ -58,7 +60,9 @@ def listing(
     offset = (page - 1) * page_size
     result: ReportList | IndicatorList
     if view == "indicators":
-        items = sorted(groups.values(), key=lambda item: (item.activity_at, item.id), reverse=True)
+        items = sorted(
+            groups.values(), key=lambda item: (item.activity_at, item.id), reverse=sort != "oldest"
+        )
         result = IndicatorList(
             items=tuple(items[offset : offset + page_size]),
             total=len(items),
