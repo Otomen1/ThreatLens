@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { downloadBackup, getBackupHistory, restoreBackup, testBackup, validateBackup, type BackupHistoryEntry, type BackupPreview } from "@/lib/api";
 import { getFeedSources, type FeedSource } from "@/lib/api/threatFeed";
+import { getIocSources, type IocSource } from "@/lib/api/iocReports";
 import { useToast } from "@/components/ui/ToastProvider";
 
 export default function SettingsPage() {
@@ -13,10 +14,12 @@ export default function SettingsPage() {
   const [busy, setBusy] = useState(false);
   const [history, setHistory] = useState<BackupHistoryEntry[]>([]);
   const [feedSources, setFeedSources] = useState<FeedSource[]>([]);
+  const [iocSources, setIocSources] = useState<IocSource[]>([]);
   const [confirmRestore, setConfirmRestore] = useState(false);
 
   useEffect(() => { void getBackupHistory().then((result) => setHistory(result.entries)).catch(() => undefined); }, []);
   useEffect(() => { void getFeedSources().then(setFeedSources).catch(() => undefined); }, []);
+  useEffect(() => { void getIocSources().then((result) => setIocSources(Array.isArray(result) ? result : [])).catch(() => undefined); }, []);
 
   async function verifyTestRestore() {
     if (!bundle || !preview?.valid) return;
@@ -89,6 +92,7 @@ export default function SettingsPage() {
     <main className="min-h-screen px-4 py-10 sm:py-14">
       <div className="mx-auto max-w-3xl space-y-6">
         <header><h1 className="text-2xl font-semibold">Settings</h1><p className="mt-1 text-sm text-zinc-500">Manage portable copies of your ThreatLens data.</p></header>
+        <section className="space-y-3 rounded-2xl border border-zinc-800 bg-zinc-900 p-5"><h2 className="font-medium">IOC Reports source diagnostics</h2><p className="text-xs text-zinc-500">Passive repository collection only. No IOC is queried or scanned. SophosLabs importing awaits redistribution review.</p>{iocSources.map((source) => <div key={source.vendor} className="rounded-lg border border-zinc-800 p-3 text-xs text-zinc-400"><a href={source.url} target="_blank" rel="noreferrer" className="text-sky-300">{source.name} ↗</a><p>{source.status.replaceAll("_", " ")} · {source.pending} pending · {source.skipped} skipped</p><p>Last success: {source.last_success_at ? new Date(source.last_success_at).toLocaleString() : "Not supplied"}</p>{source.safe_error && <p className="text-amber-300">{source.safe_error}</p>}</div>)}</section>
         <section data-focus="backup" tabIndex={-1} className="space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
           <div><h2 className="font-medium text-white">Data Management</h2><p className="mt-1 text-sm text-zinc-500">Backups contain investigations, detection history, and cases. API keys and passwords are never included.</p></div>
           <button disabled={busy} type="button" onClick={() => void download()} className="inline-flex rounded-lg border border-sky-500/30 px-3 py-2 text-sm text-sky-300 hover:bg-sky-500/10 disabled:opacity-50">Download backup</button>

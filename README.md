@@ -21,6 +21,59 @@ The existing scheduled/manual refresh collects both views. A database-backed, ow
 
 Both tabs keep separate compact browser caches and reading state. Vulnerability responses are cached for five minutes, with a last-successful browser fallback for up to 24 hours. Filters and the active tab are encoded in the URL. Opening a CVE never automatically investigates it; the **Investigate CVE** link prepares the existing search workflow. No paid service or new credentials are required.
 
+### IOC Reports
+
+`/threat-feed?tab=iocs` provides public report and indicator views. Collection uses only the
+allowlisted Cisco Talos, Unit 42, and ESET official IOC repositories. A SophosLabs CSV adapter
+is present but importing is disabled pending verification of redistribution terms. Its source
+link and license-pending status remain visible. No API key or paid service is introduced.
+
+The existing leased, six-hour scheduled/30-minute public refresh also performs bounded IOC
+collection: at most 12 GitHub API calls across vendors, five files per vendor, 55 seconds per
+vendor, 2 MB per file, and 5,000 indicators per file. GitHub rate-limit/reset headers defer
+collection without automatic retries. Discovery starts with the previous 30 days of repository
+activity, not a historical catalogue. Only one queued commit per source is processed per pass;
+backlogs resume on later refreshes. Partial, unavailable, timed-out, rate-limited, storage-limited,
+and license-pending states are shown in the tab and Settings. Unsupported commit/file formats
+can require an adapter update; they never imply that the vendor has no indicators.
+
+Supported sources include exact simple Talos STIX indicator patterns, explicit Unit 42 IOC
+sections, ESET hash lists/IOC Markdown tables, and supported typed CSV/JSON fields. Complex STIX
+patterns, arbitrary prose, package-name lists, PDFs, credentials, binaries, scripts, archives,
+YARA and Snort rule files are not collected. No executable content is downloaded, no article is
+republished, and collection never invokes investigation/TI providers or targets. Full articles,
+malware names, actors, publication dates and recommendations are not invented from file names.
+Titles default to labelled source-file names; publisher report links appear only when explicitly
+present on an allowlisted publisher host.
+
+Every record is **source-reported, not independently verified, current activity unknown**.
+Publication, repository-update and collection dates are separate; a missing publication date is
+“Not supplied.” Recent counts refer to repository activity, not newly discovered or active malware.
+Domains/URLs display defanged. Investigation buttons only prepare the existing search workflow;
+selected batches are limited to 20. CSV/JSON exports preserve normalized/original values, source
+links, verification wording and attribution; ESET exports include its complete BSD notice and
+disclaimer. CSV formula prefixes are escaped. Copy defaults to defanged values, with normalized
+copy explicitly labelled. Read/bookmark IDs are browser-local and excluded from server backups.
+
+Migration `supabase/migrations/202610030002_ioc_reports.sql` adds report, indicator and provenance
+tables with indexes and row-level security. Backend initialization also creates the compatible
+schema; direct public database access has no policies. PostgreSQL is required on Vercel: missing
+durable configuration returns unavailable rather than silently using ephemeral memory. SQLite and
+memory are supported for local development. Report replacement and its resume state commit in one
+transaction. Older source revisions cannot overwrite a newer imported report; withdrawn files clear
+only their own associations. Retention is 30 days of repository activity. Collection stops at 500
+reports, 50,000 unique indicators or 100,000 associations instead of consuming unbounded storage;
+pending work remains available after retention cleanup. Existing free-tier account limits still apply.
+
+Public endpoints: `GET /api/v1/threat-feed/ioc-reports`, `/indicators`,
+`/ioc-reports/sources`, `/ioc-reports/{id}` and `/ioc-reports/{id}/indicators`.
+Listing filters support exact normalized IOC or report-title search, vendor, type, hours and
+pagination. Lists use five-minute caching and a bounded versioned browser fallback for 24 hours;
+report details are not browser-cached. Browser navigation never triggers source collection. This
+reconstructible public dataset is not included in personal investigation/case backups; export a
+report separately when you need an offline copy. Push/deployment and live PostgreSQL verification
+remain separate from local implementation checks.
+
 ### Online PoC & Tools lookup
 
 The third Threat Feed tab, `/threat-feed?tab=poc`, looks up a single CVE in official [Rapid7 Metasploit metadata](https://github.com/rapid7/metasploit-framework/blob/master/db/modules_metadata_base.json) and [ProjectDiscovery Nuclei metadata](https://github.com/projectdiscovery/nuclei-templates/blob/main/cves.json). The page is public, but searching requires a validated Supabase session. `POST /api/v1/poc/lookup/{source}` is private, fails closed when sign-in configuration is absent, and returns `Cache-Control: private, no-store`. A prefilled CVE does not trigger a lookup until Search is pressed.

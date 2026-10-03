@@ -46,6 +46,14 @@ HOME_CACHE_SIZE = 32
 _logger = logging.getLogger("threatlens.threat_feed")
 
 
+async def collect_ioc_reports(feed: FeedStorage, now: datetime) -> int:
+    # Lazy composition avoids a cycle through the feed package's public service export.
+    from ..ioc_feed.collector import collect
+    from ..ioc_feed.storage import get_storage
+
+    return await collect(get_storage(feed), now)
+
+
 class ThreatFeedService:
     def __init__(self, storage: FeedStorage) -> None:
         self.storage = storage
@@ -107,6 +115,14 @@ class ThreatFeedService:
             self._source_error(
                 SourceDefinition("nvd", "NVD", "json", "https://nvd.nist.gov"), now, error
             )
+        try:
+            await collect_ioc_reports(self.storage, now)
+        except Exception:
+            _logger.warning("IOC collection unavailable; existing reports retained")
+            errors.append("IOC reports: unavailable")
+        from ..ioc_feed.service import clear_cache
+
+        clear_cache()
         if succeeded:
             self.storage.delete_before(now - timedelta(days=RETENTION_DAYS))
             self.storage.save_vulnerabilities(
