@@ -25,6 +25,15 @@ from ...threat_feed.models import (
     VulnerabilityListResponse,
 )
 from ...threat_feed.vulnerabilities import link_reports
+from ...threat_feed.workflow import (
+    FeedCoverage,
+    FeedRelated,
+    FeedSearch,
+    RecordKind,
+    coverage,
+    related,
+    search,
+)
 
 router = APIRouter(prefix="/api/v1/threat-feed", tags=["threat-feed"])
 _service: ThreatFeedService | None = None
@@ -42,6 +51,48 @@ def summary(service: Annotated[ThreatFeedService, Depends(get_threat_feed_servic
     return service.summary()
 
 
+@router.get("/status", response_model=FeedCoverage)
+def feed_status(
+    response: Response,
+    service: Annotated[ThreatFeedService, Depends(get_threat_feed_service)],
+) -> FeedCoverage:
+    response.headers["Cache-Control"] = "public, s-maxage=300, stale-while-revalidate=3600"
+    return coverage(service.storage)
+
+
+@router.get("/search", response_model=FeedSearch)
+def search_feed(
+    response: Response,
+    service: Annotated[ThreatFeedService, Depends(get_threat_feed_service)],
+    q: Annotated[str, Query(min_length=1, max_length=200)],
+    news_page: Annotated[int, Query(ge=1, le=10000)] = 1,
+    vulnerability_page: Annotated[int, Query(ge=1, le=10000)] = 1,
+    ioc_page: Annotated[int, Query(ge=1, le=10000)] = 1,
+    sort: Literal["newest", "oldest"] = "newest",
+) -> FeedSearch:
+    response.headers["Cache-Control"] = "public, s-maxage=300, stale-while-revalidate=3600"
+    return search(
+        service.storage,
+        q,
+        {"news": news_page, "vulnerability": vulnerability_page, "ioc": ioc_page},
+        sort == "oldest",
+    )
+
+
+@router.get("/related/{kind}/{record_id}", response_model=FeedRelated)
+def related_feed(
+    kind: RecordKind,
+    record_id: str,
+    response: Response,
+    service: Annotated[ThreatFeedService, Depends(get_threat_feed_service)],
+) -> FeedRelated:
+    result = related(service.storage, kind, record_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Feed record not found")
+    response.headers["Cache-Control"] = "public, s-maxage=300, stale-while-revalidate=3600"
+    return result
+
+
 @router.get("/home", response_model=FeedHomeResponse)
 def home(
     request: Request,
@@ -51,12 +102,14 @@ def home(
     hours: Annotated[int | None, Query(ge=1, le=720)] = None,
     query: Annotated[str | None, Query(max_length=200)] = None,
     limit_per_region: Annotated[int, Query(ge=1, le=20)] = 5,
+    sort: Literal["newest", "oldest"] = "newest",
 ) -> Any:
     result = service.home(
         query=query,
         topic=topic,
         hours=hours,
         limit_per_region=limit_per_region,
+        sort=sort,
     )
     identity = json.dumps(
         {
@@ -67,6 +120,7 @@ def home(
             "topic": topic.value if topic else "",
             "hours": hours,
             "limit": limit_per_region,
+            "sort": sort,
         },
         sort_keys=True,
         separators=(",", ":"),
@@ -90,6 +144,7 @@ def list_items(
     query: Annotated[str | None, Query(max_length=200)] = None,
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
+    sort: Literal["newest", "oldest"] = "newest",
 ) -> FeedListResponse:
     return service.list_items(
         region=region,
@@ -99,6 +154,7 @@ def list_items(
         query=query,
         page=page,
         page_size=page_size,
+        sort=sort,
     )
 
 
@@ -130,6 +186,7 @@ def vulnerabilities(
     hours: Annotated[int, Query(ge=1, le=720)] = 168,
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
+    sort: Literal["newest", "oldest"] = "newest",
 ) -> VulnerabilityListResponse:
     response.headers["Cache-Control"] = "public, s-maxage=300, stale-while-revalidate=3600"
     return service.vulnerabilities(
@@ -140,6 +197,7 @@ def vulnerabilities(
         hours=hours,
         page=page,
         page_size=page_size,
+        sort=sort,
     )
 
 

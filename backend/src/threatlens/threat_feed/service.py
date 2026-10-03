@@ -13,6 +13,7 @@ from uuid import uuid4
 import httpx
 from pydantic import HttpUrl
 
+from .evidence import targeting
 from .logic import (
     canonical_url,
     classify_region,
@@ -58,11 +59,11 @@ class ThreatFeedService:
     def __init__(self, storage: FeedStorage) -> None:
         self.storage = storage
         self._home_cache: OrderedDict[
-            tuple[str, str, int | None, int], tuple[float, FeedHomeResponse]
+            tuple[str, str, int | None, int, str], tuple[float, FeedHomeResponse]
         ] = OrderedDict()
         self._home_cache_lock = Lock()
         self._vulnerability_cache: OrderedDict[
-            tuple[str, str, str, str, int, int, int], tuple[float, VulnerabilityListResponse]
+            tuple[str, str, str, str, int, int, int, str], tuple[float, VulnerabilityListResponse]
         ] = OrderedDict()
 
     async def refresh(self, *, force: bool = False) -> FeedRefreshResult:
@@ -123,6 +124,9 @@ class ThreatFeedService:
         from ..ioc_feed.service import clear_cache
 
         clear_cache()
+        from .workflow import clear_workflow_cache
+
+        clear_workflow_cache()
         if succeeded:
             self.storage.delete_before(now - timedelta(days=RETENTION_DAYS))
             self.storage.save_vulnerabilities(
@@ -162,8 +166,9 @@ class ThreatFeedService:
         hours: int = 168,
         page: int = 1,
         page_size: int = 20,
+        sort: str = "newest",
     ) -> VulnerabilityListResponse:
-        key = (query.strip().lower(), category, severity, source, hours, page, page_size)
+        key = (query.strip().lower(), category, severity, source, hours, page, page_size, sort)
         stamp = time.monotonic()
         with self._home_cache_lock:
             cached = self._vulnerability_cache.get(key)
@@ -178,6 +183,7 @@ class ThreatFeedService:
             hours=hours,
             page=page,
             page_size=page_size,
+            sort=sort,
         )
         with self._home_cache_lock:
             self._vulnerability_cache[key] = (stamp + HOME_CACHE_SECONDS, result)
@@ -193,12 +199,14 @@ class ThreatFeedService:
         topic: FeedTopic | None = None,
         hours: int | None = None,
         limit_per_region: int = 5,
+        sort: str = "newest",
     ) -> FeedHomeResponse:
         key = (
             (query or "").strip().lower(),
             topic.value if topic else "",
             hours,
             limit_per_region,
+            sort,
         )
         now_monotonic = time.monotonic()
         with self._home_cache_lock:
@@ -225,6 +233,13 @@ class ThreatFeedService:
                 and (
                     not needle
                     or needle in f"{item.title} {item.summary} {item.source_name}".lower()
+                )
+            )
+            matching = tuple(
+                sorted(
+                    matching,
+                    key=lambda item: (item.published_at, item.id),
+                    reverse=sort != "oldest",
                 )
             )
             sections[region] = FeedHomeSection(
@@ -289,6 +304,9 @@ class ThreatFeedService:
                     entities=extract_entities(entry),
                     vendor=entry.vendor,
                     product=entry.product,
+                    targeting_evidence=targeting(
+                        source.name, {"title": entry.title, "excerpt": entry.excerpt}
+                    ),
                 )
             )
         added = self.storage.save_items(items)
@@ -337,6 +355,7 @@ class ThreatFeedService:
         query: str | None = None,
         page: int = 1,
         page_size: int = 20,
+        sort: str = "newest",
     ) -> FeedListResponse:
         items = self.storage.list_items()
         cutoff = datetime.now(UTC) - timedelta(hours=hours) if hours else None
@@ -355,6 +374,7 @@ class ThreatFeedService:
                 )
             )
         ]
+        filtered.sort(key=lambda item: (item.published_at, item.id), reverse=sort != "oldest")
         start = (page - 1) * page_size
         return FeedListResponse(
             items=tuple(filtered[start : start + page_size]),
