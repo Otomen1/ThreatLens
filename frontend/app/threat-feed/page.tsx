@@ -7,6 +7,10 @@ import NewsFeed from "@/components/threat-feed/NewsFeed";
 import { VulnerabilityFeed } from "@/components/threat-feed/VulnerabilityFeed";
 import { PocFeed } from "@/components/threat-feed/PocFeed";
 import { IocFeed } from "@/components/threat-feed/IocFeed";
+import { FeedStatus } from "@/components/threat-feed/FeedStatus";
+import { FeedSearchBox, UnifiedFeedSearch } from "@/components/threat-feed/FeedWorkflow";
+import { SavedFeed } from "@/components/threat-feed/SavedFeed";
+import { FeedFilters } from "@/components/threat-feed/FeedFilters";
 import { LoadingRows } from "@/components/ui/Skeleton";
 
 function FeedTabs() {
@@ -15,14 +19,17 @@ function FeedTabs() {
   return <>
     <header className="mx-auto max-w-6xl px-4 pt-10">
       <h1 className="text-3xl font-semibold">Threat Feed</h1>
+      <FeedSearchBox />
       <nav aria-label="Threat Feed views" className="mt-6 flex flex-wrap gap-2 border-b border-zinc-800 pb-3">
         {(["news", "vulnerabilities", "poc", "iocs"] as const).map((tab) => <Link key={tab}
           aria-current={selected === tab ? "page" : undefined}
           className={`rounded-lg px-4 py-2 text-sm capitalize focus-visible:outline focus-visible:outline-sky-400 ${selected === tab ? "bg-zinc-800 text-white" : "text-zinc-400 hover:bg-zinc-900"}`}
           href={`/threat-feed?tab=${tab}`}>{tab === "poc" ? "PoC & Tools" : tab === "iocs" ? "IOC Reports" : tab}</Link>)}
       </nav>
+      <FeedStatus manualPoc={selected === "poc"} />
+      {!params.has("view") && <FeedFilters poc={selected === "poc"} />}
     </header>
-    {selected === "news" ? <NewsFeed /> : selected === "poc" ? <PocFeed /> : selected === "iocs" ? <IocFeed /> : <VulnerabilityFeed />}
+    {params.get("view") === "saved" ? <SavedFeed /> : params.get("view") === "search" ? <UnifiedFeedSearch /> : selected === "news" ? <NewsFeed /> : selected === "poc" ? <PocFeed /> : selected === "iocs" ? <IocFeed /> : <VulnerabilityFeed />}
   </>;
 }
 

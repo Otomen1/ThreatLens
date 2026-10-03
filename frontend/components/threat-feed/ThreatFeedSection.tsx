@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { TargetingBadge } from "./FeedFilters";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import type { FeedItem, FeedRegion } from "@/lib/api/threatFeed";
@@ -49,7 +50,7 @@ export function ThreatFeedSection({ region, items, total }: { region: FeedRegion
       <div role="row" className="hidden grid-cols-[32px_minmax(260px,1fr)_140px_100px_130px_90px_20px] gap-3 border-b border-zinc-800 px-4 py-2 text-[10px] text-zinc-500 md:grid"><span role="columnheader">#</span><span role="columnheader">Title</span><span role="columnheader">Source</span><span role="columnheader">Age</span><span role="columnheader">Category</span><span role="columnheader">Severity</span><span aria-hidden="true" /></div>
       <ol className="divide-y divide-zinc-800/80">{items.map((item, index) => <li key={item.id} role="row" className="content-auto grid gap-3 px-4 py-3 text-xs transition-colors hover:bg-zinc-800/35 md:grid-cols-[32px_minmax(260px,1fr)_140px_100px_130px_90px_20px] md:items-center">
         <span role="cell" className="hidden tabular-nums text-zinc-600 md:block">{index + 1}</span>
-        <div role="cell" className="min-w-0"><Link className="font-medium leading-5 text-zinc-100 hover:text-sky-300" href={`/threat-feed/${item.id}`}>{item.title}</Link>{region !== "global" && <span className="ml-2 inline-flex rounded-full border border-sky-700/50 bg-sky-500/10 px-1.5 py-0.5 text-[9px] capitalize text-sky-300">{item.relevance}</span>}</div>
+        <div role="cell" className="min-w-0"><Link className="font-medium leading-5 text-zinc-100 hover:text-sky-300" href={`/threat-feed/${item.id}`}>{item.title}</Link><TargetingBadge evidence={item.targeting_evidence} />{region !== "global" && <span className="ml-2 inline-flex rounded-full border border-sky-700/50 bg-sky-500/10 px-1.5 py-0.5 text-[9px] capitalize text-sky-300">{item.relevance}</span>}</div>
         <div role="cell" className="flex justify-between gap-3 text-zinc-400 md:block"><span className="text-zinc-600 md:hidden">Source</span><span className="truncate">{item.source_name}</span></div>
         <div role="cell" className="flex justify-between gap-3 text-zinc-500 md:block"><span className="text-zinc-600 md:hidden">Age</span><time dateTime={item.published_at} suppressHydrationWarning>{relativeAge(item.published_at)}</time></div>
         <div role="cell" className="flex justify-between gap-3 md:block"><span className="text-zinc-600 md:hidden">Category</span><span className="inline-flex rounded-full border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-[10px] capitalize text-zinc-300">{item.topic.replaceAll("_", " ")}</span></div>

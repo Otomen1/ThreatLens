@@ -33,6 +33,7 @@ export default function NewsFeed() {
   const [data, setData] = useState<FeedHomeResponse | null>(null);
   const query = params.get("query") ?? "";
   const topic = params.get("topic") ?? "";
+  const sort = params.get("sort") ?? "newest";
   const hours = ["24", "168", "720"].includes(params.get("hours") ?? "") ? params.get("hours")! : "168";
   const region = regions.find((value) => value === params.get("region"));
   const page = Math.max(1, Number(params.get("page")) || 1);
@@ -51,7 +52,7 @@ export default function NewsFeed() {
   const dataRef = useRef<FeedHomeResponse | null>(null);
 
   const load = useCallback(async (fresh = false) => {
-    const params: FeedHomeParams = { query, topic, hours: Number(hours), limit_per_region: 5 };
+    const params: FeedHomeParams = { query, topic, hours: Number(hours), limit_per_region: 5, sort };
     const requestId = ++requestRef.current;
     const cached = fresh ? null : readFeedHomeCache(params);
     if (cached) {
@@ -66,7 +67,7 @@ export default function NewsFeed() {
     try {
       const response = await getFeedHome(params, { fresh });
       if (region) {
-        const listing = await getFeedItems({ region, query, topic, hours: Number(hours), page, page_size: 20 });
+        const listing = await getFeedItems({ region, query, topic, hours: Number(hours), page, page_size: 20, sort });
         response.sections[region] = { items: listing.items, total: listing.total };
       }
       if (requestRef.current !== requestId) return;
@@ -78,7 +79,7 @@ export default function NewsFeed() {
       if (requestRef.current !== requestId) return;
       setStatus(cached || dataRef.current ? "Could not update the feed. Showing the last available reports." : "The feed is temporarily unavailable. Try again shortly.");
     }
-  }, [hours, query, topic, region, page]);
+  }, [hours, query, topic, region, page, sort]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => void load(), 250);
