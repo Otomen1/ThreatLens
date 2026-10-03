@@ -6,7 +6,8 @@ import hashlib
 import hmac
 import json
 import os
-from typing import Annotated, Any
+from datetime import UTC, datetime
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response
 
@@ -19,8 +20,11 @@ from ...threat_feed.models import (
     FeedSourceStatus,
     FeedSummary,
     FeedTopic,
+    FeedVulnerability,
     ThreatFeedItem,
+    VulnerabilityListResponse,
 )
+from ...threat_feed.vulnerabilities import link_reports
 
 router = APIRouter(prefix="/api/v1/threat-feed", tags=["threat-feed"])
 _service: ThreatFeedService | None = None
@@ -113,6 +117,46 @@ def sources(
     service: Annotated[ThreatFeedService, Depends(get_threat_feed_service)],
 ) -> tuple[FeedSourceStatus, ...]:
     return service.sources()
+
+
+@router.get("/vulnerabilities", response_model=VulnerabilityListResponse)
+def vulnerabilities(
+    response: Response,
+    service: Annotated[ThreatFeedService, Depends(get_threat_feed_service)],
+    category: Literal["all", "new_cves", "zero_days", "known_exploited"] = "all",
+    severity: Literal["", "critical", "high", "medium", "low"] = "",
+    source: Annotated[str, Query(max_length=150)] = "",
+    query: Annotated[str, Query(max_length=200)] = "",
+    hours: Annotated[int, Query(ge=1, le=720)] = 168,
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> VulnerabilityListResponse:
+    response.headers["Cache-Control"] = "public, s-maxage=300, stale-while-revalidate=3600"
+    return service.vulnerabilities(
+        category=category,
+        severity=severity,
+        source=source,
+        query=query,
+        hours=hours,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.get("/vulnerabilities/{record_id}", response_model=FeedVulnerability)
+def vulnerability_detail(
+    record_id: str,
+    service: Annotated[ThreatFeedService, Depends(get_threat_feed_service)],
+) -> FeedVulnerability:
+    records = link_reports(
+        service.storage.list_vulnerabilities(), service.storage.list_items(), datetime.now(UTC)
+    )
+    record = next((item for item in records if item.id == record_id.upper()), None)
+    if record is None:
+        record = next((item for item in records if item.id == record_id), None)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Vulnerability not found")
+    return record
 
 
 @router.post("/refresh", response_model=FeedRefreshResult)

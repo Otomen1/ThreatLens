@@ -11,6 +11,25 @@ export type FeedHomeSection = { items: FeedItem[]; total: number };
 export type FeedHomeResponse = { summary: FeedSummary; sections: Record<FeedRegion, FeedHomeSection>; generated_at: string };
 export type FeedHomeParams = { query?: string; topic?: string; hours?: number; limit_per_region?: number };
 
+export type Vulnerability = {
+  id: string; cve_id: string | null; title: string; description: string;
+  published_at: string | null; activity_at: string; updated_at: string;
+  products: string[]; severity: string | null; sources: string[]; references: string[];
+  scores: { source: string; version: string; score: number; severity: string | null }[];
+  reports: { id: string; title: string; url: string; source_id: string; source_name: string; published_at: string; excerpt: string; zero_day: boolean }[];
+  reported_zero_day: boolean; known_exploited: boolean; kev_added_at: string | null;
+};
+export type VulnerabilityList = {
+  items: Vulnerability[]; total: number; page: number; page_size: number;
+  published_24h: number; zero_days_24h: number; kev_added_24h: number;
+  sources: string[]; last_synced_at: string | null; sync_status: string; generated_at: string;
+};
+export function getVulnerabilities(params: URLSearchParams, fresh = false, signal?: AbortSignal) {
+  const path = `/threat-feed/vulnerabilities?${params}`;
+  return fresh ? getUncached<VulnerabilityList>(path, signal) : get<VulnerabilityList>(path, signal);
+}
+export const getVulnerability = (id: string) => get<Vulnerability>(`/threat-feed/vulnerabilities/${encodeURIComponent(id)}`);
+
 export const getFeedSummary = () => get<FeedSummary>("/threat-feed/summary");
 export const getFeedItem = (id: string) => get<FeedItem>(`/threat-feed/items/${encodeURIComponent(id)}`);
 export const getFeedSources = () => get<FeedSource[]>("/threat-feed/sources");

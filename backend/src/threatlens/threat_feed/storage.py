@@ -9,9 +9,10 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from threading import Lock
 from typing import Any, cast
 
-from .models import FeedRefreshResult, FeedSourceStatus, ThreatFeedItem
+from .models import FeedRefreshResult, FeedSourceStatus, FeedVulnerability, ThreatFeedItem
 
 
 @dataclass(frozen=True)
@@ -29,6 +30,8 @@ class FeedStorage:
         self.memory_items: dict[str, ThreatFeedItem] = {}
         self.memory_sources: dict[str, FeedSourceStatus] = {}
         self.memory_state: dict[str, str] = {}
+        self.memory_vulnerabilities: dict[str, FeedVulnerability] = {}
+        self._lease_lock = Lock()
         self.psycopg: Any | None = None
         self._init()
 
@@ -45,6 +48,21 @@ class FeedStorage:
     @staticmethod
     def _schema(db: Any, *, postgres: bool) -> None:
         json_type = "jsonb" if postgres else "text"
+        db.execute(
+            "CREATE TABLE IF NOT EXISTS threat_feed_vulnerabilities("
+            f"id text PRIMARY KEY,activity_at text NOT NULL,payload {json_type} NOT NULL)"
+        )
+        db.execute(
+            "CREATE INDEX IF NOT EXISTS threat_feed_vulnerability_activity_idx "
+            "ON threat_feed_vulnerabilities(activity_at DESC)"
+        )
+        db.execute(
+            "CREATE TABLE IF NOT EXISTS threat_feed_refresh_lease("
+            "id text PRIMARY KEY,owner text NOT NULL,expires_at double precision NOT NULL)"
+        )
+        if postgres:
+            db.execute("ALTER TABLE threat_feed_vulnerabilities ENABLE ROW LEVEL SECURITY")
+            db.execute("ALTER TABLE threat_feed_refresh_lease ENABLE ROW LEVEL SECURITY")
         db.execute(
             "CREATE TABLE IF NOT EXISTS threat_feed_items("
             f"id text PRIMARY KEY,published_at text NOT NULL,payload {json_type} NOT NULL)"
@@ -124,18 +142,14 @@ class FeedStorage:
                     "WHERE key='last_refresh'"
                 ).fetchall()
             items = tuple(
-                ThreatFeedItem.model_validate(payload)
-                for kind, payload in rows
-                if kind == "item"
+                ThreatFeedItem.model_validate(payload) for kind, payload in rows if kind == "item"
             )
             sources = tuple(
                 FeedSourceStatus.model_validate(payload)
                 for kind, payload in rows
                 if kind == "source"
             )
-            refresh = next(
-                (str(payload) for kind, payload in rows if kind == "state"), None
-            )
+            refresh = next((str(payload) for kind, payload in rows if kind == "state"), None)
         elif self.backend == "sqlite":
             with sqlite3.connect(self.path) as db:
                 rows = db.execute(
@@ -269,3 +283,157 @@ class FeedStorage:
                 db.execute("INSERT OR REPLACE INTO threat_feed_state VALUES (?,?)", (key, value))
         else:
             self.memory_state[key] = value
+
+    def acquire_refresh(self, owner: str, now: datetime, *, force: bool) -> bool:
+        """Atomically reserve collection and check the durable cooldown."""
+        stamp = now.timestamp()
+        if self.psycopg is not None:
+            with self.psycopg.connect(self.url) as db:
+                row = db.execute(
+                    "INSERT INTO threat_feed_refresh_lease VALUES ('global',%s,%s) "
+                    "ON CONFLICT(id) DO UPDATE SET owner=EXCLUDED.owner,"
+                    "expires_at=EXCLUDED.expires_at "
+                    "WHERE threat_feed_refresh_lease.expires_at <= %s RETURNING owner",
+                    (owner, stamp + 240, stamp),
+                ).fetchone()
+                if row is None:
+                    return False
+                last = db.execute(
+                    "SELECT value FROM threat_feed_state "
+                    "WHERE key IN ('last_refresh','last_refresh_attempt') "
+                    "ORDER BY value DESC LIMIT 1"
+                ).fetchone()
+                if (
+                    not force
+                    and last
+                    and stamp < datetime.fromisoformat(last[0]).timestamp() + 1800
+                ):
+                    db.execute("DELETE FROM threat_feed_refresh_lease WHERE owner=%s", (owner,))
+                    return False
+                db.execute(
+                    "INSERT INTO threat_feed_state VALUES ('last_refresh_attempt',%s) "
+                    "ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value",
+                    (now.isoformat(),),
+                )
+                return True
+        if self.backend == "sqlite":
+            with sqlite3.connect(self.path) as db:
+                db.execute("BEGIN IMMEDIATE")
+                lease = db.execute(
+                    "SELECT expires_at FROM threat_feed_refresh_lease WHERE id='global'"
+                ).fetchone()
+                last = db.execute(
+                    "SELECT value FROM threat_feed_state "
+                    "WHERE key IN ('last_refresh','last_refresh_attempt') "
+                    "ORDER BY value DESC LIMIT 1"
+                ).fetchone()
+                if lease and lease[0] > stamp:
+                    return False
+                if (
+                    not force
+                    and last
+                    and stamp < datetime.fromisoformat(last[0]).timestamp() + 1800
+                ):
+                    return False
+                db.execute(
+                    "INSERT OR REPLACE INTO threat_feed_refresh_lease VALUES ('global',?,?)",
+                    (owner, stamp + 240),
+                )
+                db.execute(
+                    "INSERT OR REPLACE INTO threat_feed_state VALUES ('last_refresh_attempt',?)",
+                    (now.isoformat(),),
+                )
+                return True
+        with self._lease_lock:
+            expires = float(self.memory_state.get("lease_expiry", "0"))
+            last_value = self.memory_state.get("last_refresh_attempt") or self.memory_state.get(
+                "last_refresh"
+            )
+            if expires > stamp:
+                return False
+            if (
+                not force
+                and last_value
+                and stamp < datetime.fromisoformat(last_value).timestamp() + 1800
+            ):
+                return False
+            self.memory_state.update(lease_owner=owner, lease_expiry=str(stamp + 240))
+            self.memory_state["last_refresh_attempt"] = now.isoformat()
+            return True
+
+    def release_refresh(self, owner: str) -> None:
+        if self.psycopg is not None:
+            with self.psycopg.connect(self.url) as db:
+                db.execute("DELETE FROM threat_feed_refresh_lease WHERE owner=%s", (owner,))
+        elif self.backend == "sqlite":
+            with sqlite3.connect(self.path) as db:
+                db.execute("DELETE FROM threat_feed_refresh_lease WHERE owner=?", (owner,))
+        else:
+            with self._lease_lock:
+                if self.memory_state.get("lease_owner") == owner:
+                    self.memory_state.pop("lease_owner", None)
+                    self.memory_state.pop("lease_expiry", None)
+
+    def list_vulnerabilities(self) -> list[FeedVulnerability]:
+        if self.psycopg is not None:
+            with self.psycopg.connect(self.url) as db:
+                rows = db.execute("SELECT payload FROM threat_feed_vulnerabilities").fetchall()
+            return [FeedVulnerability.model_validate(row[0]) for row in rows]
+        if self.backend == "sqlite":
+            with sqlite3.connect(self.path) as db:
+                rows = db.execute("SELECT payload FROM threat_feed_vulnerabilities").fetchall()
+            return [FeedVulnerability.model_validate_json(row[0]) for row in rows]
+        return list(self.memory_vulnerabilities.values())
+
+    def save_vulnerabilities(
+        self, records: Iterable[FeedVulnerability], *, state: dict[str, str] | None = None
+    ) -> None:
+        """Commit a source page and its synchronization cursor in one transaction."""
+        values = [(r.id, r.activity_at.isoformat(), r.model_dump_json()) for r in records]
+        if self.psycopg is not None:
+            with self.psycopg.connect(self.url) as db, db.cursor() as cursor:
+                cursor.executemany(
+                    "INSERT INTO threat_feed_vulnerabilities VALUES (%s,%s,%s::jsonb) "
+                    "ON CONFLICT(id) DO UPDATE SET activity_at=EXCLUDED.activity_at,"
+                    "payload=EXCLUDED.payload",
+                    values,
+                )
+                cursor.executemany(
+                    "INSERT INTO threat_feed_state VALUES (%s,%s) ON CONFLICT(key) "
+                    "DO UPDATE SET value=EXCLUDED.value",
+                    list((state or {}).items()),
+                )
+        elif self.backend == "sqlite":
+            with sqlite3.connect(self.path) as db:
+                db.executemany(
+                    "INSERT OR REPLACE INTO threat_feed_vulnerabilities VALUES (?,?,?)", values
+                )
+                db.executemany(
+                    "INSERT OR REPLACE INTO threat_feed_state VALUES (?,?)",
+                    list((state or {}).items()),
+                )
+        else:
+            self.memory_vulnerabilities.update(
+                {item[0]: FeedVulnerability.model_validate_json(item[2]) for item in values}
+            )
+            self.memory_state.update(state or {})
+
+    def prune_vulnerabilities(self, cutoff: datetime) -> None:
+        if self.psycopg is not None:
+            with self.psycopg.connect(self.url) as db:
+                db.execute(
+                    "DELETE FROM threat_feed_vulnerabilities WHERE activity_at < %s",
+                    (cutoff.isoformat(),),
+                )
+        elif self.backend == "sqlite":
+            with sqlite3.connect(self.path) as db:
+                db.execute(
+                    "DELETE FROM threat_feed_vulnerabilities WHERE activity_at < ?",
+                    (cutoff.isoformat(),),
+                )
+        else:
+            self.memory_vulnerabilities = {
+                key: value
+                for key, value in self.memory_vulnerabilities.items()
+                if value.activity_at >= cutoff
+            }

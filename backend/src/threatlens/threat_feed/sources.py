@@ -129,7 +129,12 @@ def parse_rss(payload: bytes) -> tuple[SourceEntry, ...]:
 def parse_kev(payload: str) -> tuple[SourceEntry, ...]:
     data = json.loads(payload)
     output = []
-    for row in data.get("vulnerabilities", [])[-MAX_ITEMS:]:
+    rows = sorted(
+        data.get("vulnerabilities", []),
+        key=lambda row: str(row.get("dateAdded", "")),
+        reverse=True,
+    )
+    for row in rows[:MAX_ITEMS]:
         cve = str(row.get("cveID", ""))
         title = f"{cve}: {row.get('vulnerabilityName', 'Known exploited vulnerability')}"
         output.append(
@@ -141,9 +146,12 @@ def parse_kev(payload: str) -> tuple[SourceEntry, ...]:
                 published_at=_date(str(row.get("dateAdded", ""))),
                 categories=("known exploited vulnerability",),
                 severity="critical" if "critical" in title.lower() else None,
+                vendor=clean_text(str(row.get("vendorProject", "")), limit=150) or None,
+                product=clean_text(str(row.get("product", "")), limit=150) or None,
+                known_exploited=True,
             )
         )
-    return tuple(reversed(output))
+    return tuple(output)
 
 
 def parse_metadata_listing(payload: str, base_url: str) -> tuple[SourceEntry, ...]:

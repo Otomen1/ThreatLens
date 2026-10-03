@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import type { FeedItem, FeedRegion } from "@/lib/api/threatFeed";
 import { markRegionSeen } from "@/lib/threatFeedState";
@@ -36,9 +37,14 @@ function SeverityBadge({ severity }: { severity: string | null }) {
 
 export function ThreatFeedSection({ region, items, total }: { region: FeedRegion; items: FeedItem[]; total: number }) {
   const details = regionDetails[region];
+  const params = useSearchParams();
+  const viewAll = new URLSearchParams(params.toString());
+  viewAll.set("tab", "news");
+  viewAll.set("region", region);
+  viewAll.delete("page");
   useEffect(() => { markRegionSeen(region); }, [region]);
   return <section className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/60">
-    <header className="flex items-center justify-between border-b border-zinc-800 bg-zinc-900 px-4 py-3"><div className="flex items-center gap-2"><span aria-hidden="true" className="text-sky-400">{details.icon}</span><h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-100">{details.label}</h2><span className="rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] tabular-nums text-zinc-400">{total}</span></div><Link className="text-xs text-sky-400 hover:text-sky-300" href={`/threat-feed?region=${region}`}>View all <span aria-hidden="true">›</span></Link></header>
+    <header className="flex items-center justify-between border-b border-zinc-800 bg-zinc-900 px-4 py-3"><div className="flex items-center gap-2"><span aria-hidden="true" className="text-sky-400">{details.icon}</span><h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-100">{details.label}</h2><span className="rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] tabular-nums text-zinc-400">{total}</span></div><Link className="text-xs text-sky-400 hover:text-sky-300 focus-visible:outline focus-visible:outline-sky-400" href={`/threat-feed?${viewAll}`}>View all <span aria-hidden="true">›</span></Link></header>
     {items.length === 0 ? <p className="p-8 text-center text-sm text-zinc-500">No matching reports yet.</p> : <div role="table" aria-label={`${details.label} threat reports`}>
       <div role="row" className="hidden grid-cols-[32px_minmax(260px,1fr)_140px_100px_130px_90px_20px] gap-3 border-b border-zinc-800 px-4 py-2 text-[10px] text-zinc-500 md:grid"><span role="columnheader">#</span><span role="columnheader">Title</span><span role="columnheader">Source</span><span role="columnheader">Age</span><span role="columnheader">Category</span><span role="columnheader">Severity</span><span aria-hidden="true" /></div>
       <ol className="divide-y divide-zinc-800/80">{items.map((item, index) => <li key={item.id} role="row" className="content-auto grid gap-3 px-4 py-3 text-xs transition-colors hover:bg-zinc-800/35 md:grid-cols-[32px_minmax(260px,1fr)_140px_100px_130px_90px_20px] md:items-center">

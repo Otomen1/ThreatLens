@@ -8,6 +8,7 @@ import time
 from collections import OrderedDict
 from datetime import UTC, datetime, timedelta
 from threading import Lock
+from uuid import uuid4
 
 import httpx
 from pydantic import HttpUrl
@@ -32,9 +33,11 @@ from .models import (
     FeedTopic,
     RegionCount,
     ThreatFeedItem,
+    VulnerabilityListResponse,
 )
 from .sources import SOURCES, SourceDefinition, fetch_source
 from .storage import FeedStorage
+from .vulnerabilities import link_reports, sync_nvd, vulnerability_list
 
 RETENTION_DAYS = 30
 PUBLIC_REFRESH_COOLDOWN = timedelta(minutes=30)
@@ -50,8 +53,27 @@ class ThreatFeedService:
             tuple[str, str, int | None, int], tuple[float, FeedHomeResponse]
         ] = OrderedDict()
         self._home_cache_lock = Lock()
+        self._vulnerability_cache: OrderedDict[
+            tuple[str, str, str, str, int, int, int], tuple[float, VulnerabilityListResponse]
+        ] = OrderedDict()
 
     async def refresh(self, *, force: bool = False) -> FeedRefreshResult:
+        owner = str(uuid4())
+        now = datetime.now(UTC)
+        if not self.storage.acquire_refresh(owner, now, force=force):
+            last = self._timestamp("last_refresh_attempt") or self._timestamp("last_refresh")
+            return FeedRefreshResult(
+                status="cooldown",
+                started_at=now,
+                completed_at=now,
+                next_refresh_at=last + PUBLIC_REFRESH_COOLDOWN if last else now,
+            )
+        try:
+            return await self._refresh_sources(force=force)
+        finally:
+            self.storage.release_refresh(owner)
+
+    async def _refresh_sources(self, *, force: bool = False) -> FeedRefreshResult:
         now = datetime.now(UTC)
         last = self._timestamp("last_refresh")
         next_refresh = last + PUBLIC_REFRESH_COOLDOWN if last else None
@@ -76,15 +98,28 @@ class ThreatFeedService:
             added += source_added
             seen += source_seen
             succeeded += 1
+        try:
+            await sync_nvd(self.storage, now)
+            succeeded += 1
+        except Exception as error:
+            errors.append("NVD: unavailable")
+            self.storage.set_state("nvd_status", "delayed")
+            self._source_error(
+                SourceDefinition("nvd", "NVD", "json", "https://nvd.nist.gov"), now, error
+            )
         if succeeded:
             self.storage.delete_before(now - timedelta(days=RETENTION_DAYS))
+            self.storage.save_vulnerabilities(
+                link_reports(self.storage.list_vulnerabilities(), self.storage.list_items(), now)
+            )
+            self.storage.prune_vulnerabilities(now - timedelta(days=RETENTION_DAYS))
             self.storage.set_state("last_refresh", now.isoformat())
         completed = datetime.now(UTC)
         refresh = FeedRefreshResult(
             status="completed" if succeeded else "failed",
             started_at=now,
             completed_at=completed,
-            sources_attempted=len(SOURCES),
+            sources_attempted=len(SOURCES) + 1,
             sources_succeeded=succeeded,
             items_added=added,
             items_seen=seen,
@@ -99,6 +134,41 @@ class ThreatFeedService:
     def clear_home_cache(self) -> None:
         with self._home_cache_lock:
             self._home_cache.clear()
+            self._vulnerability_cache.clear()
+
+    def vulnerabilities(
+        self,
+        *,
+        query: str = "",
+        category: str = "all",
+        severity: str = "",
+        source: str = "",
+        hours: int = 168,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> VulnerabilityListResponse:
+        key = (query.strip().lower(), category, severity, source, hours, page, page_size)
+        stamp = time.monotonic()
+        with self._home_cache_lock:
+            cached = self._vulnerability_cache.get(key)
+            if cached and cached[0] > stamp:
+                return cached[1]
+        result = vulnerability_list(
+            self.storage,
+            query=query,
+            category=category,
+            severity=severity,
+            source=source,
+            hours=hours,
+            page=page,
+            page_size=page_size,
+        )
+        with self._home_cache_lock:
+            self._vulnerability_cache[key] = (stamp + HOME_CACHE_SECONDS, result)
+            self._vulnerability_cache.move_to_end(key)
+            while len(self._vulnerability_cache) > HOME_CACHE_SIZE:
+                self._vulnerability_cache.popitem(last=False)
+        return result
 
     def home(
         self,
@@ -159,9 +229,7 @@ class ThreatFeedService:
             },
             critical=sum(item.severity == "critical" for item in snapshot.items),
             new_iocs=sum(
-                len(item.entities)
-                for item in snapshot.items
-                if item.published_at >= recent_cutoff
+                len(item.entities) for item in snapshot.items if item.published_at >= recent_cutoff
             ),
             last_refreshed_at=refreshed,
             next_refresh_at=refreshed + PUBLIC_REFRESH_COOLDOWN if refreshed else None,
@@ -203,6 +271,8 @@ class ThreatFeedService:
                     topic=topic,
                     severity=explicit_severity(entry, topic),
                     entities=extract_entities(entry),
+                    vendor=entry.vendor,
+                    product=entry.product,
                 )
             )
         added = self.storage.save_items(items)
@@ -291,7 +361,7 @@ class ThreatFeedService:
                     kind=item.kind,
                 ),
             )
-            for item in SOURCES
+            for item in (*SOURCES, SourceDefinition("nvd", "NVD", "json", "https://nvd.nist.gov"))
         )
 
     def summary(self) -> FeedSummary:

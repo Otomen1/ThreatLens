@@ -11,6 +11,16 @@ Public refreshes are durably limited to once every 30 minutes. For six-hour sche
 
 The workflow can also be started manually from GitHub Actions. Read state and bookmarks stay in the current browser and are not included in database backups. Source failures are isolated and never delete previously collected items.
 
+### News and Vulnerabilities
+
+News opens by default and retains the Global, Malaysia, and Southeast Asia sections. The public Vulnerabilities tab groups official NVD records and related advisory/news reports by CVE, with search, severity, source, activity filters, and pagination. Reports without a CVE remain available. Scores retain their source and CVSS version; missing scores display as “Not rated.” A reported zero-day requires explicit source wording; CISA KEV membership indicates known exploitation, not necessarily a zero-day.
+
+NVD uses its public API without an API key. Collection initially covers seven days and subsequently uses incremental modification windows. Each refresh requests at most three pages, sequentially, with six seconds between requests. Unfinished pagination is persisted and resumed at the next refresh; the interface shows partial or delayed synchronization rather than promising a complete, real-time CVE catalogue. Records remain in the rolling 30-day activity window; older CVEs can return through recent KEV additions or reports.
+
+The existing scheduled/manual refresh collects both views. A database-backed, owner-checked lease prevents overlapping collection, and public attempts respect the 30-minute cooldown even when sources fail. Source failures retain saved records and do not advance unsuccessful synchronization cursors. The new tables are initialized by the storage adapter; `supabase/migrations/202610030001_feed_vulnerabilities.sql` provides the equivalent PostgreSQL migration with row-level security. Local SQLite and in-memory development remain supported.
+
+Both tabs keep separate compact browser caches and reading state. Vulnerability responses are cached for five minutes, with a last-successful browser fallback for up to 24 hours. Filters and the active tab are encoded in the URL. Opening a CVE never automatically investigates it; the **Investigate CVE** link prepares the existing search workflow. No paid service or new credentials are required.
+
 **A search-first, deterministic threat-intelligence and investigation platform.**
 
 [![CI](https://github.com/Otomen1/ThreatLens/actions/workflows/ci.yml/badge.svg)](https://github.com/Otomen1/ThreatLens/actions/workflows/ci.yml)

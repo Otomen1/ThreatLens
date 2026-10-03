@@ -54,6 +54,8 @@ class ThreatFeedItem(BaseModel):
     topic: FeedTopic
     severity: str | None = None
     entities: tuple[FeedEntity, ...] = ()
+    vendor: str | None = None
+    product: str | None = None
 
 
 class FeedSourceStatus(BaseModel):
@@ -120,3 +122,57 @@ class SourceEntry(BaseModel):
     published_at: datetime
     categories: tuple[str, ...] = ()
     severity: str | None = None
+    vendor: str | None = None
+    product: str | None = None
+    known_exploited: bool = False
+
+
+class VulnerabilityScore(BaseModel):
+    source: str
+    version: str
+    score: float = Field(ge=0, le=10)
+    severity: str | None = None
+
+
+class VulnerabilityReport(BaseModel):
+    id: str
+    title: str
+    url: HttpUrl
+    source_id: str
+    source_name: str
+    published_at: datetime
+    excerpt: str = ""
+    zero_day: bool = False
+
+
+class FeedVulnerability(BaseModel):
+    id: str
+    cve_id: str | None = None
+    title: str
+    description: str = ""
+    published_at: datetime | None = None
+    activity_at: datetime
+    updated_at: datetime
+    products: tuple[str, ...] = ()
+    scores: tuple[VulnerabilityScore, ...] = ()
+    severity: str | None = None
+    sources: tuple[str, ...] = ()
+    references: tuple[HttpUrl, ...] = ()
+    reports: tuple[VulnerabilityReport, ...] = ()
+    reported_zero_day: bool = False
+    known_exploited: bool = False
+    kev_added_at: datetime | None = None
+
+
+class VulnerabilityListResponse(BaseModel):
+    items: tuple[FeedVulnerability, ...]
+    total: int
+    page: int
+    page_size: int
+    published_24h: int = 0
+    zero_days_24h: int = 0
+    kev_added_24h: int = 0
+    sources: tuple[str, ...] = ()
+    last_synced_at: datetime | None = None
+    sync_status: str = "not_started"
+    generated_at: datetime
