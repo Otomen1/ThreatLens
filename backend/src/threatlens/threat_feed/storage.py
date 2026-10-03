@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import importlib
+import json
 import os
 import sqlite3
 from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from threading import Lock
 from typing import Any, cast
@@ -283,6 +284,55 @@ class FeedStorage:
                 db.execute("INSERT OR REPLACE INTO threat_feed_state VALUES (?,?)", (key, value))
         else:
             self.memory_state[key] = value
+
+    def reserve_poc_source(
+        self, source: str, owner: str, now: datetime, *, release: bool = False
+    ) -> tuple[bool, bool, datetime | None]:
+        """Atomic source-wide lease/cooldown using two existing operational state keys."""
+        if source not in {"metasploit", "nuclei"}:
+            raise ValueError("Unknown PoC source")
+        key = f"poc_source:{source}"
+        stamp = now.timestamp()
+
+        def update(raw: str) -> tuple[str, tuple[bool, bool, datetime | None]]:
+            state = json.loads(raw)
+            attempt = float(state.get("attempt", 0))
+            expiry = float(state.get("expiry", 0))
+            if release:
+                if state.get("owner") == owner:
+                    state.update(owner="", expiry=0)
+                return json.dumps(state), (False, False, None)
+            next_at = datetime.fromtimestamp(max(expiry, attempt + 60), UTC)
+            if expiry > stamp or attempt + 60 > stamp:
+                return raw, (False, expiry > stamp, next_at)
+            state.update(owner=owner, expiry=stamp + 30, attempt=stamp)
+            return json.dumps(state), (True, False, datetime.fromtimestamp(stamp + 60, UTC))
+
+        if self.psycopg is not None:
+            with self.psycopg.connect(self.url) as db:
+                db.execute(
+                    "INSERT INTO threat_feed_state VALUES (%s,'{}') ON CONFLICT(key) DO NOTHING",
+                    (key,),
+                )
+                row = db.execute(
+                    "SELECT value FROM threat_feed_state WHERE key=%s FOR UPDATE", (key,)
+                ).fetchone()
+                value, result = update(row[0])
+                db.execute("UPDATE threat_feed_state SET value=%s WHERE key=%s", (value, key))
+                return result
+        if self.backend == "sqlite":
+            with sqlite3.connect(self.path) as db:
+                db.execute("BEGIN IMMEDIATE")
+                row = db.execute(
+                    "SELECT value FROM threat_feed_state WHERE key=?", (key,)
+                ).fetchone()
+                value, result = update(row[0] if row else "{}")
+                db.execute("INSERT OR REPLACE INTO threat_feed_state VALUES (?,?)", (key, value))
+                return result
+        with self._lease_lock:
+            value, result = update(self.memory_state.get(key, "{}"))
+            self.memory_state[key] = value
+            return result
 
     def acquire_refresh(self, owner: str, now: datetime, *, force: bool) -> bool:
         """Atomically reserve collection and check the durable cooldown."""

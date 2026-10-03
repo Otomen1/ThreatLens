@@ -35,6 +35,7 @@ from .routes import (
     exposure,
     identity,
     investigation,
+    poc,
     threat_feed,
     workspace,
 )
@@ -205,6 +206,7 @@ app.include_router(
 # Core entity detection + investigation (TI + reference providers, reasoning).
 app.include_router(investigation.router)
 app.include_router(threat_feed.router)
+app.include_router(poc.router)
 
 # Case routes are registered first because their compact navigation summary
 # has a static /workspace/navigation-summary path that must precede the

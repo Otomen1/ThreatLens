@@ -21,6 +21,16 @@ The existing scheduled/manual refresh collects both views. A database-backed, ow
 
 Both tabs keep separate compact browser caches and reading state. Vulnerability responses are cached for five minutes, with a last-successful browser fallback for up to 24 hours. Filters and the active tab are encoded in the URL. Opening a CVE never automatically investigates it; the **Investigate CVE** link prepares the existing search workflow. No paid service or new credentials are required.
 
+### Online PoC & Tools lookup
+
+The third Threat Feed tab, `/threat-feed?tab=poc`, looks up a single CVE in official [Rapid7 Metasploit metadata](https://github.com/rapid7/metasploit-framework/blob/master/db/modules_metadata_base.json) and [ProjectDiscovery Nuclei metadata](https://github.com/projectdiscovery/nuclei-templates/blob/main/cves.json). The page is public, but searching requires a validated Supabase session. `POST /api/v1/poc/lookup/{source}` is private, fails closed when sign-in configuration is absent, and returns `Cache-Control: private, no-store`. A prefilled CVE does not trigger a lookup until Search is pressed.
+
+Each source finishes independently. Successful results survive failures from another source, and retries are manual. “CVE reference confirmed” means an explicit CVE reference exists in official metadata—not that a resource works, is safe, or proves a system vulnerable. All resources are **not locally tested**; Nuclei detection templates are not necessarily passive or harmless. Coverage is limited to these indexes. No matches from a healthy source is different from an unavailable source. Exploit-DB and community PoCs are not included.
+
+Only metadata is fetched: no Ruby modules, YAML templates, executable files, repository archives, or target scans. There is no persistent catalogue or browser search history. Parsed indexes are cached in bounded process memory for one hour, with clearly labelled fallback metadata up to 24 hours old after a failure. Cold starts discard this cache. Two owner-checked operational records in existing `threat_feed_state` protect source downloads with a 30-second lease and one-minute cooldown across PostgreSQL instances; SQLite uses equivalent transactions and local memory is development-only. No migration or paid cache is needed. “Check latest” bypasses the warm cache but cannot bypass cooldowns.
+
+Downloads are capped at 16 MB for Metasploit and 8 MB for Nuclei, use fixed URLs without redirects, and have a 20-second overall deadline; the browser stops each request after 25 seconds. Results are capped at 100 matches per source with a truncation notice. The shared Python function explicitly retains a 300-second duration compatible with Vercel Hobby Fluid Compute, so this does not shorten the existing feed-refresh budget. Check that Fluid Compute and the function duration are active during deployment verification. Existing free-tier usage limits still apply.
+
 **A search-first, deterministic threat-intelligence and investigation platform.**
 
 [![CI](https://github.com/Otomen1/ThreatLens/actions/workflows/ci.yml/badge.svg)](https://github.com/Otomen1/ThreatLens/actions/workflows/ci.yml)

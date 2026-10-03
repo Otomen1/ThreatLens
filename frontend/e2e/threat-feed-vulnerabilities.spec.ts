@@ -36,6 +36,12 @@ test("public News and Vulnerabilities tabs, filters, details and investigation h
   await expect(page.getByRole("heading", { name: "Description", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Investigate CVE" })).toHaveAttribute("href", "/?q=CVE-2026-12345");
   expect(await page.evaluate(() => localStorage.getItem("threatlens.feed.vulnerabilities.viewed"))).toContain("CVE-2026-12345");
+  let lookups = 0;
+  await page.route("**/api/v1/poc/**", (route) => { lookups++; return route.abort(); });
+  await page.getByRole("link", { name: "Find PoC & Tools" }).click();
+  await expect(page).toHaveURL(/tab=poc&cve=CVE-2026-12345/);
+  await expect(page.getByRole("link", { name: "Sign in for PoC lookup" })).toBeVisible();
+  expect(lookups).toBe(0);
   expect(errors).toEqual([]);
 });
 

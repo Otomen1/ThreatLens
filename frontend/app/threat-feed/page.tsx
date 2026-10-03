@@ -5,22 +5,23 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import NewsFeed from "@/components/threat-feed/NewsFeed";
 import { VulnerabilityFeed } from "@/components/threat-feed/VulnerabilityFeed";
+import { PocFeed } from "@/components/threat-feed/PocFeed";
 import { LoadingRows } from "@/components/ui/Skeleton";
 
 function FeedTabs() {
   const params = useSearchParams();
-  const selected = params.get("tab") === "vulnerabilities" ? "vulnerabilities" : "news";
+  const selected = ["vulnerabilities", "poc"].includes(params.get("tab") ?? "") ? params.get("tab") : "news";
   return <>
     <header className="mx-auto max-w-6xl px-4 pt-10">
       <h1 className="text-3xl font-semibold">Threat Feed</h1>
       <nav aria-label="Threat Feed views" className="mt-6 flex gap-2 border-b border-zinc-800 pb-3">
-        {(["news", "vulnerabilities"] as const).map((tab) => <Link key={tab}
+        {(["news", "vulnerabilities", "poc"] as const).map((tab) => <Link key={tab}
           aria-current={selected === tab ? "page" : undefined}
           className={`rounded-lg px-4 py-2 text-sm capitalize focus-visible:outline focus-visible:outline-sky-400 ${selected === tab ? "bg-zinc-800 text-white" : "text-zinc-400 hover:bg-zinc-900"}`}
-          href={`/threat-feed?tab=${tab}`}>{tab}</Link>)}
+          href={`/threat-feed?tab=${tab}`}>{tab === "poc" ? "PoC & Tools" : tab}</Link>)}
       </nav>
     </header>
-    {selected === "news" ? <NewsFeed /> : <VulnerabilityFeed />}
+    {selected === "news" ? <NewsFeed /> : selected === "poc" ? <PocFeed /> : <VulnerabilityFeed />}
   </>;
 }
 
