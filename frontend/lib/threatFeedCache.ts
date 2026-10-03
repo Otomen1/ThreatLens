@@ -23,6 +23,7 @@ export function feedHomeCacheKey(params: FeedHomeParams): string {
     topic: params.topic ?? "",
     hours: params.hours ?? null,
     limit_per_region: params.limit_per_region ?? 5,
+    sort: params.sort ?? 'newest',
   });
 }
 
