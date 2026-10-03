@@ -12,6 +12,7 @@ from urllib.parse import unquote, urlsplit
 import httpx
 from pydantic import HttpUrl
 
+from .evidence import targeting
 from .logic import clean_text
 from .models import (
     FeedSourceStatus,
@@ -203,6 +204,16 @@ def link_reports(
     return [
         record.model_copy(
             update={
+                "targeting_evidence": tuple(
+                    e
+                    for report in record.reports
+                    if report.published_at >= cutoff
+                    for e in targeting(
+                        report.source_name,
+                        {"title": report.title, "excerpt": report.excerpt},
+                        related_report=True,
+                    )
+                ),
                 "reports": tuple(
                     report for report in record.reports if report.published_at >= cutoff
                 ),
@@ -309,6 +320,7 @@ def vulnerability_list(
     hours: int = 168,
     page: int = 1,
     page_size: int = 20,
+    sort: str = "newest",
 ) -> VulnerabilityListResponse:
     now = datetime.now(UTC)
     records = link_reports(storage.list_vulnerabilities(), storage.list_items(), now)
@@ -339,7 +351,7 @@ def vulnerability_list(
             and record.known_exploited
         )
     ]
-    matching.sort(key=lambda record: (record.activity_at, record.id), reverse=True)
+    matching.sort(key=lambda record: (record.activity_at, record.id), reverse=sort != "oldest")
     start = (page - 1) * page_size
     last = storage.state("nvd_last_success")
     return VulnerabilityListResponse(

@@ -3,6 +3,8 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from ..threat_feed.evidence import TargetingEvidence
+
 Vendor = Literal["talos", "unit42", "eset", "sophoslabs"]
 IocType = Literal["ipv4", "ipv6", "domain", "url", "md5", "sha1", "sha256"]
 
@@ -36,6 +38,8 @@ class IocReport(BaseModel):
     types: tuple[str, ...] = ()
     warnings: tuple[str, ...] = ()
     withdrawn: bool = False
+    cves: tuple[str, ...] = ()
+    targeting_evidence: tuple[TargetingEvidence, ...] = ()
 
 
 class SourceState(BaseModel):
@@ -46,6 +50,7 @@ class SourceState(BaseModel):
     license: str
     status: str = "not_checked"
     last_success_at: datetime | None = None
+    last_attempt_at: datetime | None = None
     pending: int = 0
     skipped: int = 0
     safe_error: str | None = None

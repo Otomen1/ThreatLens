@@ -11,6 +11,7 @@ from urllib.parse import quote, urlsplit
 
 import httpx
 
+from ..threat_feed.evidence import explicit_cves, source_context, targeting
 from .models import Indicator, IocReport, SourceState, Vendor
 from .parsers import (
     MAX_FILE_BYTES,
@@ -235,6 +236,8 @@ async def collect_source(
                 indicators: tuple[Indicator, ...]
                 warnings: tuple[str, ...]
                 article = old[0].article_url if old else None
+                cves = old[0].cves if old else ()
+                targeting_evidence = old[0].targeting_evidence if old else ()
                 if file["removed"]:
                     indicators, warnings = (
                         (),
@@ -251,6 +254,10 @@ async def collect_source(
                         parse_file, source.vendor, path, payload
                     )
                     article = article_link(source.vendor, payload) or article
+                    cves = explicit_cves(payload, path)
+                    # Parse only explicit context lines, not raw IOC values or infrastructure names.
+                    context = source_context(payload, path)
+                    targeting_evidence = targeting(source.name, {"source_context": context})
                     if not indicators and old:
                         # An unsupported new format must not erase a previously parsed list.
                         # Explicit repository deletions are handled separately above.
@@ -277,6 +284,8 @@ async def collect_source(
                     "source-reported, not independently verified.",
                     warnings=warnings,
                     withdrawn=file["removed"],
+                    cves=cves,
+                    targeting_evidence=targeting_evidence,
                 )
                 committed_state = copy.deepcopy(state)
                 committed_state["files"].pop(0)
@@ -328,6 +337,7 @@ async def collect_source(
         license=source.license,
         status=status,
         last_success_at=now if status in {"current", "partial"} else previous.last_success_at,
+        last_attempt_at=now,
         pending=len(state["files"]) + len(state["commits"]),
         skipped=skipped,
         safe_error=safe_error,

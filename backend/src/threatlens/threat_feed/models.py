@@ -7,6 +7,8 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field, HttpUrl
 
+from .evidence import TargetingEvidence
+
 
 class FeedRegion(StrEnum):
     GLOBAL = "global"
@@ -56,6 +58,7 @@ class ThreatFeedItem(BaseModel):
     entities: tuple[FeedEntity, ...] = ()
     vendor: str | None = None
     product: str | None = None
+    targeting_evidence: tuple[TargetingEvidence, ...] = ()
 
 
 class FeedSourceStatus(BaseModel):
@@ -162,6 +165,7 @@ class FeedVulnerability(BaseModel):
     reported_zero_day: bool = False
     known_exploited: bool = False
     kev_added_at: datetime | None = None
+    targeting_evidence: tuple[TargetingEvidence, ...] = ()
 
 
 class VulnerabilityListResponse(BaseModel):
