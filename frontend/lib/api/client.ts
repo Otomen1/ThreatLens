@@ -6,11 +6,17 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
 /** Error raised for any non-success API response or unreachable backend. */
 export class ApiError extends Error {
   readonly status?: number;
+  readonly retryable: boolean;
+  readonly errorCode?: string;
+  readonly retryAt?: number;
 
-  constructor(message: string, status?: number) {
+  constructor(message: string, status?: number, options: { retryable?: boolean; errorCode?: string; retryAt?: number } = {}) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.retryable = options.retryable ?? (status === undefined || status === 429 || status >= 500);
+    this.errorCode = options.errorCode;
+    this.retryAt = options.retryAt;
   }
 }
 
@@ -27,6 +33,9 @@ async function accessToken(): Promise<string | undefined> {
 
 function errorMessage(status: number): string {
   if (status === 401) return "Please sign in again.";
+  if (status === 429) return "Request rate limit reached. Wait before retrying.";
+  if (status === 408 || status === 504) return "The service timed out. Previous results are unchanged.";
+  if (status === 503) return "The service is temporarily unavailable.";
   if (status === 404) return "Not found.";
   if (status === 409) return "That change is not allowed from the current state.";
   if (status === 413) return "That file is too large.";
@@ -65,7 +74,14 @@ async function request<T>(
     signal,
     cache,
   });
-  if (!response.ok) throw new ApiError(errorMessage(response.status), response.status);
+  if (!response.ok) {
+    let safe: { error_code?: string; retryable?: boolean } = {};
+    try { const body = await response.json(); if (body && typeof body === "object") safe = body; } catch { /* Generic safe fallback. */ }
+    const codes = ["investigation_failed", "timeout", "rate_limited", "unauthorized", "upstream_error", "invalid_input"];
+    const retry = response.headers?.get("Retry-After");
+    const retryAt = retry ? (/^\d+$/.test(retry) ? Date.now() + Number(retry) * 1000 : Date.parse(retry)) : undefined;
+    throw new ApiError(errorMessage(response.status), response.status, { errorCode: codes.includes(safe.error_code ?? "") ? safe.error_code : undefined, retryable: typeof safe.retryable === "boolean" ? safe.retryable : undefined, retryAt: retryAt && Number.isFinite(retryAt) ? retryAt : undefined });
+  }
   if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
 }

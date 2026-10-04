@@ -3,11 +3,24 @@
 // retrieves what /investigate, /detections, and (in a future phase)
 // /correlation already produced.
 
-import { del, get, post, put } from "./client";
+import { del, get, getUncached, post, put } from "./client";
 import type { DetectionPackage } from "./detection";
 import type { EntityType, InvestigationResponse, InvestigationSummary } from "./investigation";
 
 export type WorkspaceStatus = "open" | "in_progress" | "closed" | "archived";
+
+export interface WorkspaceStartSummary {
+  recent: { id: string; title: string; updated_at: string; status: string }[];
+  investigations: number | null;
+  draft_detections: number | null;
+  open_cases: number | null;
+  provider_issues: { provider: string; code: "unauthorized" | "rate_limited" | "upstream_error" }[];
+  availability: Record<string, boolean>;
+  generated_at: string;
+}
+export function getWorkspaceStartSummary(signal?: AbortSignal): Promise<WorkspaceStartSummary> {
+  return getUncached("/workspace/start-summary", signal);
+}
 
 // --- Correlation (Phase 7.0/7.1) ---
 //

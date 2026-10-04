@@ -15,7 +15,7 @@ from datetime import UTC, datetime
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 
 from ...cases import (
     AddNoteRequest,
@@ -37,7 +37,9 @@ from ...cases import (
 )
 from ...workspace import WorkspaceService
 from ...workspace.exceptions import InvestigationNotFoundError
+from ..experience import StartSummary, start_summary
 from ..schemas import NavigationSummary
+from .poc import require_signed_in
 from .workspace import get_workspace_service
 
 router = APIRouter()
@@ -106,6 +108,16 @@ def list_cases(
     """
     cases = service.list(status=status, priority=priority, tag=tag, owner=owner, title=title)
     return CaseListResponse(cases=cases, total=len(cases))
+
+
+@router.get(
+    "/api/v1/workspace/start-summary",
+    response_model=StartSummary,
+    dependencies=[Depends(require_signed_in)],
+)
+def personal_start(response: Response) -> StartSummary:
+    response.headers["Cache-Control"] = "private, no-store"
+    return start_summary()
 
 
 @router.get("/api/v1/workspace/navigation-summary", response_model=NavigationSummary)
