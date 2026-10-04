@@ -1,5 +1,11 @@
 # ThreatLens
 
+## Personal investigation experience
+
+Search stays the home page, with a compact start panel, retained results during
+failed refreshes, explicit save/generate/review/export actions, and browser-local
+preferences. See [experience workflow and data ownership](docs/EXPERIENCE_WORKFLOW.md).
+
 ## Threat Feed
 
 ### Workflow: freshness, search, related intelligence, and Saved

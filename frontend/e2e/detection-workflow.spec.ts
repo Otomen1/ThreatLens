@@ -49,6 +49,7 @@ test("opens a saved IOC, reviews its generated rule, and exposes export", async 
   await expect(page.getByRole("heading", { name: "Detection Workspace" })).toBeVisible();
   const iocTitles = page.getByText("Malicious domain: example.test");
   await expect(iocTitles.first()).toBeVisible();
+  await iocTitles.first().click();
   await iocTitles.nth(1).click();
   await expect(page.getByRole("button", { name: /download/i })).toBeVisible();
 });

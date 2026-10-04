@@ -174,6 +174,7 @@ export default function IdentityPage() {
         <header>
           <Link href="/" className="text-xs text-zinc-500 transition-colors hover:text-zinc-300">← Back to Search</Link>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">Identity Intelligence</h1>
+          <p className="text-xs text-zinc-500">Browser-local: email history lasts 90 days. Temporary: passwords and password-check results are never saved to history.</p>
           <p className="mt-1 max-w-3xl text-sm text-zinc-500">Check source-reported email and password exposure. Results are descriptive and never a “safe” or “compromised” verdict.</p>
         </header>
 

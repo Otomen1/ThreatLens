@@ -9,6 +9,7 @@ export default defineConfig({
     baseURL: "http://localhost:31987",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
+    launchOptions: { executablePath: process.env.THREATLENS_TEST_BROWSER },
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
