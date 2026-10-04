@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   generateDetections,
@@ -32,9 +32,15 @@ import {
   type DetailTab,
 } from "./shared/DetectionDisclosure";
 import { FindingCard } from "./FindingsSection";
+import { readPreferences, useExperiencePreferences, writePreferences } from "@/lib/experiencePreferences";
+import { LoadingRows } from "@/components/ui/Skeleton";
+import { useToast } from "@/components/ui/ToastProvider";
 
 interface Props {
   summary: InvestigationSummary;
+  packageValue?: DetectionPackage | null;
+  onPackage?: (pkg: DetectionPackage) => void;
+  generationSignal?: number;
 }
 
 /**
@@ -43,20 +49,25 @@ interface Props {
  * lazily on first expand. Analysts drill down Language → Rule → Rule Details
  * rather than scanning one long list of full rule bodies.
  */
-export function DetectionEngineeringCard({ summary }: Props) {
+export function DetectionEngineeringCard({ summary, packageValue, onPackage, generationSignal = 0 }: Props) {
+  const preferences = useExperiencePreferences();
+  const { notify } = useToast();
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<DetectionPackage | null>(null);
+  const [internalData, setData] = useState<DetectionPackage | null>(null);
+  const data = packageValue ?? internalData;
   const [failed, setFailed] = useState(false);
   const [openLanguages, setOpenLanguages] = useState<ReadonlySet<string>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
   const abortRef = useRef<AbortController | null>(null);
+  const signalRef = useRef(generationSignal);
+  useEffect(() => { setExpanded(!preferences.collapsed.includes("detections")); }, [preferences.collapsed]);
 
   // Reset when a new investigation arrives (the summary identity changes).
   useEffect(() => {
     abortRef.current?.abort();
-    setExpanded(false);
+    setExpanded(!readPreferences().collapsed.includes("detections"));
     setData(null);
     setFailed(false);
     setLoading(false);
@@ -71,21 +82,36 @@ export function DetectionEngineeringCard({ summary }: Props) {
   async function toggle() {
     const next = !expanded;
     setExpanded(next);
+    writePreferences({ collapsed: next ? preferences.collapsed.filter((s) => s !== "detections") : [...new Set([...preferences.collapsed, "detections"])] });
     if (!next || data !== null || loading) return;
+    await generate();
+  }
+
+  const generate = useCallback(async () => {
 
     setLoading(true);
     setFailed(false);
     const controller = new AbortController();
     abortRef.current = controller;
     try {
-      setData(await generateDetections(summary, controller.signal));
+      const result = await generateDetections(summary, controller.signal);
+      if (controller.signal.aborted || abortRef.current !== controller) return;
+      if (!Array.isArray(result.artifacts) || !result.metadata) throw new Error("Invalid detection response");
+      setData(result); onPackage?.(result); notify(result.artifacts.length ? "Detection package generated; review before use." : "No eligible rules generated.");
     } catch (err) {
-      if (err instanceof DOMException && err.name === "AbortError") return;
-      setFailed(true);
+      if (controller.signal.aborted || abortRef.current !== controller || (err instanceof DOMException && err.name === "AbortError")) return;
+      setFailed(true); notify("Detection generation failed; the investigation is unchanged.", "error");
     } finally {
-      setLoading(false);
+      if (abortRef.current === controller) setLoading(false);
     }
-  }
+  }, [summary, onPackage, notify]);
+
+  useEffect(() => {
+    if (signalRef.current === generationSignal) return;
+    signalRef.current = generationSignal;
+    setExpanded(true);
+    if (!data && !loading) void generate();
+  }, [generationSignal, data, loading, generate]);
 
   function toggleLanguage(language: string) {
     setOpenLanguages((prev) => {
@@ -106,7 +132,7 @@ export function DetectionEngineeringCard({ summary }: Props) {
     });
   }
 
-  const groups = useMemo(() => (data ? groupByLanguage(data.artifacts) : []), [data]);
+  const groups = useMemo(() => (data ? groupByLanguage(data.artifacts.filter((a) => !preferences.formats.length || preferences.formats.includes(a.language))) : []), [data, preferences.formats]);
 
   return (
     <section
@@ -135,13 +161,14 @@ export function DetectionEngineeringCard({ summary }: Props) {
 
       {expanded && (
         <div className="px-5 pb-5 pt-1 border-t border-zinc-800">
+          {!data && !loading && !failed && <p className="text-xs text-zinc-500">Choose Generate detections to create optional rules from eligible findings.</p>}
           {loading && (
-            <p className="text-sm text-zinc-400 animate-pulse pt-3">Generating detection package…</p>
+            <LoadingRows rows={2} label="Generating detection package" />
           )}
           {!loading && failed && (
             <div className="flex items-center justify-between gap-3 pt-3">
               <p className="text-sm text-zinc-400">Could not generate detections. The assessment above is unaffected.</p>
-              <button onClick={() => { setFailed(false); setData(null); setExpanded(false); setTimeout(() => void toggle(), 0); }} className="shrink-0 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700">Retry</button>
+              <button onClick={() => void generate()} className="shrink-0 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700">Retry</button>
             </div>
           )}
           {!loading && !failed && data && (

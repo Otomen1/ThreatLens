@@ -1,10 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
+import { useExperiencePreferences, writePreferences } from "@/lib/experiencePreferences";
+import type { DetectionPackage } from "@/lib/api";
+import { WorkflowStrip } from "./experience/WorkflowStrip";
+import { ResultOverview } from "./experience/ResultOverview";
 
 import type { AttributedReference, AttributedRelationship, InvestigationResponse } from "@/lib/api";
 import { evidenceByProvider } from "@/lib/investigation";
-import { SaveInvestigationButton } from "@/components/workspace/SaveInvestigationButton";
 
 import { AdvancedPanel } from "./investigation/AdvancedPanel";
 import { AIExplanationCard } from "./investigation/AIExplanationCard";
@@ -27,11 +30,25 @@ interface Props {
   data: InvestigationResponse;
   timestamp: string;
   onInvestigateRelated?: (query: string) => void;
+  savedId?: string | null;
+  onSaved?: (id: string) => void;
+  packageValue?: DetectionPackage;
+  onPackage?: (pkg: DetectionPackage) => void;
 }
 
-export function InvestigationWorkspace({ data, timestamp, onInvestigateRelated }: Props) {
+export function InvestigationWorkspace({ data, timestamp, onInvestigateRelated, savedId, onSaved, packageValue, onPackage }: Props) {
+  const scope = useId();
+  const [localPackage, setPackage] = useState<DetectionPackage | null>(null);
+  const pkg = packageValue ?? localPackage;
+  const [generationSignal, setGenerationSignal] = useState(0);
+  const preferences = useExperiencePreferences();
+  useEffect(() => { setPackage(null); }, [data.investigation_id]);
   const { entity, threat_intelligence, knowledge, investigation_id } = data;
   const summary = data.investigation_summary;
+  function rememberSection(section: string, open: boolean) {
+    if (open === !preferences.collapsed.includes(section)) return;
+    writePreferences({ collapsed: open ? preferences.collapsed.filter((s) => s !== section) : [...new Set([...preferences.collapsed, section])] });
+  }
   const { exposure, correlation } = data;
 
   const hasTI = threat_intelligence.providers.length > 0;
@@ -63,8 +80,8 @@ export function InvestigationWorkspace({ data, timestamp, onInvestigateRelated }
     <div className="w-full space-y-4 text-left" role="main" aria-label="Investigation workspace">
       {/* ── 0. Save to Workspace (Phase 8.0 — persistence, separate from search) ── */}
       {summary && (
-        <div className="flex justify-end">
-          <SaveInvestigationButton investigation={data} />
+        <div className="w-full">
+          <WorkflowStrip data={data} pkg={pkg} savedId={savedId} onSaved={onSaved} generate={() => setGenerationSignal((s) => s + 1)} />
         </div>
       )}
 
@@ -82,6 +99,7 @@ export function InvestigationWorkspace({ data, timestamp, onInvestigateRelated }
 
       {/* ── 2. Investigation assessment (reasoning headline) ──────── */}
       {summary && <InvestigationSummaryCard summary={summary} />}
+      {summary && <details open={!preferences.collapsed.includes("assessment")} onToggle={(event) => rememberSection("assessment", event.currentTarget.open)}><summary className="cursor-pointer text-xs text-zinc-400">Assessment overview</summary><ResultOverview data={data} summary={summary} scope={scope} /></details>}
 
       <ProviderAgreementCard result={threat_intelligence} />
 
@@ -89,16 +107,16 @@ export function InvestigationWorkspace({ data, timestamp, onInvestigateRelated }
       <RelatedExpansion entity={entity} relationships={allRelationships} onInvestigate={onInvestigateRelated} />
 
       {/* ── 3. Recommendations (rollup, priority-ordered) ─────────── */}
-      {summary && <RecommendationRollup recommendations={summary.recommendations} />}
+      {summary && <div id={`${scope}-recommendations`}><RecommendationRollup recommendations={summary.recommendations} /></div>}
 
       {/* ── 4. Findings (primary analyst surface) ─────────────────── */}
-      {summary && <FindingsSection findings={summary.findings} />}
+      {summary && <div id={`${scope}-findings`}><FindingsSection findings={summary.findings} /></div>}
 
       {/* ── 4b. AI explanation (downstream, optional, collapsed) ──── */}
       {summary && <AIExplanationCard summary={summary} />}
 
       {/* ── 4c. Detection engineering (downstream, optional, collapsed) */}
-      {summary && <DetectionEngineeringCard summary={summary} />}
+      {summary && <DetectionEngineeringCard summary={summary} packageValue={pkg} onPackage={(value) => { setPackage(value); onPackage?.(value); }} generationSignal={generationSignal} />}
 
       {/* ── 4d. Detection knowledge — COMMUNITY detections (separate) ── */}
       {summary && <DetectionKnowledgeCard summary={summary} />}
@@ -137,13 +155,14 @@ export function InvestigationWorkspace({ data, timestamp, onInvestigateRelated }
               ({threat_intelligence.providers.length})
             </span>
           </h2>
+          <details open={!preferences.collapsed.includes("providers")} onToggle={(event) => rememberSection("providers", event.currentTarget.open)}><summary className="cursor-pointer text-xs text-zinc-500">Provider evidence details</summary>
           {threat_intelligence.providers.map((provider) => (
             <ProviderCard
               key={provider.provider}
               provider={provider}
               evidence={evidenceByProvider(threat_intelligence.evidence, provider.provider)}
             />
-          ))}
+          ))}</details>
         </section>
       )}
 

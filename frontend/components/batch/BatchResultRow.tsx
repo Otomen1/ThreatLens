@@ -1,5 +1,6 @@
 import { InvestigationWorkspace } from "@/components/InvestigationWorkspace";
 import type { BatchRow } from "@/hooks/useBatchInvestigation";
+import type { DetectionPackage } from "@/lib/api";
 import { detectionEligibility, providerCounts, riskLabel } from "@/lib/batch";
 
 interface Props {
@@ -11,9 +12,11 @@ interface Props {
   onSelect: (selected: boolean) => void;
   onRetry: () => void;
   onToggle: () => void;
+  onSaved: (id: string) => void;
+  onPackage: (pkg: DetectionPackage) => void;
 }
 
-export function BatchResultRow({ row, index, expanded, running, timestamp, onSelect, onRetry, onToggle }: Props) {
+export function BatchResultRow({ row, index, expanded, running, timestamp, onSelect, onRetry, onToggle, onSaved, onPackage }: Props) {
   const investigation = row.investigation;
   const summary = investigation?.investigation_summary;
   const counts = investigation ? providerCounts(investigation) : null;
@@ -31,7 +34,7 @@ export function BatchResultRow({ row, index, expanded, running, timestamp, onSel
         {row.retryable && !running && <button onClick={onRetry} className="rounded border border-zinc-700 px-2 py-1 text-xs">Retry</button>}
         {investigation && <button aria-expanded={expanded} aria-controls={`batch-detail-${index}`} onClick={onToggle} className="rounded px-2 py-1 text-zinc-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400">{expanded ? "Collapse" : "Expand"}</button>}
       </div>
-      {expanded && investigation && <div id={`batch-detail-${index}`} className="border-t border-zinc-800 px-4 pb-4"><p className="pt-3 text-xs text-zinc-500">Detection quality: {quality?.reason} Generated rules show mapping, validation, review, and approval states; this is not live SIEM validation.</p><InvestigationWorkspace data={investigation} timestamp={timestamp} /></div>}
+      {expanded && investigation && <div id={`batch-detail-${index}`} className="border-t border-zinc-800 px-4 pb-4"><p className="pt-3 text-xs text-zinc-500">Detection quality: {quality?.reason} Generated rules show mapping, validation, review, and approval states; this is not live SIEM validation.</p><InvestigationWorkspace data={investigation} timestamp={timestamp} savedId={row.savedId} onSaved={onSaved} packageValue={row.generatedPackage} onPackage={onPackage} /></div>}
     </article>
   );
 }

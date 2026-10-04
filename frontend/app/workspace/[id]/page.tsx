@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { ResultOverview } from "@/components/experience/ResultOverview";
+import { DataLocation } from "@/components/ui/DataLocation";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -20,6 +22,7 @@ import {
   type Timeline,
   type WorkspaceInvestigation,
   type WorkspaceStatus,
+  type DetectionPackage,
 } from "@/lib/api";
 import { sanitizeFilenameSegment, triggerJsonDownload } from "@/lib/download";
 import { entityLabel, severityClasses, severityLabel } from "@/lib/investigation";
@@ -40,14 +43,18 @@ export default function WorkspaceDetailPage() {
   const params = useParams<{ id: string }>();
   const [state, setState] = useState<State>({ kind: "loading" });
   const abortRef = useRef<AbortController | null>(null);
+  const currentId = useRef(params.id);
+  const [pendingPackage, setPendingPackage] = useState<{ id: string; pkg: DetectionPackage } | null>(null);
 
   const load = useCallback(async () => {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
+    currentId.current = params.id;
     setState({ kind: "loading" });
     try {
       const record = await getInvestigation(params.id, controller.signal);
+      if (controller.signal.aborted || abortRef.current !== controller) return;
       setState({ kind: "ready", record });
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
@@ -75,9 +82,14 @@ export default function WorkspaceDetailPage() {
 
   async function generateAndSaveDetections() {
     if (state.kind !== "ready" || !state.record.investigation_summary) return;
-    const detection_package = await generateDetections(state.record.investigation_summary);
+    const requestedId = state.record.id;
+    const detection_package = pendingPackage?.id === state.record.id ? pendingPackage.pkg : await generateDetections(state.record.investigation_summary);
+    if (currentId.current !== requestedId || abortRef.current?.signal.aborted) return;
+    setPendingPackage({ id: state.record.id, pkg: detection_package });
     const record = await updateInvestigation(state.record.id, { detection_package });
+    if (currentId.current !== requestedId || abortRef.current?.signal.aborted) return;
     setState({ kind: "ready", record });
+    setPendingPackage(null);
   }
 
   return (
@@ -107,18 +119,21 @@ export default function WorkspaceDetailPage() {
 
         {state.kind === "ready" && (
           <>
-            <DetailHeader record={state.record} onStatusChange={changeStatus} onGenerate={generateAndSaveDetections} />
+            <DetailHeader record={state.record} pending={pendingPackage?.id === state.record.id} onStatusChange={changeStatus} onGenerate={generateAndSaveDetections} />
+            {pendingPackage?.id === state.record.id && <section role="status" className="rounded-xl border border-amber-500/30 p-4 text-sm text-amber-300">Generated rules are retained in memory until saved. Retry saving does not regenerate them.<DetectionPackageSummary pkg={pendingPackage.pkg} /></section>}
 
             <DetailMetrics record={state.record} />
+            <DataLocation kind="Saved to database" detail="Uses the configured Workspace storage backend." />
             <ComparisonPanel record={state.record} />
 
             {state.record.investigation_summary && (
               <>
                 <InvestigationSummaryCard summary={state.record.investigation_summary} />
-                <RecommendationRollup
+                <ResultOverview saved data={state.record.investigation_snapshot} summary={state.record.investigation_summary} />
+                <div id="result-recommendations"><RecommendationRollup
                   recommendations={state.record.investigation_summary.recommendations}
-                />
-                <FindingsSection findings={state.record.investigation_summary.findings} />
+                /></div>
+                <div id="result-findings"><FindingsSection findings={state.record.investigation_summary.findings} /></div>
               </>
             )}
 
@@ -152,10 +167,12 @@ function DetailHeader({
   record,
   onStatusChange,
   onGenerate,
+  pending,
 }: {
   record: WorkspaceInvestigation;
   onStatusChange: (status: WorkspaceStatus) => void;
   onGenerate: () => Promise<void>;
+  pending: boolean;
 }) {
   const [exporting, setExporting] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -213,11 +230,11 @@ function DetailHeader({
           onClick={exportJson}
         />
         {record.investigation_summary && !record.detection_package && (
-          <IconButton label={generating ? "Generating…" : "Generate detections"} onClick={generate} />
+          <IconButton label={generating ? "Working…" : pending ? "Retry saving rules" : "Generate detections"} onClick={generate} />
         )}
       </div>
 
-      {generationError && <p role="alert" className="text-xs text-red-300">Detections could not be generated. Please try again.</p>}
+      {generationError && <p role="alert" className="text-xs text-red-300">{pending ? "Rules could not be saved. Retry saving the retained package." : "Detections could not be generated. Please try again."}</p>}
 
       {record.summary && <p className="text-sm text-zinc-400">{record.summary}</p>}
 

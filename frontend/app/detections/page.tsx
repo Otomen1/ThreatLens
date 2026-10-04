@@ -7,16 +7,24 @@ import { getInvestigation, listInvestigations, testDetection, updateInvestigatio
 import { LoadingRows } from "@/components/ui/Skeleton";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { useToast } from "@/components/ui/ToastProvider";
+import { RecoveryPanel } from "@/components/ui/RecoveryPanel";
 import { detectionLanguageLabel, detectionSeverityClass, detectionSeverityLabel, artifactFilename } from "@/lib/detection";
 import { readDetectionVersions, versionHistoryExportName, withDetectionVersion } from "@/lib/detectionVersioning";
+import { readPreferences, useExperiencePreferences, writePreferences } from "@/lib/experiencePreferences";
 
 type Rule = DetectionArtifact & { investigationId: string; investigationTitle: string };
 type RuleGroup = { key: string; title: string; investigationId: string; investigationTitle: string; rules: Rule[] };
 
 export default function DetectionsPage() {
+  const { notify } = useToast();
+  const preferences = useExperiencePreferences();
+  const [view, setView] = useState("compact");
+  const [origin, setOrigin] = useState("");
+  const [hydrated, setHydrated] = useState(false);
   const [records, setRecords] = useState<WorkspaceInvestigation[]>([]);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [language, setLanguage] = useState("all");
+  const [formatsOverride, setFormatsOverride] = useState(false);
   const [severity, setSeverity] = useState("all");
   const [iocType, setIocType] = useState("all");
   const [reviewStatus, setReviewStatus] = useState("all");
@@ -27,11 +35,37 @@ export default function DetectionsPage() {
   const [notice, setNotice] = useState("");
   const [expandAll, setExpandAll] = useState(false);
   const [expandSignal, setExpandSignal] = useState(0);
+  useEffect(() => { setExpandAll(view === "card"); setExpandSignal((s) => s + 1); }, [view]);
   const [query, setQuery] = useState("");
   const [showExcluded, setShowExcluded] = useState(false);
   const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(20);
+  useEffect(() => {
+    const load = () => {
+      const defaults = readPreferences();
+      const p = new URLSearchParams(window.location.search);
+      setOrigin(p.get("investigation") ?? ""); setLanguage(p.get("language") ?? "all"); setFormatsOverride(p.has("language"));
+      setQuery(p.get("q") ?? ""); setView(p.get("view") === "card" ? "card" : p.has("view") ? "compact" : defaults.view);
+      const size = Number(p.get("page_size")); setPageSize([10, 20, 50].includes(size) ? size : defaults.pageSize);
+      setSeverity(p.get("severity") ?? "all"); setIocType(p.get("ioc_type") ?? "all");
+      setReviewStatus(p.get("review") ?? "all"); setValidationLevel(p.get("validation") ?? "all");
+      setMappingProfile(p.get("mapping") ?? "all"); setQualityBand(p.get("quality") ?? "all");
+      setFreshness(p.get("freshness") ?? "all"); setShowExcluded(p.get("excluded") === "true");
+      setHydrated(true);
+    };
+    load(); window.addEventListener("popstate", load);
+    return () => window.removeEventListener("popstate", load);
+  }, []);
+  useEffect(() => {
+    if (!hydrated) return;
+    const p = new URLSearchParams(window.location.search);
+    language === "all" && !formatsOverride ? p.delete("language") : p.set("language", language);
+    query ? p.set("q", query) : p.delete("q"); p.set("view", view); p.set("page_size", String(pageSize));
+    for (const [key, value] of [["severity", severity], ["ioc_type", iocType], ["review", reviewStatus], ["validation", validationLevel], ["mapping", mappingProfile], ["quality", qualityBand], ["freshness", freshness]]) value === "all" ? p.delete(key) : p.set(key, value);
+    showExcluded ? p.set("excluded", "true") : p.delete("excluded");
+    window.history.replaceState(null, "", `/detections?${p}`);
+  }, [language, formatsOverride, query, view, pageSize, hydrated, severity, iocType, reviewStatus, validationLevel, mappingProfile, qualityBand, freshness, showExcluded]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -52,7 +86,8 @@ export default function DetectionsPage() {
     (record.detection_package?.artifacts ?? []).map((artifact) => ({
       ...artifact, investigationId: record.id, investigationTitle: record.title,
     })),
-  ).filter((rule) => language === "all" || rule.language === language)
+  ).filter((rule) => !origin || rule.investigationId === origin)
+    .filter((rule) => language === "all" ? formatsOverride || !preferences.formats.length || preferences.formats.includes(rule.language) : rule.language === language)
     .filter((rule) => severity === "all" || rule.severity === Number(severity))
     .filter((rule) => iocType === "all" || getIocType(rule.title) === iocType)
     .filter((rule) => reviewStatus === "all" || rule.review_status === reviewStatus)
@@ -61,7 +96,7 @@ export default function DetectionsPage() {
     .filter((rule) => qualityBand === "all" || (rule.quality?.band ?? "do_not_deploy") === qualityBand)
     .filter((rule) => freshness === "all" || (rule.freshness?.status ?? "unknown") === freshness)
     .filter((rule) => showExcluded || rule.metadata?.excluded !== "true")
-    .filter((rule) => `${rule.title} ${rule.description} ${rule.content}`.toLowerCase().includes(query.toLowerCase().trim())), [records, language, severity, iocType, reviewStatus, validationLevel, mappingProfile, qualityBand, freshness, showExcluded, query]);
+    .filter((rule) => `${rule.title} ${rule.description} ${rule.content}`.toLowerCase().includes(query.toLowerCase().trim())), [records, language, formatsOverride, severity, iocType, reviewStatus, validationLevel, mappingProfile, qualityBand, freshness, showExcluded, query, origin, preferences.formats]);
   const groups = useMemo<RuleGroup[]>(() => {
     const grouped = new Map<string, RuleGroup>();
     for (const rule of rules) {
@@ -79,6 +114,7 @@ export default function DetectionsPage() {
   useEffect(() => setPage(1), [language, severity, iocType, reviewStatus, validationLevel, mappingProfile, qualityBand, freshness, query, pageSize]);
 
   function exportRules() {
+    notify("Filtered rules exported.");
     const payload = rules.map(({ investigationId, investigationTitle, ...rule }) => ({ investigationId, investigationTitle, ...rule }));
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "threatlens-detections.json"; link.click(); URL.revokeObjectURL(link.href);
@@ -123,7 +159,7 @@ export default function DetectionsPage() {
         </header>
         <div className="flex flex-wrap gap-2">
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search rules…" aria-label="Search detection rules" className="min-w-[220px] flex-1 rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm outline-none focus:border-zinc-600" />
-          <select value={language} onChange={(e) => setLanguage(e.target.value)} aria-label="Filter by detection language" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none">
+          <select value={language} onChange={(e) => { setLanguage(e.target.value); setFormatsOverride(true); }} aria-label="Filter by detection language" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none">
             <option value="all">All languages</option>{languages.map((item) => <option key={item} value={item}>{detectionLanguageLabel(item)}</option>)}
           </select>
           <select value={severity} onChange={(e) => setSeverity(e.target.value)} aria-label="Filter by severity" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value="all">All severities</option>{[4, 3, 2, 1, 0].map((item) => <option key={item} value={item}>{detectionSeverityLabel(item)}</option>)}</select>
@@ -133,7 +169,8 @@ export default function DetectionsPage() {
           <select value={mappingProfile} onChange={(e) => setMappingProfile(e.target.value)} aria-label="Filter by field mapping" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value="all">All mappings</option>{mappings.map((item) => <option key={item} value={item}>{item}</option>)}</select>
           <select value={qualityBand} onChange={(e) => setQualityBand(e.target.value)} aria-label="Filter by rule quality" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value="all">All quality</option><option value="strong">Strong</option><option value="review">Review</option><option value="weak">Weak</option><option value="do_not_deploy">Do not deploy</option></select>
           <select value={freshness} onChange={(e) => setFreshness(e.target.value)} aria-label="Filter by evidence freshness" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value="all">All freshness</option><option value="fresh">Fresh</option><option value="review_due">Review due</option><option value="expired">Expired</option><option value="unknown">Unknown age</option></select>
-          <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))} aria-label="Rules per page" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value={10}>10 per page</option><option value={25}>25 per page</option><option value={50}>50 per page</option></select>
+          <select value={pageSize} onChange={(e) => { const size = Number(e.target.value); setPageSize(size); writePreferences({ pageSize: size }); }} aria-label="Rules per page" className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none"><option value={10}>10 per page</option><option value={20}>20 per page</option><option value={50}>50 per page</option></select>
+          <select aria-label="Rule view" value={view} onChange={(e) => { setView(e.target.value); writePreferences({ view: e.target.value as "compact" | "card" }); }} className="rounded-xl border border-zinc-800 bg-zinc-900 p-2"><option value="compact">Compact</option><option value="card">Cards</option></select>
           <label className="flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-400"><input type="checkbox" checked={showExcluded} onChange={(e) => setShowExcluded(e.target.checked)} /> Show excluded</label>
         </div>
         {state === "loading" && <LoadingRows rows={4} label="Loading generated detections" />}
@@ -198,6 +235,15 @@ function RuleCard({ rule, onUpdated }: { rule: Rule; onUpdated: (record: Workspa
   const [testResult, setTestResult] = useState<string | null>(null);
   const [note, setNote] = useState(rule.review_note ?? "");
   const [noteSaved, setNoteSaved] = useState(false);
+  const [actionError, setActionError] = useState("");
+  const [actionBusy, setActionBusy] = useState(false);
+  async function performAction(action: () => Promise<void>) {
+    if (actionBusy) return;
+    setActionBusy(true); setActionError("");
+    try { await action(); }
+    catch { setActionError("This change could not be saved. The existing rule and your note are retained; retry manually. Saving a rule does not query intelligence providers."); notify("Rule change could not be saved.", "error"); }
+    finally { setActionBusy(false); }
+  }
   const versions = readDetectionVersions(rule);
   function downloadVersion(version: number, content: string) {
     const blob = new Blob([content], { type: "text/plain" });
@@ -250,11 +296,12 @@ function RuleCard({ rule, onUpdated }: { rule: Rule; onUpdated: (record: Workspa
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-500"><span>From <Link className="text-zinc-300 hover:underline" href={`/workspace/${rule.investigationId}`}>{rule.investigationTitle}</Link></span><span>{rule.metadata?.mapping_profile ?? "generic"} v{rule.metadata?.mapping_version ?? "1"} · {rule.validation.level ?? "structural"} · {rule.review_status}</span></div>
       <div className="flex flex-wrap gap-2 text-xs"><span className="rounded border border-sky-500/30 bg-sky-500/10 px-2 py-1 text-sky-300">Quality {rule.quality?.score ?? 0}/100 · {(rule.quality?.band ?? "do_not_deploy").replaceAll("_", " ")}</span><span className="rounded border border-zinc-700 px-2 py-1 text-zinc-400">Evidence {(rule.freshness?.status ?? "unknown").replaceAll("_", " ")}</span></div>
       {(rule.quality?.deductions.length ?? 0) > 0 && <ul className="list-disc space-y-1 pl-5 text-xs text-amber-300">{rule.quality?.deductions.map((item) => <li key={item}>{item}</li>)}</ul>}
+      {actionError && <RecoveryPanel message={actionError} retained />}
       {rule.description && <p className="text-sm text-zinc-400">{rule.description}</p>}
       <pre className="max-h-[420px] overflow-auto rounded-xl border border-zinc-800 bg-zinc-950 p-4 font-mono text-xs leading-5 text-zinc-300">{rule.content || "No rule content was generated."}</pre>
       {versions.length > 0 && <details className="rounded-xl border border-zinc-800 bg-zinc-950 p-3"><summary className="cursor-pointer text-xs font-medium text-zinc-300">Version history ({versions.length})</summary><div className="mt-3 space-y-2">{versions.map((version) => <div key={version.version} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zinc-800 p-2 text-xs"><span className="text-zinc-400">v{version.version} · {version.changed_fields.join(", ")} · {new Date(version.created_at).toLocaleString()}</span><button type="button" onClick={() => downloadVersion(version.version, version.content)} className="rounded border border-zinc-700 px-2 py-1 text-zinc-300 hover:bg-zinc-800">Export v{version.version}</button></div>)}</div></details>}
-      <div className="flex flex-wrap gap-2"><CopyButton value={rule.content} label="Copy rule" className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800" /><button type="button" onClick={download} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800">Download</button><button type="button" onClick={toggleExclusion} className="rounded-lg border border-amber-500/30 px-3 py-1.5 text-xs text-amber-300 hover:bg-amber-500/10">{rule.metadata?.excluded === "true" ? "Restore" : "Exclude"}</button><button type="button" onClick={() => review("reviewed")} className="rounded-lg border border-sky-500/30 px-3 py-1.5 text-xs text-sky-300 hover:bg-sky-500/10">Mark reviewed</button><button type="button" onClick={() => review("approved")} className="rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs text-emerald-300 hover:bg-emerald-500/10">Approve</button><button type="button" onClick={() => review("rejected")} className="rounded-lg border border-red-500/30 px-3 py-1.5 text-xs text-red-300 hover:bg-red-500/10">Reject</button></div>
-      <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3"><label htmlFor={`note-${rule.id}`} className="text-xs font-medium text-zinc-300">Analyst note</label><textarea id={`note-${rule.id}`} value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="Record tuning decisions, exceptions, or review context…" className="mt-2 w-full rounded-lg border border-zinc-800 bg-zinc-900 p-2 text-xs text-zinc-300 placeholder-zinc-600" /><button type="button" onClick={saveNote} className="mt-2 rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800">{noteSaved ? "Saved" : "Save note"}</button></div>
+      <div className="flex flex-wrap gap-2"><CopyButton value={rule.content} label="Copy rule" className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800" /><button type="button" onClick={download} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800">Download</button><button type="button" disabled={actionBusy} onClick={() => void performAction(toggleExclusion)} className="rounded-lg border border-amber-500/30 px-3 py-1.5 text-xs text-amber-300 hover:bg-amber-500/10">{rule.metadata?.excluded === "true" ? "Restore" : "Exclude"}</button><button type="button" disabled={actionBusy} onClick={() => void performAction(() => review("reviewed"))} className="rounded-lg border border-sky-500/30 px-3 py-1.5 text-xs text-sky-300 hover:bg-sky-500/10">Mark reviewed</button><button type="button" disabled={actionBusy} onClick={() => void performAction(() => review("approved"))} className="rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs text-emerald-300 hover:bg-emerald-500/10">Approve</button><button type="button" disabled={actionBusy} onClick={() => void performAction(() => review("rejected"))} className="rounded-lg border border-red-500/30 px-3 py-1.5 text-xs text-red-300 hover:bg-red-500/10">Reject</button></div>
+      <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3"><label htmlFor={`note-${rule.id}`} className="text-xs font-medium text-zinc-300">Analyst note</label><textarea id={`note-${rule.id}`} value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="Record tuning decisions, exceptions, or review context…" className="mt-2 w-full rounded-lg border border-zinc-800 bg-zinc-900 p-2 text-xs text-zinc-300 placeholder-zinc-600" /><button type="button" disabled={actionBusy} onClick={() => void performAction(saveNote)} className="mt-2 rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800">{noteSaved ? "Saved" : "Save note"}</button></div>
       <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3"><p className="text-xs font-medium text-zinc-300">Offline sample test</p><p className="mt-1 text-[11px] text-zinc-600">One JSON log per line. This never contacts a SIEM.</p><textarea value={sample} onChange={(e) => setSample(e.target.value)} rows={3} className="mt-2 w-full rounded-lg border border-zinc-800 bg-zinc-900 p-2 font-mono text-xs text-zinc-300" /><button onClick={runTest} className="mt-2 rounded-lg border border-indigo-500/30 px-3 py-1.5 text-xs text-indigo-300 hover:bg-indigo-500/10">Test samples</button>{testResult && <p className="mt-2 text-xs text-zinc-400">{testResult}</p>}</div>
     </div>
   </details>;
