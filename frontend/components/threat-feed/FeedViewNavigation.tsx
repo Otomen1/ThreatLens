@@ -4,13 +4,12 @@ import { useEffect, useRef, useState, type RefObject } from "react";
 import Link from "next/link";
 
 /** Keep one set of links so docking preserves keyboard focus and semantics. */
-export function FeedViewNavigation({ selected, headerRef, onDockChange }: {
+export function FeedViewNavigation({ selected, headerRef }: {
   selected: string | null;
   headerRef: RefObject<HTMLElement | null>;
-  onDockChange: (docked: boolean) => void;
 }) {
   const slotRef = useRef<HTMLDivElement>(null);
-  const [placement, setPlacement] = useState({ docked: false, top: 200 });
+  const [placement, setPlacement] = useState({ docked: false, top: 200, left: 32 });
 
   useEffect(() => {
     const desktop = window.matchMedia("(min-width: 1024px)");
@@ -22,13 +21,14 @@ export function FeedViewNavigation({ selected, headerRef, onDockChange }: {
       const header = headerRef.current;
       if (!slot || !header) return;
       const bottom = header.getBoundingClientRect().bottom;
+      const slotBounds = slot.getBoundingClientRect();
+      const left = Math.max(16, slotBounds.left - 160);
       // The slot stays in flow; hysteresis avoids flicker near the boundary.
-      const distance = slot.getBoundingClientRect().bottom - bottom;
+      const distance = slotBounds.bottom - bottom;
       const next = desktop.matches && (docked ? distance < 8 : distance < -8);
       docked = next;
-      setPlacement((previous) => previous.docked === next && previous.top === bottom + 16
-        ? previous : { docked: next, top: bottom + 16 });
-      onDockChange(next);
+      setPlacement((previous) => previous.docked === next && previous.top === bottom + 16 && previous.left === left
+        ? previous : { docked: next, top: bottom + 16, left });
     };
     const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
     const observer = new ResizeObserver(schedule);
@@ -44,13 +44,13 @@ export function FeedViewNavigation({ selected, headerRef, onDockChange }: {
       window.removeEventListener("resize", schedule);
       desktop.removeEventListener("change", schedule);
     };
-  }, [headerRef, onDockChange]);
+  }, [headerRef]);
 
   return <div ref={slotRef} className="mt-6 lg:h-[53px]">
     <nav aria-label="Threat Feed views" data-docked={placement.docked}
-      style={placement.docked ? { top: placement.top, maxHeight: `calc(100dvh - ${placement.top + 16}px)` } : undefined}
+      style={placement.docked ? { top: placement.top, left: placement.left, maxHeight: `calc(100dvh - ${placement.top + 16}px)` } : undefined}
       className={placement.docked
-        ? "feed-side-navigation fixed left-4 z-20 flex w-36 flex-col gap-1 overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-950 p-2 shadow-lg"
+        ? "feed-side-navigation fixed z-20 flex w-36 flex-col gap-1 overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-950 p-2 shadow-lg"
         : "flex flex-wrap gap-2 border-b border-zinc-800 pb-3"}>
       {(["news", "vulnerabilities", "poc", "iocs"] as const).map((tab) => <Link key={tab}
         aria-current={selected === tab ? "page" : undefined}

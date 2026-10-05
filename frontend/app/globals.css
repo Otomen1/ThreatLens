@@ -9,6 +9,12 @@
 
 .feed-side-navigation { animation: feed-side-enter 180ms ease-out; }
 
+/* Equal, permanent desktop gutters prevent docking from moving the content. */
+.threat-feed-frame { width: 100%; max-width: 1152px; margin-inline: auto; }
+@media (min-width: 1024px) {
+  .threat-feed-frame { width: calc(100% - 352px); }
+}
+
 :root {
   --font-inter: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;

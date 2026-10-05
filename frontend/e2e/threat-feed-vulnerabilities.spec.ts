@@ -4,7 +4,7 @@ const now = new Date().toISOString();
 const report = { id: "news-one", source_id: "mycert", source_name: "MyCERT", source_kind: "rss", title: "Malaysia security advisory", excerpt: "Apply the update", summary: "Apply the update", url: "https://example.test/news", published_at: now, collected_at: now, region: "malaysia", relevance: "high", region_reasons: ["Official Malaysian source"], topic: "advisory", severity: null, entities: [] };
 const vulnerability = { id: "CVE-2026-12345", cve_id: "CVE-2026-12345", title: "Example browser vulnerability", description: "A source-reported browser vulnerability.", published_at: now, activity_at: now, updated_at: now, products: ["Example Browser"], scores: [{ source: "NVD", version: "3.1", score: 9.8, severity: "critical" }], severity: "critical", sources: ["NVD", "MyCERT"], references: ["https://nvd.nist.gov/vuln/detail/CVE-2026-12345"], reports: [{ ...report, zero_day: true }], reported_zero_day: true, known_exploited: true, kev_added_at: now };
 
-for (const width of [1280, 390]) {
+for (const width of [1280, 2269, 390]) {
   test(`feed search controls stay below navigation while scrolling at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
     await page.route("**/api/v1/threat-feed/vulnerabilities?*", (route) => route.fulfill({ json: {
@@ -14,6 +14,7 @@ for (const width of [1280, 390]) {
     const errors: string[] = []; page.on("pageerror", (error) => errors.push(error.message));
     await page.goto("/threat-feed?tab=vulnerabilities");
     await expect(page.getByRole("link", { name: "CVE-2026-20000", exact: true })).toBeVisible();
+    const originalTable = await page.getByRole("table").boundingBox();
     await page.evaluate(() => window.scrollTo(0, 1000));
     const header = page.getByRole("banner", { name: "Threat Feed search controls" });
     await expect.poll(async () => (await header.boundingBox())?.y).toBe(56);
@@ -30,14 +31,19 @@ for (const width of [1280, 390]) {
     await expect(views).toHaveAttribute("data-docked", String(width >= 1024));
     await expect(views.getByRole("link", { name: "Vulnerabilities" })).toHaveAttribute("aria-current", "page");
     if (width >= 1024) {
-      await expect.poll(async () => (await views.boundingBox())?.x).toBe(16);
+      // The table is inset one pixel inside its bordered container.
+      await expect.poll(async () => (await views.boundingBox())?.x).toBe(originalTable!.x - 161);
       const rail = await views.boundingBox();
       expect(rail!.y).toBeGreaterThanOrEqual(bounds!.y + bounds!.height);
       await expect.poll(async () => (await page.getByRole("table").boundingBox())?.x ?? 0).toBeGreaterThanOrEqual(rail!.x + rail!.width);
+      const dockedTable = await page.getByRole("table").boundingBox();
+      expect(dockedTable!.x).toBe(originalTable!.x);
+      expect(dockedTable!.width).toBe(originalTable!.width);
+      expect(rail!.x + rail!.width + 17).toBe(dockedTable!.x);
       await views.getByRole("link", { name: "News", exact: true }).focus();
       await page.evaluate(() => window.scrollBy(0, 30));
       await expect(views.getByRole("link", { name: "News", exact: true })).toBeFocused();
-      if (process.env.THREATLENS_VISUAL_CHECK === "1") await page.screenshot({ path: "test-results/feed-side-navigation.png" });
+      if (process.env.THREATLENS_VISUAL_CHECK === "1") await page.screenshot({ path: `test-results/feed-side-navigation-${width}.png` });
       await page.setViewportSize({ width: 390, height: 844 });
       await expect(views).toHaveAttribute("data-docked", "false");
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -49,6 +55,9 @@ for (const width of [1280, 390]) {
     await page.evaluate(() => window.scrollTo(0, 0));
     await expect(views).toHaveAttribute("data-docked", "false");
     await expect(views.getByRole("link", { name: "News", exact: true })).toBeVisible();
+    const restoredTable = await page.getByRole("table").boundingBox();
+    expect(restoredTable!.x).toBe(originalTable!.x);
+    expect(restoredTable!.width).toBe(originalTable!.width);
     expect(errors).toEqual([]);
   });
 }
