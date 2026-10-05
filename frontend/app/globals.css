@@ -8,6 +8,14 @@
 }
 
 .feed-side-navigation { animation: feed-side-enter 180ms ease-out; }
+.feed-header-slot { height: 145px; }
+@media (max-width: 639px) { .feed-header-slot { height: 129px; } }
+.floating-table-headings { pointer-events: none; }
+.floating-table-heading { position: fixed; z-index: 20; overflow: hidden; background: #18181b; color: #a1a1aa; border-bottom: 1px solid #3f3f46; box-shadow: 0 2px 6px #0003; }
+main tbody tr:hover, main tbody tr:focus-within,
+main [role="row"]:has([role="cell"]):hover, main [role="row"]:has([role="cell"]):focus-within,
+[data-ui-row]:hover, [data-ui-row]:focus-within { background-color: rgb(39 39 42 / 0.4); }
+@media print { .floating-table-headings { display: none; } }
 
 /* Equal, permanent desktop gutters prevent docking from moving the content. */
 .threat-feed-frame { width: 100%; max-width: 1152px; margin-inline: auto; }

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ToastProvider } from "@/components/ui/ToastProvider";
+import { TableHeadings } from "@/components/ui/TableHeadings";
 
 const COMMANDS = [
   ["Search", "/"], ["Threat Feed", "/threat-feed"], ["Investigations", "/workspace"],
@@ -75,7 +76,8 @@ export function AppEnhancements({ children }: { children: React.ReactNode }) {
   return (
     <ToastProvider>
       {progress && <div role="progressbar" aria-label="Loading page" className="route-progress fixed left-0 right-0 top-14 z-[60] h-0.5 overflow-hidden bg-sky-950"><span className="block h-full w-1/3 bg-sky-400" /></div>}
-      <div key={pathname} className="animate-page-enter">{children}</div>
+      <div key={pathname} data-app-content>{children}</div>
+      <TableHeadings />
       {showTop && <button type="button" aria-label="Back to top" onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })} className="fixed bottom-5 left-5 z-30 rounded-full border border-zinc-700 bg-zinc-900/95 px-3 py-2 text-xs text-zinc-300 shadow-xl hover:bg-zinc-800">↑ Top</button>}
       {palette && <div className="fixed inset-0 z-[80] flex items-start justify-center bg-black/60 px-4 pt-[15vh] backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Command menu" onMouseDown={(event) => event.target === event.currentTarget && setPalette(false)}>
         <div ref={dialogRef} onKeyDown={(event) => { if (event.key !== "Tab") return; const focusable = [...(dialogRef.current?.querySelectorAll<HTMLElement>('input,a,button') ?? [])]; if (!focusable.length) return; const first = focusable[0]; const last = focusable.at(-1)!; if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); } else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); } }} className="animate-ui-enter w-full max-w-lg overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-950 shadow-2xl">

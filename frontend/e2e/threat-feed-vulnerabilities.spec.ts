@@ -15,9 +15,14 @@ for (const width of [1280, 2269, 390]) {
     await page.goto("/threat-feed?tab=vulnerabilities");
     await expect(page.getByRole("link", { name: "CVE-2026-20000", exact: true })).toBeVisible();
     const originalTable = await page.getByRole("table").boundingBox();
-    await page.evaluate(() => window.scrollTo(0, 1000));
     const header = page.getByRole("banner", { name: "Threat Feed search controls" });
+    const expandedHeader = await header.boundingBox();
+    await page.evaluate(() => window.scrollTo(0, 1000));
     await expect.poll(async () => (await header.boundingBox())?.y).toBe(56);
+    await expect(header).toHaveAttribute("data-compact", "true");
+    expect((await header.boundingBox())!.height).toBeLessThan(expandedHeader!.height);
+    if (width >= 1024) await expect(page.locator(".floating-table-heading")).toBeVisible();
+    expect(await page.locator(".floating-table-headings").getAttribute("aria-hidden")).toBe("true");
     const nav = await page.getByRole("navigation", { name: "Primary navigation" }).boundingBox();
     const bounds = await header.boundingBox();
     expect(bounds!.y).toBeGreaterThanOrEqual(nav!.y + nav!.height - 1);
@@ -53,6 +58,8 @@ for (const width of [1280, 2269, 390]) {
       await expect(views).toHaveCSS("animation-duration", "1e-05s");
     }
     await page.evaluate(() => window.scrollTo(0, 0));
+    await expect(header).toHaveAttribute("data-compact", "false");
+    await expect(page.locator(".floating-table-heading")).toHaveCount(0);
     await expect(views).toHaveAttribute("data-docked", "false");
     await expect(views.getByRole("link", { name: "News", exact: true })).toBeVisible();
     const restoredTable = await page.getByRole("table").boundingBox();

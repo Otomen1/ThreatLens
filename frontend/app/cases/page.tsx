@@ -282,7 +282,7 @@ function NewCaseForm({
 
 function CaseRow({ item }: { item: Case }) {
   return (
-    <li className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
+    <li data-ui-row className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
       <Link href={`/cases/${item.id}`} className="block group">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm text-white group-hover:underline truncate">{item.title}</span>

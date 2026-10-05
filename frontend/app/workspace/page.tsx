@@ -195,7 +195,7 @@ function InvestigationRow({
   onDelete: () => void;
 }) {
   return (
-    <li className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex items-center gap-3">
+    <li data-ui-row className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex items-center gap-3">
       <Link href={`/workspace/${item.id}`} className="flex-1 min-w-0 group">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm text-white group-hover:underline truncate">{item.title}</span>

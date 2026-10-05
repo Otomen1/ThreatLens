@@ -10,9 +10,9 @@ type Reference = { kind: "news" | "vulnerability" | "ioc"; id: string; title: st
 type Search = { groups: Record<string, { items: Reference[]; total: number; page: number; page_size: number }>; poc_cve: string | null };
 type Related = { items: { record: Reference; reason: string; supporting_values: string[] }[]; cves: string[] };
 
-export function FeedSearchBox() {
+export function FeedSearchBox({ compact = false }: { compact?: boolean }) {
   const params = useSearchParams(); const router = useRouter();
-  return <form className="mt-5 flex gap-2" onSubmit={(e) => {
+  return <form className={`${compact ? "mt-2" : "mt-5"} flex gap-2`} onSubmit={(e) => {
     e.preventDefault(); const query = String(new FormData(e.currentTarget).get("q") ?? "").trim();
     if (query) router.push(`/threat-feed?view=search&q=${encodeURIComponent(query)}`);
   }}><input key={params.get("q") ?? ""} name="q" aria-label="Search all threat intelligence" maxLength={200} defaultValue={params.get("q") ?? ""} placeholder="Search a CVE, IOC, product, or report…" className={`${feedControl} min-w-0 flex-1 bg-zinc-950`} /><button aria-label="Search feed" className={feedControl}>Search</button><Link href="/threat-feed?view=saved" className={feedControl}>Saved</Link></form>;

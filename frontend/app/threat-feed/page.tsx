@@ -7,7 +7,8 @@ import { VulnerabilityFeed } from "@/components/threat-feed/VulnerabilityFeed";
 import { PocFeed } from "@/components/threat-feed/PocFeed";
 import { IocFeed } from "@/components/threat-feed/IocFeed";
 import { FeedStatus } from "@/components/threat-feed/FeedStatus";
-import { FeedSearchBox, UnifiedFeedSearch } from "@/components/threat-feed/FeedWorkflow";
+import { UnifiedFeedSearch } from "@/components/threat-feed/FeedWorkflow";
+import { FeedHeader } from "@/components/threat-feed/FeedHeader";
 import { SavedFeed } from "@/components/threat-feed/SavedFeed";
 import { FeedFilters } from "@/components/threat-feed/FeedFilters";
 import { LoadingRows } from "@/components/ui/Skeleton";
@@ -18,12 +19,7 @@ function FeedTabs() {
   const headerRef = useRef<HTMLElement>(null);
   const selected = ["vulnerabilities", "poc", "iocs"].includes(params.get("tab") ?? "") ? params.get("tab") : "news";
   return <>
-    <header ref={headerRef} aria-label="Threat Feed search controls" className="sticky top-14 z-30 border-b border-zinc-800 bg-zinc-950">
-      <div className="threat-feed-frame px-4 py-4 sm:py-6">
-        <h1 className="text-3xl font-semibold">Threat Feed</h1>
-        <FeedSearchBox />
-      </div>
-    </header>
+    <FeedHeader headerRef={headerRef} />
     <div className="threat-feed-frame">
     <div className="mx-auto max-w-6xl px-4">
       <FeedViewNavigation selected={selected} headerRef={headerRef} />
