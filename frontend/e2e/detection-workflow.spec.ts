@@ -72,3 +72,18 @@ test("shows partial generation warnings", async ({ page }) => {
   await page.goto("/detections");
   await expect(page.getByText(/Some detection formats failed/)).toBeVisible();
 });
+
+test("rule pagination survives reload and reset preserves investigation scope", async ({ page }) => {
+  const record = { ...investigation, detection_package: { ...investigation.detection_package, artifacts: Array.from({ length: 25 }, (_, index) => ({ ...investigation.detection_package.artifacts[0], id: `rule-${index}`, title: `Malicious domain: ${String(index).padStart(2, "0")}.test` })) } };
+  await page.route(`**/api/v1/workspace/${investigation.id}`, (route) => route.fulfill({ json: record }));
+  await page.goto(`/detections?investigation=${investigation.id}&page_size=10&page=2`);
+  await expect(page.getByText("Page 2 of 3", { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByText("Page 2 of 3", { exact: true })).toBeVisible();
+  await page.getByRole("combobox", { name: "Filter by severity" }).selectOption("3");
+  await expect(page.getByText("Page 1 of 3", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Reset filters", exact: true }).click();
+  await expect.poll(() => new URL(page.url()).searchParams.has("severity")).toBe(false);
+  expect(new URL(page.url()).searchParams.get("investigation")).toBe(investigation.id);
+  await expect(page.getByRole("combobox", { name: "Rules per page" })).toHaveValue("10");
+});

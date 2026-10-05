@@ -46,6 +46,34 @@ retained. Public feeds and browser-local data are excluded from personal server
 backups. Settings links the separate backup/restore and local clearing controls;
 there is no destructive clear-everything control.
 
+## UI polish and list navigation
+
+Threat Feed's pinned search header becomes compact after 96 pixels of scrolling
+and expands below 64 pixels. It reserves its expanded document space, so docking
+the existing side navigation does not shift the content. Its title, Search and
+Saved controls remain available. Existing tables with static column headings use
+a measured, non-interactive visual heading while scrolling; original table
+semantics are unchanged. Copies follow horizontal scroll and disappear at the
+table end and in print.
+
+Feed, Dashboard and Identity panels use a subtle 120 ms opacity transition,
+respecting reduced motion. Feed tabs preserve the previous view while the next
+tab loads, clearly mark it and pause its actions. Filter chips show non-default
+filters, and Reset retains the active view, investigation scope and page size.
+Copy feedback keeps the ordinary button label/width stable, clears after 1.5
+seconds, and announces success only after a successful clipboard write. Password
+generation retains its previous copy/privacy behavior.
+
+Workspace and Cases now keep filters in their URL; Detection Workspace also
+preserves pagination. Detail Back links and browser back/forward restore list
+positions after rows render, preferring an original row anchor. Recovery is
+bounded to 50 in-memory entries for 30 minutes, never localStorage or IndexedDB.
+Direct navigation and changed filters do not trigger old restoration. Manual
+scrolling cancels pending restoration; missing anchors fall back to the stored
+scroll offset. Sign-out/account changes clear private recovery entries. Recovery
+never reruns intelligence providers. Workspace/Cases retain prior rows during
+read failures and offer an explicit saved-data retry.
+
 ## Verification
 
 Unit tests cover safe transport errors/cooldowns, preference validation and reset

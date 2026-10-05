@@ -15,9 +15,11 @@ export function FeedHeader({ headerRef }: { headerRef: RefObject<HTMLElement | n
       isCompact = next; setCompact(next);
     };
     const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
-    const observer = new ResizeObserver(() => {
-      if (!isCompact && headerRef.current && slot.current) slot.current.style.height = `${headerRef.current.getBoundingClientRect().height}px`;
-    });
+    const reserveExpandedSpace = () => {
+      if (headerRef.current?.dataset.compact === "false" && slot.current) slot.current.style.height = `${headerRef.current.getBoundingClientRect().height}px`;
+    };
+    reserveExpandedSpace();
+    const observer = new ResizeObserver(reserveExpandedSpace);
     if (headerRef.current) observer.observe(headerRef.current);
     window.addEventListener("scroll", schedule, { passive: true });
     schedule();

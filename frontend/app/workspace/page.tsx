@@ -11,6 +11,7 @@ import {
 } from "@/lib/api";
 import { entityLabel, severityClasses, severityLabel } from "@/lib/investigation";
 import { FilterSummary } from "@/components/ui/FilterSummary";
+import { useListFilters } from "@/hooks/useListFilters";
 
 type State =
   | { kind: "loading" }
@@ -34,43 +35,51 @@ const SEVERITY_OPTIONS = [
   { value: "0", label: "Informational" },
 ];
 
+const FILTERS = { q: [], status: STATUS_OPTIONS.map((item) => item.value), severity: SEVERITY_OPTIONS.map((item) => item.value) };
+
 export default function WorkspacePage() {
   const [state, setState] = useState<State>({ kind: "loading" });
-  const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<WorkspaceStatus | "">("");
-  const [severity, setSeverity] = useState("");
+  const [updating, setUpdating] = useState(false);
+  const [readError, setReadError] = useState("");
+  const { filters: { q: query, status, severity }, update, hydrated } = useListFilters(FILTERS);
+  const setQuery = (value: string) => update("q", value);
+  const setStatus = (value: string) => update("status", value);
+  const setSeverity = (value: string) => update("severity", value);
   const abortRef = useRef<AbortController | null>(null);
 
   const load = useCallback(async () => {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
-    setState({ kind: "loading" });
+    setUpdating(true); setReadError("");
+    setState((previous) => previous.kind === "ready" ? previous : { kind: "loading" });
     try {
       const res = await listInvestigations(
         {
           q: query.trim() || undefined,
-          status: status || undefined,
+          status: (status as WorkspaceStatus) || undefined,
           severity: severity === "" ? undefined : Number(severity),
         },
         controller.signal,
       );
-      setState({ kind: "ready", items: res.investigations });
+      if (!controller.signal.aborted) setState({ kind: "ready", items: res.investigations });
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
-      setState({
-        kind: "error",
-        message: err instanceof Error ? err.message : "Could not reach the service.",
-      });
+      if (controller.signal.aborted) return;
+      const message = err instanceof Error ? err.message : "Could not reach the service.";
+      setReadError(message);
+      setState((previous) => previous.kind === "ready" ? previous : { kind: "error", message });
+    } finally {
+      if (!controller.signal.aborted) setUpdating(false);
     }
   }, [query, status, severity]);
 
   const hasFilters = Boolean(query || status || severity);
 
   useEffect(() => {
-    load();
+    if (hydrated) void load();
     return () => abortRef.current?.abort();
-  }, [load]);
+  }, [load, hydrated]);
 
   async function handleDelete(id: string) {
     if (!confirm("Delete this saved investigation? This cannot be undone.")) return;
@@ -87,7 +96,7 @@ export default function WorkspacePage() {
   }
 
   return (
-    <main className="min-h-screen px-4 py-10 sm:py-14">
+    <main data-list-ready={hydrated && state.kind === "ready" && !updating} className="min-h-screen px-4 py-10 sm:py-14">
       <div className="w-full max-w-4xl mx-auto space-y-6">
         <header>
           <Link href="/" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
@@ -144,6 +153,8 @@ export default function WorkspacePage() {
         ]} reset={() => { setQuery(""); setStatus(""); setSeverity(""); }} />
 
         {state.kind === "ready" && state.items.length > 0 && <WorkspaceSummary items={state.items} />}
+        {updating && state.kind === "ready" && <p role="status" className="text-xs text-zinc-500">Updating saved records… Previous rows remain visible.</p>}
+        {readError && state.kind === "ready" && <p role="alert" className="text-sm text-amber-200">{readError} Previous rows retained; filters may reflect the previous view. <button className="underline" onClick={() => void load()}>Retry saved-data read</button></p>}
 
         {state.kind === "loading" && <LoadingState />}
 
@@ -153,6 +164,7 @@ export default function WorkspacePage() {
             className="bg-red-500/10 border border-red-500/30 text-red-300 text-sm rounded-xl px-4 py-3"
           >
             {state.message}
+            <button className="ml-3 underline" onClick={() => void load()}>Retry saved-data read</button>
           </div>
         )}
 

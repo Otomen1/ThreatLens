@@ -44,7 +44,7 @@ export function IocFeed() {
   async function refresh() { setBusy(true); try { const outcome = await refreshFeed(); await load(true); const message = outcome.status === "cooldown" ? `Refresh cooling down${outcome.next_refresh_at ? ` until ${new Date(outcome.next_refresh_at).toLocaleTimeString()}` : ""}.` : "Feed refresh finished. Check source coverage below."; setStatus(message); notify(message); } catch { notify("Refresh unavailable; existing records retained.", "error"); } finally { setBusy(false); } }
   const reportData = data && "sources" in data ? data : null;
   const indicatorData = data && !("sources" in data) ? data : null;
-  return <main className="mx-auto min-h-screen max-w-6xl space-y-5 px-4 py-8">
+  return <main data-list-ready={Boolean(data)} className="mx-auto min-h-screen max-w-6xl space-y-5 px-4 py-8">
     <h2 className="text-xl font-semibold">IOC Reports</h2>
     <ActionToolbar context={<p className="text-sm text-zinc-400">Vendor-published indicators · Source-reported, not independently verified · Current activity unknown. “New” means newly collected or updated, not newly discovered malware.</p>}><button className={control} disabled={busy} onClick={() => void refresh()}>{busy ? "Refreshing…" : "Refresh IOC reports"}</button></ActionToolbar>
     <div className="flex flex-wrap gap-2"><button className={control} aria-pressed={!indicators} onClick={() => update("view", "")}>Reports</button><button className={control} aria-pressed={indicators} onClick={() => update("view", "indicators")}>Indicators</button></div>

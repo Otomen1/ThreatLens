@@ -21,7 +21,13 @@ for (const width of [1280, 2269, 390]) {
     await expect.poll(async () => (await header.boundingBox())?.y).toBe(56);
     await expect(header).toHaveAttribute("data-compact", "true");
     expect((await header.boundingBox())!.height).toBeLessThan(expandedHeader!.height);
-    if (width >= 1024) await expect(page.locator(".floating-table-heading")).toBeVisible();
+    if (width >= 1024) {
+      await expect(page.locator(".floating-table-heading")).toBeVisible();
+      await expect.poll(async () => {
+        const currentHeader = (await header.boundingBox())!;
+        return Math.abs((await page.locator(".floating-table-heading").boundingBox())!.y - currentHeader.y - currentHeader.height);
+      }).toBeLessThan(1);
+    }
     expect(await page.locator(".floating-table-headings").getAttribute("aria-hidden")).toBe("true");
     const nav = await page.getByRole("navigation", { name: "Primary navigation" }).boundingBox();
     const bounds = await header.boundingBox();
@@ -65,6 +71,18 @@ for (const width of [1280, 2269, 390]) {
     const restoredTable = await page.getByRole("table").boundingBox();
     expect(restoredTable!.x).toBe(originalTable!.x);
     expect(restoredTable!.width).toBe(originalTable!.width);
+    if (width === 390) {
+      await page.evaluate(() => { const table = document.querySelector("table")!; window.scrollTo(0, table.getBoundingClientRect().top + scrollY + 100); });
+      const floating = page.locator(".floating-table-heading");
+      await expect(floating).toBeVisible();
+      const first = floating.locator("span").first();
+      const before = await first.evaluate((node) => node.getBoundingClientRect().x);
+      await page.getByRole("table").evaluate((table) => { table.parentElement!.scrollLeft = 150; });
+      await expect.poll(() => first.evaluate((node) => node.getBoundingClientRect().x)).toBeLessThan(before - 100);
+      await page.emulateMedia({ media: "print" });
+      await expect(page.locator(".floating-table-headings")).toBeHidden();
+      await page.emulateMedia({ media: "screen" });
+    }
     expect(errors).toEqual([]);
   });
 }

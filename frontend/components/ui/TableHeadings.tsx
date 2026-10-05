@@ -17,10 +17,15 @@ export function TableHeadings() {
     let tables: HTMLElement[] = [];
     let frame = 0;
     let needsScan = true;
+    const watched = new Set<Element>();
     const measure = () => {
       frame = 0;
       if (needsScan) {
         tables = Array.from(root.querySelectorAll<HTMLElement>('main table, main [role="table"]'));
+        for (const node of watched) if (!node.isConnected) { resize.unobserve(node); watched.delete(node); }
+        for (const node of document.querySelectorAll('nav[aria-label="Primary navigation"], [data-pinned-header]')) {
+          if (!watched.has(node)) { watched.add(node); resize.observe(node); }
+        }
         needsScan = false;
       }
       const top = occupiedHeaderBottom();
@@ -46,19 +51,21 @@ export function TableHeadings() {
         Object.assign(copy.style, { top: `${top}px`, left: `${left}px`, width: `${right - left}px`, height: `${head.height}px` });
         for (const cell of heading.children) {
           const bounds = cell.getBoundingClientRect();
+          if (!bounds.width) continue;
           const style = getComputedStyle(cell);
           const label = document.createElement("span");
           label.textContent = cell.textContent;
-          Object.assign(label.style, { position: "absolute", left: `${bounds.left - left}px`, width: `${bounds.width}px`, height: `${head.height}px`, padding: style.padding, fontSize: style.fontSize, fontWeight: style.fontWeight, textAlign: style.textAlign, display: "flex", alignItems: "center" });
+          Object.assign(label.style, { position: "absolute", left: `${bounds.left - left}px`, width: `${bounds.width}px`, height: `${head.height}px`, padding: style.padding, fontSize: style.fontSize, fontWeight: style.fontWeight, fontFamily: style.fontFamily, letterSpacing: style.letterSpacing, lineHeight: style.lineHeight, textAlign: style.textAlign, display: "flex", alignItems: "center", justifyContent: style.textAlign === "right" ? "flex-end" : style.textAlign === "center" ? "center" : "flex-start" });
           copy.append(label);
         }
         children.push(copy);
       }
-      layer.replaceChildren(...children);
+      // Avoid churning the visual layer when scrolling has not changed its layout.
+      if (layer.innerHTML !== children.map((node) => node.outerHTML).join("")) layer.replaceChildren(...children);
     };
     const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
     const observer = new MutationObserver(() => { needsScan = true; schedule(); });
-    observer.observe(root, { childList: true, subtree: true });
+    observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden"] });
     const resize = new ResizeObserver(schedule);
     resize.observe(root);
     window.addEventListener("scroll", schedule, { capture: true, passive: true });

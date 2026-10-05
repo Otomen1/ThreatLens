@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FilterSummary, type ActiveFilter } from "@/components/ui/FilterSummary";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { getInvestigation, listInvestigations, testDetection, updateInvestigation, type DetectionArtifact, type DetectionReviewStatus, type WorkspaceInvestigation } from "@/lib/api";
 import { LoadingRows } from "@/components/ui/Skeleton";
@@ -42,6 +42,7 @@ export default function DetectionsPage() {
   const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const lastFilters = useRef<string | null>(null);
   useEffect(() => {
     const load = () => {
       const defaults = readPreferences();
@@ -49,10 +50,12 @@ export default function DetectionsPage() {
       setOrigin(p.get("investigation") ?? ""); setLanguage(p.get("language") ?? "all"); setFormatsOverride(p.has("language"));
       setQuery(p.get("q") ?? ""); setView(p.get("view") === "card" ? "card" : p.has("view") ? "compact" : defaults.view);
       const size = Number(p.get("page_size")); setPageSize([10, 20, 50].includes(size) ? size : defaults.pageSize);
+      setPage(Math.max(1, Math.min(10000, Number(p.get("page")) || 1)));
       setSeverity(p.get("severity") ?? "all"); setIocType(p.get("ioc_type") ?? "all");
       setReviewStatus(p.get("review") ?? "all"); setValidationLevel(p.get("validation") ?? "all");
       setMappingProfile(p.get("mapping") ?? "all"); setQualityBand(p.get("quality") ?? "all");
       setFreshness(p.get("freshness") ?? "all"); setShowExcluded(p.get("excluded") === "true");
+      lastFilters.current = JSON.stringify([p.get("language") ?? "all", p.get("severity") ?? "all", p.get("ioc_type") ?? "all", p.get("review") ?? "all", p.get("validation") ?? "all", p.get("mapping") ?? "all", p.get("quality") ?? "all", p.get("freshness") ?? "all", p.get("q") ?? "", [10, 20, 50].includes(size) ? size : defaults.pageSize, p.get("excluded") === "true"]);
       setHydrated(true);
     };
     load(); window.addEventListener("popstate", load);
@@ -65,8 +68,9 @@ export default function DetectionsPage() {
     query ? p.set("q", query) : p.delete("q"); p.set("view", view); p.set("page_size", String(pageSize));
     for (const [key, value] of [["severity", severity], ["ioc_type", iocType], ["review", reviewStatus], ["validation", validationLevel], ["mapping", mappingProfile], ["quality", qualityBand], ["freshness", freshness]]) value === "all" ? p.delete(key) : p.set(key, value);
     showExcluded ? p.set("excluded", "true") : p.delete("excluded");
+    page === 1 ? p.delete("page") : p.set("page", String(page));
     window.history.replaceState(window.history.state, "", `/detections?${p}`);
-  }, [language, formatsOverride, query, view, pageSize, hydrated, severity, iocType, reviewStatus, validationLevel, mappingProfile, qualityBand, freshness, showExcluded]);
+  }, [language, formatsOverride, query, view, pageSize, page, hydrated, severity, iocType, reviewStatus, validationLevel, mappingProfile, qualityBand, freshness, showExcluded]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -122,7 +126,9 @@ export default function DetectionsPage() {
   const activeFilters: ActiveFilter[] = filterOptions.filter(([, , value]) => value !== "all").map(([key, label, value, setter]) => ({ key, label, value, remove: () => setter("all") }));
   if (query.trim()) activeFilters.push({ key: "query", label: "Search", value: query, remove: () => setQuery("") });
   if (showExcluded) activeFilters.push({ key: "excluded", label: "Excluded", value: "Included", remove: () => setShowExcluded(false) });
-  useEffect(() => setPage(1), [language, severity, iocType, reviewStatus, validationLevel, mappingProfile, qualityBand, freshness, query, pageSize]);
+  const filterKey = JSON.stringify([language, severity, iocType, reviewStatus, validationLevel, mappingProfile, qualityBand, freshness, query, pageSize, showExcluded]);
+  useEffect(() => { if (hydrated && lastFilters.current !== filterKey) { lastFilters.current = filterKey; setPage(1); } }, [filterKey, hydrated]);
+  useEffect(() => { if (state === "ready" && hydrated && page > pageCount) setPage(pageCount); }, [state, hydrated, page, pageCount]);
 
   function exportRules() {
     notify("Filtered rules exported.");
@@ -161,7 +167,7 @@ export default function DetectionsPage() {
   }
 
   return (
-    <main className="min-h-screen px-4 py-10 sm:py-14">
+    <main data-list-ready={hydrated && state === "ready"} className="min-h-screen px-4 py-10 sm:py-14">
       <div className="mx-auto w-full max-w-6xl space-y-6">
         <header>
           <Link href="/workspace" className="text-xs text-zinc-500 hover:text-zinc-300">← Investigation Workspace</Link>
@@ -188,7 +194,7 @@ export default function DetectionsPage() {
         {state === "loading" && <LoadingRows rows={4} label="Loading generated detections" />}
         {state === "error" && <Panel>Could not load saved detections. Check that the Workspace API is available.</Panel>}
         {state === "ready" && rules.length === 0 && <Panel>No generated detections match this view. Generate detections from an investigation, then save it to the Workspace.</Panel>}
-        {state === "ready" && groups.length > 0 && <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-zinc-500">{groups.length} IOC{groups.length === 1 ? "" : "s"} · {rules.length} generated rule{rules.length === 1 ? "" : "s"} · {rules.filter((rule) => rule.review_status === "approved").length} approved</p><div className="flex flex-wrap gap-2"><button type="button" onClick={exportRules} className="rounded-lg border border-sky-500/30 px-3 py-1.5 text-xs text-sky-300 hover:bg-sky-500/10">Export filtered JSON</button>{selectedGroups.size > 1 && <><button type="button" onClick={exportSelectedSigma} className="rounded-lg border border-indigo-500/30 px-3 py-1.5 text-xs text-indigo-300 hover:bg-indigo-500/10">Export selected Sigma</button><button type="button" onClick={saveSelectedSigma} className="rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs text-emerald-300 hover:bg-emerald-500/10">Save combined draft</button></>}<button type="button" onClick={() => { setExpandAll(true); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Expand all</button><button type="button" onClick={() => { setExpandAll(false); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Collapse all</button></div></div>}
+        {state === "ready" && groups.length > 0 && <div className="ui-action-toolbar"><p className="text-xs text-zinc-500">{groups.length} IOC{groups.length === 1 ? "" : "s"} · {rules.length} generated rule{rules.length === 1 ? "" : "s"} · {rules.filter((rule) => rule.review_status === "approved").length} approved</p><div className="ui-toolbar-actions"><button type="button" onClick={exportRules} className="rounded-lg border border-sky-500/30 px-3 py-1.5 text-xs text-sky-300 hover:bg-sky-500/10">Export filtered JSON</button>{selectedGroups.size > 1 && <><button type="button" onClick={exportSelectedSigma} className="rounded-lg border border-indigo-500/30 px-3 py-1.5 text-xs text-indigo-300 hover:bg-indigo-500/10">Export selected Sigma</button><button type="button" onClick={saveSelectedSigma} className="rounded-lg border border-emerald-500/30 px-3 py-1.5 text-xs text-emerald-300 hover:bg-emerald-500/10">Save combined draft</button></>}<button type="button" onClick={() => { setExpandAll(true); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Expand all</button><button type="button" onClick={() => { setExpandAll(false); setExpandSignal((value) => value + 1); }} className="rounded-lg border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-900">Collapse all</button></div></div>}
         {records.some((record) => (record.detection_package?.generation_issues?.length ?? 0) > 0) && <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200" role="status">Some detection formats failed to generate. Expand the source investigation for details.</div>}
         {notice && <div className="flex items-center justify-between rounded-xl border border-sky-500/30 bg-sky-500/10 px-4 py-3 text-sm text-sky-200" role="status"><span>{notice}</span><button type="button" onClick={() => setNotice("")} className="rounded px-2 py-1 text-xs hover:bg-sky-500/10">Dismiss</button></div>}
         <div className="grid gap-3">
@@ -225,7 +231,7 @@ function IocGroup({ group, selected, onSelect, expandAll, expandSignal, onUpdate
   const languages = [...new Set(group.rules.map((rule) => detectionLanguageLabel(rule.language)))];
   const highest = group.rules.reduce((value, rule) => Math.max(value, Number(rule.severity)), 0);
   const severity = highest;
-  return <details className="group rounded-2xl border border-zinc-800 bg-zinc-900" open={open} onToggle={(event) => setOpen(event.currentTarget.open)}>
+  return <details data-list-anchor={group.key} className="group rounded-2xl border border-zinc-800 bg-zinc-900" open={open} onToggle={(event) => setOpen(event.currentTarget.open)}>
     <summary className="flex cursor-pointer list-none flex-wrap items-center gap-2 p-4">
       <input type="checkbox" checked={selected} onChange={(event) => onSelect(event.target.checked)} onClick={(event) => event.stopPropagation()} aria-label={`Select ${group.title} for combined Sigma export`} />
       <span className="flex-1 text-sm font-medium text-white">{group.title}</span>

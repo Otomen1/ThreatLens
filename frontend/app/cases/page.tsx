@@ -1,5 +1,6 @@
 "use client";
 import { FilterSummary } from "@/components/ui/FilterSummary";
+import { useListFilters } from "@/hooks/useListFilters";
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -35,14 +36,19 @@ const PRIORITY_OPTIONS: { value: CasePriority | ""; label: string }[] = [
   { value: "low", label: "Low" },
 ];
 
+const FILTERS = { title: [], status: STATUS_OPTIONS.map((item) => item.value), priority: PRIORITY_OPTIONS.map((item) => item.value), owner: [], tag: [] };
+
 export default function CasesPage() {
   const { notify } = useToast();
   const [state, setState] = useState<State>({ kind: "loading" });
-  const [title, setTitle] = useState("");
-  const [status, setStatus] = useState<CaseStatus | "">("");
-  const [priority, setPriority] = useState<CasePriority | "">("");
-  const [owner, setOwner] = useState("");
-  const [tag, setTag] = useState("");
+  const [updating, setUpdating] = useState(false);
+  const [readError, setReadError] = useState("");
+  const { filters: { title, status, priority, owner, tag }, update, hydrated } = useListFilters(FILTERS);
+  const setTitle = (value: string) => update("title", value);
+  const setStatus = (value: string) => update("status", value);
+  const setPriority = (value: string) => update("priority", value);
+  const setOwner = (value: string) => update("owner", value);
+  const setTag = (value: string) => update("tag", value);
   const [creating, setCreating] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -50,35 +56,38 @@ export default function CasesPage() {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
-    setState({ kind: "loading" });
+    setUpdating(true); setReadError("");
+    setState((previous) => previous.kind === "ready" ? previous : { kind: "loading" });
     try {
       const res = await listCases(
         {
           title: title.trim() || undefined,
-          status: status || undefined,
-          priority: priority || undefined,
+          status: (status as CaseStatus) || undefined,
+          priority: (priority as CasePriority) || undefined,
           owner: owner.trim() || undefined,
           tag: tag.trim() || undefined,
         },
         controller.signal,
       );
-      setState({ kind: "ready", items: res.cases });
+      if (!controller.signal.aborted) setState({ kind: "ready", items: res.cases });
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
-      setState({
-        kind: "error",
-        message: err instanceof Error ? err.message : "Could not reach the service.",
-      });
+      if (controller.signal.aborted) return;
+      const message = err instanceof Error ? err.message : "Could not reach the service.";
+      setReadError(message);
+      setState((previous) => previous.kind === "ready" ? previous : { kind: "error", message });
+    } finally {
+      if (!controller.signal.aborted) setUpdating(false);
     }
   }, [title, status, priority, owner, tag]);
 
   useEffect(() => {
-    load();
+    if (hydrated) void load();
     return () => abortRef.current?.abort();
-  }, [load]);
+  }, [load, hydrated]);
 
   return (
-    <main className="min-h-screen px-4 py-10 sm:py-14">
+    <main data-list-ready={hydrated && state.kind === "ready" && !updating} className="min-h-screen px-4 py-10 sm:py-14">
       <div className="w-full max-w-4xl mx-auto space-y-6">
         <header>
           <Link href="/" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
@@ -173,6 +182,8 @@ export default function CasesPage() {
           ...(owner.trim() ? [{ key: "owner", label: "Owner", value: owner, remove: () => setOwner("") }] : []),
           ...(tag.trim() ? [{ key: "tag", label: "Tag", value: tag, remove: () => setTag("") }] : []),
         ]} reset={() => { setTitle(""); setStatus(""); setPriority(""); setOwner(""); setTag(""); }} />
+        {updating && state.kind === "ready" && <p role="status" className="text-xs text-zinc-500">Updating cases… Previous rows remain visible.</p>}
+        {readError && state.kind === "ready" && <p role="alert" className="text-sm text-amber-200">{readError} Previous rows retained; filters may reflect the previous view. <button className="underline" onClick={() => void load()}>Retry saved-data read</button></p>}
         {state.kind === "loading" && <LoadingRows label="Loading cases" />}
 
         {state.kind === "error" && (
@@ -181,6 +192,7 @@ export default function CasesPage() {
             className="bg-red-500/10 border border-red-500/30 text-red-300 text-sm rounded-xl px-4 py-3"
           >
             {state.message}
+            <button className="ml-3 underline" onClick={() => void load()}>Retry saved-data read</button>
           </div>
         )}
 
