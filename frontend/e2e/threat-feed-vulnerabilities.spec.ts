@@ -4,6 +4,32 @@ const now = new Date().toISOString();
 const report = { id: "news-one", source_id: "mycert", source_name: "MyCERT", source_kind: "rss", title: "Malaysia security advisory", excerpt: "Apply the update", summary: "Apply the update", url: "https://example.test/news", published_at: now, collected_at: now, region: "malaysia", relevance: "high", region_reasons: ["Official Malaysian source"], topic: "advisory", severity: null, entities: [] };
 const vulnerability = { id: "CVE-2026-12345", cve_id: "CVE-2026-12345", title: "Example browser vulnerability", description: "A source-reported browser vulnerability.", published_at: now, activity_at: now, updated_at: now, products: ["Example Browser"], scores: [{ source: "NVD", version: "3.1", score: 9.8, severity: "critical" }], severity: "critical", sources: ["NVD", "MyCERT"], references: ["https://nvd.nist.gov/vuln/detail/CVE-2026-12345"], reports: [{ ...report, zero_day: true }], reported_zero_day: true, known_exploited: true, kev_added_at: now };
 
+for (const width of [1280, 390]) {
+  test(`feed search controls stay below navigation while scrolling at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 844 });
+    await page.route("**/api/v1/threat-feed/vulnerabilities?*", (route) => route.fulfill({ json: {
+      items: Array.from({ length: 20 }, (_, index) => ({ ...vulnerability, id: `CVE-2026-${20000 + index}`, cve_id: `CVE-2026-${20000 + index}` })),
+      total: 20, page: 1, page_size: 20, sources: ["NVD"], published_24h: 20, zero_days_24h: 0, kev_added_24h: 0, last_synced_at: now, sync_status: "current", generated_at: now,
+    } }));
+    const errors: string[] = []; page.on("pageerror", (error) => errors.push(error.message));
+    await page.goto("/threat-feed?tab=vulnerabilities");
+    await expect(page.getByRole("link", { name: "CVE-2026-20000", exact: true })).toBeVisible();
+    await page.evaluate(() => window.scrollTo(0, 1000));
+    const header = page.getByRole("banner", { name: "Threat Feed search controls" });
+    await expect.poll(async () => (await header.boundingBox())?.y).toBe(56);
+    const nav = await page.getByRole("navigation", { name: "Primary navigation" }).boundingBox();
+    const bounds = await header.boundingBox();
+    expect(bounds!.y).toBeGreaterThanOrEqual(nav!.y + nav!.height - 1);
+    await expect(header.getByRole("heading", { name: "Threat Feed", exact: true })).toBeVisible();
+    await expect(header.getByLabel("Search all threat intelligence")).toBeVisible();
+    await expect(header.getByRole("button", { name: "Search feed" })).toBeVisible();
+    await expect(header.getByRole("link", { name: "Saved", exact: true })).toBeVisible();
+    expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(300);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(errors).toEqual([]);
+  });
+}
+
 test.beforeEach(async ({ page }) => {
   await page.route("**/api/v1/**", async (route) => {
     const url = new URL(route.request().url());
