@@ -16,6 +16,11 @@ main tbody tr:hover, main tbody tr:focus-within,
 main [role="row"]:has([role="cell"]):hover, main [role="row"]:has([role="cell"]):focus-within,
 [data-ui-row]:hover, [data-ui-row]:focus-within { background-color: rgb(39 39 42 / 0.4); }
 @media print { .floating-table-headings { display: none; } }
+.ui-action-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.ui-toolbar-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px; }
+@media (max-width: 639px) { .ui-toolbar-actions { width: 100%; justify-content: flex-start; } }
+@keyframes panel-enter { from { opacity: 0.8; } to { opacity: 1; } }
+.ui-panel-enter { animation: panel-enter 120ms ease-out; }
 
 /* Equal, permanent desktop gutters prevent docking from moving the content. */
 .threat-feed-frame { width: 100%; max-width: 1152px; margin-inline: auto; }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { CopyButton } from "@/components/ui/CopyButton";
 
 import {
   recommendCommunityDetections,
@@ -310,18 +311,6 @@ function buildMatchTabs(match: RuleMatch): DetailTab[] {
 function OverviewTab({ match }: { match: RuleMatch }) {
   const { rule } = match;
   const canShow = isRedistributable(rule.license.support) && rule.content !== null;
-  const [copied, setCopied] = useState(false);
-
-  async function copy() {
-    if (!rule.content) return;
-    try {
-      await navigator.clipboard.writeText(rule.content);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      /* clipboard unavailable — the rule text is still visible in the Rule tab */
-    }
-  }
 
   function download() {
     if (!rule.content) return;
@@ -355,7 +344,7 @@ function OverviewTab({ match }: { match: RuleMatch }) {
       <div className="flex flex-wrap gap-1.5 pt-1">
         {canShow && (
           <>
-            <IconButton label={copied ? "Copied" : "Copy"} onClick={copy} />
+            <CopyButton value={rule.content!} className="rounded-md border border-zinc-700 px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-800" />
             <IconButton label="Download" onClick={download} />
           </>
         )}

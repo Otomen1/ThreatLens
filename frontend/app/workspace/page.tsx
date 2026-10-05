@@ -10,6 +10,7 @@ import {
   type WorkspaceStatus,
 } from "@/lib/api";
 import { entityLabel, severityClasses, severityLabel } from "@/lib/investigation";
+import { FilterSummary } from "@/components/ui/FilterSummary";
 
 type State =
   | { kind: "loading" }
@@ -135,8 +136,12 @@ export default function WorkspacePage() {
               </option>
             ))}
           </select>
-          {hasFilters && <button type="button" onClick={() => { setQuery(""); setStatus(""); setSeverity(""); }} className="rounded-xl border border-zinc-800 px-3 py-2 text-sm text-zinc-400 hover:bg-zinc-900">Clear filters</button>}
         </div>
+        <FilterSummary filters={[
+          ...(query.trim() ? [{ key: "query", label: "Search", value: query, remove: () => setQuery("") }] : []),
+          ...(status ? [{ key: "status", label: "Status", value: status, remove: () => setStatus("") }] : []),
+          ...(severity ? [{ key: "severity", label: "Severity", value: severityLabel(Number(severity)), remove: () => setSeverity("") }] : []),
+        ]} reset={() => { setQuery(""); setStatus(""); setSeverity(""); }} />
 
         {state.kind === "ready" && state.items.length > 0 && <WorkspaceSummary items={state.items} />}
 

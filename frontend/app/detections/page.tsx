@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { FilterSummary, type ActiveFilter } from "@/components/ui/FilterSummary";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { getInvestigation, listInvestigations, testDetection, updateInvestigation, type DetectionArtifact, type DetectionReviewStatus, type WorkspaceInvestigation } from "@/lib/api";
@@ -64,7 +65,7 @@ export default function DetectionsPage() {
     query ? p.set("q", query) : p.delete("q"); p.set("view", view); p.set("page_size", String(pageSize));
     for (const [key, value] of [["severity", severity], ["ioc_type", iocType], ["review", reviewStatus], ["validation", validationLevel], ["mapping", mappingProfile], ["quality", qualityBand], ["freshness", freshness]]) value === "all" ? p.delete(key) : p.set(key, value);
     showExcluded ? p.set("excluded", "true") : p.delete("excluded");
-    window.history.replaceState(null, "", `/detections?${p}`);
+    window.history.replaceState(window.history.state, "", `/detections?${p}`);
   }, [language, formatsOverride, query, view, pageSize, hydrated, severity, iocType, reviewStatus, validationLevel, mappingProfile, qualityBand, freshness, showExcluded]);
 
   useEffect(() => {
@@ -111,6 +112,16 @@ export default function DetectionsPage() {
   const mappings = [...new Set(records.flatMap((record) => (record.detection_package?.artifacts ?? []).map((artifact) => artifact.metadata?.mapping_profile ?? "generic")))];
   const pageCount = Math.max(1, Math.ceil(groups.length / pageSize));
   const visibleGroups = groups.slice((page - 1) * pageSize, page * pageSize);
+  const filterOptions: [string, string, string, (value: string) => void][] = [
+    ["language", "Language", language, (value) => { setLanguage(value); setFormatsOverride(true); }],
+    ["severity", "Severity", severity, setSeverity], ["ioc_type", "IOC type", iocType, setIocType],
+    ["review", "Review", reviewStatus, setReviewStatus], ["validation", "Validation", validationLevel, setValidationLevel],
+    ["mapping", "Mapping", mappingProfile, setMappingProfile], ["quality", "Quality", qualityBand, setQualityBand],
+    ["freshness", "Freshness", freshness, setFreshness],
+  ];
+  const activeFilters: ActiveFilter[] = filterOptions.filter(([, , value]) => value !== "all").map(([key, label, value, setter]) => ({ key, label, value, remove: () => setter("all") }));
+  if (query.trim()) activeFilters.push({ key: "query", label: "Search", value: query, remove: () => setQuery("") });
+  if (showExcluded) activeFilters.push({ key: "excluded", label: "Excluded", value: "Included", remove: () => setShowExcluded(false) });
   useEffect(() => setPage(1), [language, severity, iocType, reviewStatus, validationLevel, mappingProfile, qualityBand, freshness, query, pageSize]);
 
   function exportRules() {
@@ -173,6 +184,7 @@ export default function DetectionsPage() {
           <select aria-label="Rule view" value={view} onChange={(e) => { setView(e.target.value); writePreferences({ view: e.target.value as "compact" | "card" }); }} className="rounded-xl border border-zinc-800 bg-zinc-900 p-2"><option value="compact">Compact</option><option value="card">Cards</option></select>
           <label className="flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-400"><input type="checkbox" checked={showExcluded} onChange={(e) => setShowExcluded(e.target.checked)} /> Show excluded</label>
         </div>
+        <FilterSummary filters={activeFilters} reset={() => { for (const [, , , setter] of filterOptions) setter("all"); setQuery(""); setShowExcluded(false); setPage(1); }} />
         {state === "loading" && <LoadingRows rows={4} label="Loading generated detections" />}
         {state === "error" && <Panel>Could not load saved detections. Check that the Workspace API is available.</Panel>}
         {state === "ready" && rules.length === 0 && <Panel>No generated detections match this view. Generate detections from an investigation, then save it to the Workspace.</Panel>}

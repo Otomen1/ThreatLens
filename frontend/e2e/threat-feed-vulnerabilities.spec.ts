@@ -145,6 +145,25 @@ test("regional News view all and vulnerability stale fallback", async ({ page })
   await expect(page.getByRole("status").filter({ hasText: /last available/ })).toBeVisible();
 });
 
+test("tab loading retains the previous view and filter reset preserves the selected tab", async ({ page }) => {
+  await page.goto("/threat-feed");
+  await expect(page.getByRole("heading", { name: "Malaysia", exact: true })).toBeVisible();
+  let finish!: () => void;
+  const pending = new Promise<void>((resolve) => { finish = resolve; });
+  await page.route("**/api/v1/threat-feed/vulnerabilities?*", async (route) => { await pending; await route.fulfill({ json: { items: [vulnerability], total: 1, page: 1, page_size: 20, sources: ["NVD"], published_24h: 1, zero_days_24h: 1, kev_added_24h: 1, sync_status: "current", last_synced_at: now, generated_at: now } }); });
+  await page.getByRole("navigation", { name: "Threat Feed views" }).getByRole("link", { name: "Vulnerabilities" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Previous view" })).toBeVisible();
+  await expect(page.locator("[inert]").getByRole("heading", { name: "Malaysia", exact: true })).toBeVisible();
+  finish();
+  await expect(page.getByRole("link", { name: "CVE-2026-12345", exact: true })).toBeVisible();
+  await page.getByRole("combobox", { name: "Vulnerability severity" }).selectOption("critical");
+  await expect(page.getByText("1 filter active", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Reset filters", exact: true }).click();
+  await expect(page).toHaveURL(/tab=vulnerabilities/);
+  await expect.poll(() => new URL(page.url()).searchParams.has("severity")).toBe(false);
+  await expect(page.getByText("0 filters active", { exact: true })).toBeVisible();
+});
+
 test("unassigned CVE and missing scores remain readable on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.route("**/api/v1/threat-feed/vulnerabilities?*", (route) => route.fulfill({ json: {

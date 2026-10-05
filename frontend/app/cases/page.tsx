@@ -1,4 +1,5 @@
 "use client";
+import { FilterSummary } from "@/components/ui/FilterSummary";
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -165,6 +166,13 @@ export default function CasesPage() {
           />
         </div>
 
+        <FilterSummary filters={[
+          ...(title.trim() ? [{ key: "title", label: "Search", value: title, remove: () => setTitle("") }] : []),
+          ...(status ? [{ key: "status", label: "Status", value: status, remove: () => setStatus("") }] : []),
+          ...(priority ? [{ key: "priority", label: "Priority", value: priority, remove: () => setPriority("") }] : []),
+          ...(owner.trim() ? [{ key: "owner", label: "Owner", value: owner, remove: () => setOwner("") }] : []),
+          ...(tag.trim() ? [{ key: "tag", label: "Tag", value: tag, remove: () => setTag("") }] : []),
+        ]} reset={() => { setTitle(""); setStatus(""); setPriority(""); setOwner(""); setTag(""); }} />
         {state.kind === "loading" && <LoadingRows label="Loading cases" />}
 
         {state.kind === "error" && (

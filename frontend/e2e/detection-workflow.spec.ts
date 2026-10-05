@@ -52,6 +52,19 @@ test("opens a saved IOC, reviews its generated rule, and exposes export", async 
   await iocTitles.first().click();
   await iocTitles.nth(1).click();
   await expect(page.getByRole("button", { name: /download/i })).toBeVisible();
+  await page.evaluate(() => { Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async () => {} } }); });
+  const copy = page.getByRole("button", { name: "Copy rule", exact: true });
+  const before = await copy.boundingBox();
+  await copy.click();
+  await expect(copy).toHaveAttribute("data-copied", "true");
+  expect((await copy.boundingBox())!.width).toBe(before!.width);
+  await copy.click();
+  await expect(copy).toHaveAttribute("data-copied", "true");
+  await expect(copy).toHaveAttribute("data-copied", "false", { timeout: 3000 });
+  await page.evaluate(() => { Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async () => { throw new Error("blocked"); } } }); });
+  await copy.click();
+  await expect(copy).toHaveAttribute("data-copied", "false");
+  await expect(page.getByRole("alert").filter({ hasText: "Clipboard access is unavailable" })).toBeVisible();
 });
 
 test("shows partial generation warnings", async ({ page }) => {

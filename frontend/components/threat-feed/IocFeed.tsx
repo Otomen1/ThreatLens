@@ -3,16 +3,18 @@
 import Link from "next/link";
 import { TargetingBadge } from "./FeedFilters";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useFeedParams, useFeedReady } from "./FeedPanelContext";
 import { getIocList, vendors, iocTypes, type IocReportList, type IocIndicatorList } from "@/lib/api/iocReports";
 import { defang, readIocCache, writeIocCache } from "@/lib/iocReports";
 import { refreshFeed } from "@/lib/api/threatFeed";
 import { LoadingRows } from "@/components/ui/Skeleton";
 import { useToast } from "@/components/ui/ToastProvider";
+import { ActionToolbar } from "@/components/ui/ActionToolbar";
 
 const control = "rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-sky-400 disabled:opacity-40";
 export function IocFeed() {
-  const params = useSearchParams(); const router = useRouter(); const { notify } = useToast();
+  const params = useFeedParams(); const router = useRouter(); const { notify } = useToast();
   const indicators = params.get("view") === "indicators";
   const filter = new URLSearchParams();
   for (const name of ["query", "vendor", "kind", "hours", "page", "sort"]) { const value = params.get(name); if (value) filter.set(name, value); }
@@ -20,6 +22,7 @@ export function IocFeed() {
   const [data, setData] = useState<IocReportList | IocIndicatorList | null>(null);
   const [status, setStatus] = useState(""); const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
+  useFeedReady(Boolean(data) || !loading);
   const sequence = useRef(0); const latest = useRef<typeof data>(null);
   const page = Math.max(1, Number(params.get("page")) || 1);
   const update = (name: string, value: string) => { const next = new URLSearchParams(params.toString()); next.set("tab", "iocs"); value ? next.set(name, value) : next.delete(name); if (name !== "page") next.delete("page"); router.replace(`/threat-feed?${next}`, { scroll: false }); };
@@ -43,10 +46,10 @@ export function IocFeed() {
   const indicatorData = data && !("sources" in data) ? data : null;
   return <main className="mx-auto min-h-screen max-w-6xl space-y-5 px-4 py-8">
     <h2 className="text-xl font-semibold">IOC Reports</h2>
-    <p className="text-sm text-zinc-400">Vendor-published indicators · Source-reported, not independently verified · Current activity unknown. “New” means newly collected or updated, not newly discovered malware.</p>
+    <ActionToolbar context={<p className="text-sm text-zinc-400">Vendor-published indicators · Source-reported, not independently verified · Current activity unknown. “New” means newly collected or updated, not newly discovered malware.</p>}><button className={control} disabled={busy} onClick={() => void refresh()}>{busy ? "Refreshing…" : "Refresh IOC reports"}</button></ActionToolbar>
     <div className="flex flex-wrap gap-2"><button className={control} aria-pressed={!indicators} onClick={() => update("view", "")}>Reports</button><button className={control} aria-pressed={indicators} onClick={() => update("view", "indicators")}>Indicators</button></div>
-    <div className="flex flex-wrap gap-3"><input aria-label="Search IOC reports" className={`${control} min-w-0 w-full basis-full sm:basis-auto sm:flex-1`} defaultValue={params.get("query") ?? ""} key={params.get("query") ?? ""} placeholder="Report title or exact IOC…" onKeyDown={(e) => { if (e.key === "Enter") update("query", e.currentTarget.value); }} onBlur={(e) => { if (e.currentTarget.value !== (params.get("query") ?? "")) update("query", e.currentTarget.value); }} /><select aria-label="IOC vendor" className={control} value={params.get("vendor") ?? ""} onChange={(e) => update("vendor", e.target.value)}><option value="">All vendors</option>{Object.entries(vendors).map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select><select aria-label="IOC type" className={control} value={params.get("kind") ?? ""} onChange={(e) => update("kind", e.target.value)}><option value="">All IOC types</option>{iocTypes.map((type) => <option key={type}>{type}</option>)}</select><select aria-label="IOC time range" className={control} value={params.get("hours") ?? "168"} onChange={(e) => update("hours", e.target.value)}><option value="24">24 hours</option><option value="168">7 days</option><option value="720">30 days</option></select><button className={control} disabled={busy} onClick={() => void refresh()}>{busy ? "Refreshing…" : "Refresh IOC reports"}</button><button className={control} onClick={() => void load(true)}>Retry</button></div>
-    <p role="status" aria-live="polite" className="text-xs text-zinc-500">{status || (reportData ? `Updated ${new Date(reportData.generated_at).toLocaleString()}` : "Loaded indicators")}</p>
+    <div className="flex flex-wrap gap-3"><input aria-label="Search IOC reports" className={`${control} min-w-0 w-full basis-full sm:basis-auto sm:flex-1`} defaultValue={params.get("query") ?? ""} key={params.get("query") ?? ""} placeholder="Report title or exact IOC…" onKeyDown={(e) => { if (e.key === "Enter") update("query", e.currentTarget.value); }} onBlur={(e) => { if (e.currentTarget.value !== (params.get("query") ?? "")) update("query", e.currentTarget.value); }} /><select aria-label="IOC vendor" className={control} value={params.get("vendor") ?? ""} onChange={(e) => update("vendor", e.target.value)}><option value="">All vendors</option>{Object.entries(vendors).map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select><select aria-label="IOC type" className={control} value={params.get("kind") ?? ""} onChange={(e) => update("kind", e.target.value)}><option value="">All IOC types</option>{iocTypes.map((type) => <option key={type}>{type}</option>)}</select><select aria-label="IOC time range" className={control} value={params.get("hours") ?? "168"} onChange={(e) => update("hours", e.target.value)}><option value="24">24 hours</option><option value="168">7 days</option><option value="720">30 days</option></select></div>
+    <ActionToolbar context={<p role="status" aria-live="polite" className="text-xs text-zinc-500">{status || (reportData ? `Updated ${new Date(reportData.generated_at).toLocaleString()}` : "Loaded indicators")}</p>}>{!loading && status.startsWith("Could not") || (!loading && !data) ? <button className={control} onClick={() => void load(true)}>Retry</button> : null}</ActionToolbar>
     {reportData && <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{[["Reports", reportData.total], ["Unique IOCs", reportData.unique_indicators], ["Updated within 24h", reportData.recent_indicators], ["Vendors enabled", reportData.sources.filter((s) => s.enabled).length]].map(([label, value]) => <div key={label} className="rounded-xl border border-zinc-800 p-4"><p className="text-xs text-zinc-500">{label}</p><p className="mt-2 text-lg">{value}</p></div>)}</div>}
     {!data ? loading ? <LoadingRows search rows={5} label="Loading IOC reports…" /> : <p role="alert" className="rounded-xl border border-zinc-800 p-6 text-sm text-zinc-400">Reports could not be loaded. Use Retry above; no investigation providers will be called.</p> : !data.items.length ? <div className="rounded-xl border border-zinc-800 p-6 text-sm text-zinc-400">No collected reports match these filters. Collection is bounded; source status below explains missing or pending coverage.</div> : <div role="table" aria-label="IOC reports" className="space-y-2">
       <div role="row" className="hidden grid-cols-[2fr_1fr_1fr_1fr] gap-3 px-4 text-xs text-zinc-500 md:grid">{(indicatorData ? ["Indicator", "Type", "Vendors", "Supporting reports"] : ["Report / source file", "Vendor", "Published / updated", "IOC count"]).map((label) => <span role="columnheader" key={label}>{label}</span>)}</div>

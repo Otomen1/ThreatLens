@@ -79,7 +79,7 @@ export function DashboardTabs({ idPrefix, tabs, activeKey, onChange }: Props) {
           aria-labelledby={`${idPrefix}-tab-${tab.key}`}
           hidden={tab.key !== activeKey}
           tabIndex={0}
-          className="pt-4"
+          className="pt-4 ui-panel-enter"
         >
           {tab.key === activeKey ? tab.content : null}
         </div>

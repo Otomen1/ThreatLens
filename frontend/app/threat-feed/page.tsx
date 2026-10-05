@@ -2,10 +2,8 @@
 
 import { Suspense, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import NewsFeed from "@/components/threat-feed/NewsFeed";
-import { VulnerabilityFeed } from "@/components/threat-feed/VulnerabilityFeed";
-import { PocFeed } from "@/components/threat-feed/PocFeed";
-import { IocFeed } from "@/components/threat-feed/IocFeed";
+import { FeedPanels } from "@/components/threat-feed/FeedPanels";
+import type { FeedTab } from "@/components/threat-feed/FeedPanelContext";
 import { FeedStatus } from "@/components/threat-feed/FeedStatus";
 import { UnifiedFeedSearch } from "@/components/threat-feed/FeedWorkflow";
 import { FeedHeader } from "@/components/threat-feed/FeedHeader";
@@ -26,7 +24,7 @@ function FeedTabs() {
       <FeedStatus manualPoc={selected === "poc"} />
       {!params.has("view") && <FeedFilters poc={selected === "poc"} />}
     </div>
-    {params.get("view") === "saved" ? <SavedFeed /> : params.get("view") === "search" ? <UnifiedFeedSearch /> : selected === "news" ? <NewsFeed /> : selected === "poc" ? <PocFeed /> : selected === "iocs" ? <IocFeed /> : <VulnerabilityFeed />}
+    {params.get("view") === "saved" ? <SavedFeed /> : params.get("view") === "search" ? <UnifiedFeedSearch /> : <FeedPanels selected={selected as FeedTab} />}
     </div>
   </>;
 }

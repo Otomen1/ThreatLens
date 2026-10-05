@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { TargetingBadge } from "./FeedFilters";
-import { useSearchParams } from "next/navigation";
+import { useFeedParams } from "./FeedPanelContext";
 import { useEffect } from "react";
 import type { FeedItem, FeedRegion } from "@/lib/api/threatFeed";
 import { markRegionSeen } from "@/lib/threatFeedState";
@@ -38,7 +38,7 @@ function SeverityBadge({ severity }: { severity: string | null }) {
 
 export function ThreatFeedSection({ region, items, total }: { region: FeedRegion; items: FeedItem[]; total: number }) {
   const details = regionDetails[region];
-  const params = useSearchParams();
+  const params = useFeedParams();
   const viewAll = new URLSearchParams(params.toString());
   viewAll.set("tab", "news");
   viewAll.set("region", region);

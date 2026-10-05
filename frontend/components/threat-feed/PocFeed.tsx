@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useFeedParams, useFeedReady } from "./FeedPanelContext";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/browser";
 import { ApiError } from "@/lib/api/client";
@@ -14,7 +15,8 @@ const control = "rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm
 type SourceState = { checking: boolean; result?: PocSourceResult; error?: string };
 
 export function PocFeed() {
-  const params = useSearchParams();
+  const params = useFeedParams();
+  useFeedReady(true);
   const router = useRouter();
   const [input, setInput] = useState(params.get("cve") ?? "");
   const [signedIn, setSignedIn] = useState<boolean | null>(null);

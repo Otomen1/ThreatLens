@@ -19,6 +19,7 @@ import {
 import { checkPasswordExposure } from "@/lib/passwordExposure";
 import { generatePassword } from "@/lib/passwordGenerator";
 import { CopyButton } from "@/components/ui/CopyButton";
+import { PanelTransition } from "@/components/ui/PanelTransition";
 
 type Tab = "email" | "password";
 type Notice = { tone: "error" | "success" | "info"; message: string } | null;
@@ -188,6 +189,7 @@ export default function IdentityPage() {
 
         {notice && <div role="status" className={`rounded-xl border px-4 py-3 text-sm ${notice.tone === "error" ? "border-red-500/30 bg-red-500/10 text-red-300" : notice.tone === "success" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-sky-500/30 bg-sky-500/10 text-sky-300"}`}>{notice.message}</div>}
 
+        <PanelTransition transitionKey={tab}>
         {tab === "email" ? (
           <section className="space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900 p-5 sm:p-6">
             <form onSubmit={(event) => { event.preventDefault(); void runEmailCheck(false); }} className="flex flex-col gap-3 sm:flex-row">
@@ -269,10 +271,11 @@ export default function IdentityPage() {
               </div>
             </fieldset>
             <button type="button" onClick={createPassword} className="w-full rounded-xl bg-white px-5 py-3 text-sm font-semibold text-black sm:w-auto">Generate password</button>
-            {generatedPassword && <div className="flex flex-col gap-3 sm:flex-row"><label className="sr-only" htmlFor="generated-password">Generated password</label><input id="generated-password" readOnly value={generatedPassword} className="min-w-0 flex-1 rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 font-mono text-sm text-white" /><CopyButton value={generatedPassword} label="Copy password" className="rounded-xl border border-zinc-700 px-5 py-3 text-sm text-zinc-200 hover:bg-zinc-800" /></div>}
+            {generatedPassword && <div className="flex flex-col gap-3 sm:flex-row"><label className="sr-only" htmlFor="generated-password">Generated password</label><input id="generated-password" readOnly value={generatedPassword} className="min-w-0 flex-1 rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 font-mono text-sm text-white" /><CopyButton value={generatedPassword} label="Copy password" feedback={false} className="rounded-xl border border-zinc-700 px-5 py-3 text-sm text-zinc-200 hover:bg-zinc-800" /></div>}
           </section>
           </div>
         )}
+        </PanelTransition>
 
         <ProviderDiagnostics status={status} />
         <p className="text-xs leading-relaxed text-zinc-600">Email history stays in this browser for up to 90 days and is not included in ThreatLens backups. Password checks are never added to history.</p>

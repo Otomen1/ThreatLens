@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CopyButton } from "@/components/ui/CopyButton";
 
 import {
   generateDetections,
@@ -377,21 +378,10 @@ function OverviewTab({
   linked: Finding[];
   packageMeta: DetectionMetadata;
 }) {
-  const [copied, setCopied] = useState(false);
   const confidence = linked.reduce<Finding["confidence"] | null>(
     (best, f) => (!best || f.confidence.score > best.score ? f.confidence : best),
     null,
   );
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(artifact.content);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      /* clipboard unavailable — the rule text is still visible in the Rule tab */
-    }
-  }
 
   function download() {
     const blob = new Blob([artifact.content], { type: "text/plain;charset=utf-8" });
@@ -420,7 +410,7 @@ function OverviewTab({
         <Field label="Engine Version" value={packageMeta.engine_version} />
       </div>
       <div className="flex gap-1.5 pt-1">
-        <IconButton label={copied ? "Copied" : "Copy"} onClick={copy} />
+        <CopyButton value={artifact.content} className="rounded-md border border-zinc-700 px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-800" />
         <IconButton label="Download" onClick={download} />
       </div>
     </div>
