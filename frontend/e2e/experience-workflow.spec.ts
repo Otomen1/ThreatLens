@@ -25,6 +25,29 @@ test.beforeEach(async ({ page }) => {
 });
 async function search(page: Page, value = "example.test") { await page.getByLabel("Search one or more IOCs").fill(value); await page.getByRole("button", { name: "Search", exact: true }).click(); }
 
+test("search animation stops on completion and cancellation, preserving previous results", async ({ page }) => {
+  let finish!: () => void;
+  let pending = new Promise<void>((resolve) => { finish = resolve; });
+  await page.route("**/api/v1/investigate", async (route) => { await pending; await route.fulfill({ json: snapshot() }).catch(() => undefined); });
+  await page.goto("/");
+  await search(page);
+  const progress = page.getByRole("region", { name: "Investigation progress" });
+  await expect(progress.locator(".search-loading-lens")).toBeVisible();
+  await expect(progress.getByRole("status")).toHaveText("Investigating…");
+  if (process.env.THREATLENS_VISUAL_CHECK === "1") await page.screenshot({ path: "test-results/search-loading-desktop.png" });
+  finish();
+  await expect(page.getByRole("region", { name: "Result overview" })).toBeVisible();
+  await expect(progress).toHaveCount(0);
+  pending = new Promise<void>((resolve) => { finish = resolve; });
+  await search(page, "other.test");
+  await expect(progress.locator(".search-loading-lens")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Result overview" })).toContainText("example.test");
+  await progress.getByRole("button", { name: "Cancel investigation" }).click();
+  await expect(progress).toHaveCount(0);
+  finish();
+  await expect(page.getByRole("region", { name: "Result overview" })).toContainText("example.test");
+});
+
 test("save, generate, failed rule save, retry, review and export without regenerating", async ({ page }) => {
   await signIn(page);
   let generations = 0; let creates = 0; let updates = 0;

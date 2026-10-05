@@ -37,5 +37,5 @@ function FeedTabs() {
 }
 
 export default function ThreatFeedPage() {
-  return <Suspense fallback={<LoadingRows rows={5} label="Loading threat feed" />}><FeedTabs /></Suspense>;
+  return <Suspense fallback={<LoadingRows search rows={5} label="Loading threat feed…" />}><FeedTabs /></Suspense>;
 }

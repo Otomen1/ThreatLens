@@ -65,6 +65,29 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+test("search artwork loads once, respects reduced motion and stops after feed failure", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  let finish!: () => void;
+  const pending = new Promise<void>((resolve) => { finish = resolve; });
+  await page.route("**/api/v1/threat-feed/home?*", async (route) => { await pending; await route.fulfill({ status: 503, json: {} }); });
+  await page.goto("/threat-feed");
+  const lens = page.locator(".search-loading-lens");
+  await expect(lens).toBeVisible();
+  await expect(lens).toHaveCSS("animation-name", "search-loading-scan");
+  await expect(page.getByRole("status").filter({ hasText: "Loading threat feed…" })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  if (process.env.THREATLENS_VISUAL_CHECK === "1") await page.screenshot({ path: "test-results/search-loading-mobile.png" });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(lens).toHaveCSS("animation-name", "none");
+  finish();
+  await expect(page.getByRole("button", { name: "Retry loading feed" })).toBeVisible();
+  await expect(lens).toHaveCount(0);
+  await page.unroute("**/api/v1/threat-feed/home?*");
+  await page.getByRole("button", { name: "Retry loading feed" }).click();
+  await expect(page.getByRole("heading", { name: "Malaysia", exact: true })).toBeVisible();
+  await expect(lens).toHaveCount(0);
+});
+
 test("public News and Vulnerabilities tabs, filters, details and investigation handoff", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
