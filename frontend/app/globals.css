@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes feed-side-enter {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.feed-side-navigation { animation: feed-side-enter 180ms ease-out; }
+
 :root {
   --font-inter: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;

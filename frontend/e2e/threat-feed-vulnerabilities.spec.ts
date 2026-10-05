@@ -26,6 +26,29 @@ for (const width of [1280, 390]) {
     await expect(header.getByRole("link", { name: "Saved", exact: true })).toBeVisible();
     expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(300);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    const views = page.getByRole("navigation", { name: "Threat Feed views" });
+    await expect(views).toHaveAttribute("data-docked", String(width >= 1024));
+    await expect(views.getByRole("link", { name: "Vulnerabilities" })).toHaveAttribute("aria-current", "page");
+    if (width >= 1024) {
+      await expect.poll(async () => (await views.boundingBox())?.x).toBe(16);
+      const rail = await views.boundingBox();
+      expect(rail!.y).toBeGreaterThanOrEqual(bounds!.y + bounds!.height);
+      await expect.poll(async () => (await page.getByRole("table").boundingBox())?.x ?? 0).toBeGreaterThanOrEqual(rail!.x + rail!.width);
+      await views.getByRole("link", { name: "News", exact: true }).focus();
+      await page.evaluate(() => window.scrollBy(0, 30));
+      await expect(views.getByRole("link", { name: "News", exact: true })).toBeFocused();
+      if (process.env.THREATLENS_VISUAL_CHECK === "1") await page.screenshot({ path: "test-results/feed-side-navigation.png" });
+      await page.setViewportSize({ width: 390, height: 844 });
+      await expect(views).toHaveAttribute("data-docked", "false");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      await page.setViewportSize({ width, height: 844 });
+      await expect(views).toHaveAttribute("data-docked", "true");
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await expect(views).toHaveCSS("animation-duration", "1e-05s");
+    }
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect(views).toHaveAttribute("data-docked", "false");
+    await expect(views.getByRole("link", { name: "News", exact: true })).toBeVisible();
     expect(errors).toEqual([]);
   });
 }
