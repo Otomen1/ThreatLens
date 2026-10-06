@@ -16,6 +16,7 @@ import {
 import { readFeedHomeCache, writeFeedHomeCache } from "@/lib/threatFeedCache";
 import { useToast } from "@/components/ui/ToastProvider";
 import { SearchLoading } from "@/components/ui/SearchLoading";
+import { FeedTableControls } from "./FeedExperience";
 
 const regions: FeedRegion[] = ["global", "malaysia", "southeast_asia"];
 const topics = ["advisory", "vulnerability", "active_exploitation", "phishing", "ransomware", "malware", "breach", "supply_chain", "threat_actor", "scam", "research"];
@@ -123,6 +124,7 @@ export default function NewsFeed() {
       <section key={data.generated_at} className="animate-data-pulse grid gap-3 rounded-xl sm:grid-cols-3"><div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p className="text-xs text-zinc-500">New in 24 hours</p><p className="mt-1 text-2xl font-semibold">{Object.values(data.summary.regions).reduce((sum, value) => sum + value.recent, 0)}</p></div><div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p className="text-xs text-zinc-500">Source-reported entities</p><p className="mt-1 text-2xl font-semibold">{data.summary.new_iocs}</p></div><div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p className="text-xs text-zinc-500">Last refresh</p><p className="mt-2 text-sm text-zinc-200">{data.summary.last_refreshed_at ? new Date(data.summary.last_refreshed_at).toLocaleString() : "Not refreshed yet"}</p></div></section>
       <section className="grid gap-3 rounded-2xl border border-zinc-800 bg-zinc-900 p-4 md:grid-cols-[1fr_180px_160px]"><input aria-label="Search threat feed" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search titles, summaries, sources…" className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-sky-500"/><select aria-label="Topic" value={topic} onChange={(event) => setTopic(event.target.value)} className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"><option value="">All topics</option>{topics.map((value) => <option key={value} value={value}>{value.replaceAll("_", " ")}</option>)}</select><select aria-label="Time range" value={hours} onChange={(event) => setHours(event.target.value)} className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"><option value="24">24 hours</option><option value="168">7 days</option><option value="720">30 days</option></select></section>
       <p role="status" aria-live="polite" className="min-h-5 text-sm text-zinc-400">{status}</p>
+      <FeedTableControls table="news" />
       {(region ? [region] : regions).map((value) => <ThreatFeedSection key={value} region={value} items={data.sections[value].items} total={data.sections[value].total}/>)}
       {region && <div className="flex items-center justify-between text-sm"><button disabled={page <= 1} onClick={() => update("page", String(page - 1))}>Previous</button><span>Page {page}</span><button disabled={page * 20 >= data.sections[region].total} onClick={() => update("page", String(page + 1))}>Next</button></div>}
       </>}

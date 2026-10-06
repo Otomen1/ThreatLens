@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FEED_DISPLAY_KEY } from "./feedDisplay";
 
 export const FORMATS = ["sigma", "yara", "suricata", "snort", "splunk_spl", "sentinel_kql", "elastic_eql", "elastic_esql", "chronicle_yara_l", "qradar_aql", "crowdstrike", "trend_vision_one", "stellar_cyber", "generic"];
 export type ExperiencePreferences = { scanMode: "fast" | "standard" | "full"; formats: string[]; view: "compact" | "card"; pageSize: number; collapsed: string[] };
@@ -22,7 +23,7 @@ export function writePreferences(change: Partial<ExperiencePreferences>) {
   window.dispatchEvent(new Event("threatlens:preferences"));
 }
 export function resetPreferences() {
-  try { localStorage.removeItem(PREFERENCES_KEY); } catch { /* Optional storage. */ }
+  try { localStorage.removeItem(PREFERENCES_KEY); localStorage.removeItem(FEED_DISPLAY_KEY); } catch { /* Optional storage. */ }
   window.dispatchEvent(new Event("threatlens:preferences"));
 }
 export function useExperiencePreferences() {

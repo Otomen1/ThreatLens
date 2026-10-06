@@ -21,6 +21,12 @@ main [role="row"]:has([role="cell"]):hover, main [role="row"]:has([role="cell"])
 @media (max-width: 639px) { .ui-toolbar-actions { width: 100%; justify-content: flex-start; } }
 @keyframes panel-enter { from { opacity: 0.8; } to { opacity: 1; } }
 .ui-panel-enter { animation: panel-enter 120ms ease-out; }
+.feed-date:hover .feed-date-tip, .feed-date:focus-within .feed-date-tip { display: block; }
+@keyframes feed-preview-enter { from { transform: translateX(20px); } to { transform: translateX(0); } }
+.feed-preview { animation: feed-preview-enter 150ms ease-out; }
+.feed-date-tip { white-space: normal; }
+.feed-preview .feed-date-tip { left: 0; right: auto; }
+@media (min-width: 768px) { .feed-news-row { grid-template-columns: var(--feed-grid); } }
 
 /* Equal, permanent desktop gutters prevent docking from moving the content. */
 .threat-feed-frame { width: 100%; max-width: 1152px; margin-inline: auto; }

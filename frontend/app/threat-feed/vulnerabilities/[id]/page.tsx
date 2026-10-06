@@ -8,6 +8,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getVulnerability, type Vulnerability } from "@/lib/api/threatFeed";
 import { markVulnerabilityViewed } from "@/lib/vulnerabilityFeedCache";
+import { markFeedRead } from "@/lib/feedDisplay";
 import { LoadingRows } from "@/components/ui/Skeleton";
 
 export default function VulnerabilityDetail() {
@@ -17,7 +18,7 @@ export default function VulnerabilityDetail() {
   useEffect(() => {
     let active = true;
     void getVulnerability(id).then((record) => {
-      if (active) { setItem(record); markVulnerabilityViewed(record.id); }
+      if (active) { setItem(record); markVulnerabilityViewed(record.id); markFeedRead("vulnerability", record.id); }
     }).catch(() => { if (active) setError("This vulnerability record is unavailable."); });
     return () => { active = false; };
   }, [id]);

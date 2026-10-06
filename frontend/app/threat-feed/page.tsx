@@ -11,12 +11,14 @@ import { SavedFeed } from "@/components/threat-feed/SavedFeed";
 import { FeedFilters } from "@/components/threat-feed/FeedFilters";
 import { LoadingRows } from "@/components/ui/Skeleton";
 import { FeedViewNavigation } from "@/components/threat-feed/FeedViewNavigation";
+import { FeedExperience } from "@/components/threat-feed/FeedExperience";
+import { FeedPreviewProvider } from "@/components/threat-feed/FeedPreview";
 
 function FeedTabs() {
   const params = useSearchParams();
   const headerRef = useRef<HTMLElement>(null);
   const selected = ["vulnerabilities", "poc", "iocs"].includes(params.get("tab") ?? "") ? params.get("tab") : "news";
-  return <>
+  return <FeedExperience><FeedPreviewProvider>
     <FeedHeader headerRef={headerRef} />
     <div className="threat-feed-frame">
     <div className="mx-auto max-w-6xl px-4">
@@ -26,7 +28,7 @@ function FeedTabs() {
     </div>
     {params.get("view") === "saved" ? <SavedFeed /> : params.get("view") === "search" ? <UnifiedFeedSearch /> : <FeedPanels selected={selected as FeedTab} />}
     </div>
-  </>;
+  </FeedPreviewProvider></FeedExperience>;
 }
 
 export default function ThreatFeedPage() {

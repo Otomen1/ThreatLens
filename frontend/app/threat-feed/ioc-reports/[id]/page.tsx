@@ -9,6 +9,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { getIocReport, iocTypes, vendors, type IocDetail } from "@/lib/api/iocReports";
 import { defang, downloadIocs, localReportState } from "@/lib/iocReports";
+import { markFeedRead } from "@/lib/feedDisplay";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { LoadingRows } from "@/components/ui/Skeleton";
 import { useToast } from "@/components/ui/ToastProvider";
@@ -19,7 +20,7 @@ export default function IocReportDetail() {
   const [data, setData] = useState<IocDetail | null>(null); const [error, setError] = useState("");
   const [query, setQuery] = useState(""); const [kind, setKind] = useState(""); const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Set<string>>(new Set()); const [attempt, setAttempt] = useState(0);
-  useEffect(() => { const controller = new AbortController(); setData(null); setSelected(new Set()); setError(""); void getIocReport(id, controller.signal).then((value) => { if (controller.signal.aborted) return; setData(value); localReportState("read", id); }).catch(() => { if (!controller.signal.aborted) setError("IOC report unavailable. Try again; collection never runs just by opening a report."); }); return () => controller.abort(); }, [id, attempt]);
+  useEffect(() => { const controller = new AbortController(); setData(null); setSelected(new Set()); setError(""); void getIocReport(id, controller.signal).then((value) => { if (controller.signal.aborted) return; setData(value); localReportState("read", id); markFeedRead("ioc", id); }).catch(() => { if (!controller.signal.aborted) setError("IOC report unavailable. Try again; collection never runs just by opening a report."); }); return () => controller.abort(); }, [id, attempt]);
   const filtered = useMemo(() => (data?.indicators ?? []).filter((i) => (!kind || i.type === kind) && (!query || i.value.toLowerCase().includes(query.toLowerCase()) || defang(i.value).toLowerCase().includes(query.toLowerCase()))), [data, kind, query]);
   const rows = filtered.slice((page - 1) * 20, page * 20);
   const chosen = data?.indicators.filter((i) => selected.has(i.id)) ?? [];
