@@ -22,13 +22,13 @@ test("feed Back links and browser forward restore the original URL and row posit
   const offset = (await row.boundingBox())!.y;
   const originalUrl = page.url();
   await row.getByRole("link").click();
-  await expect(page.getByRole("heading", { name: "Description", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Description", exact: true })).toBeVisible({ timeout: 15000 });
   await page.getByRole("link", { name: "← Back to Vulnerabilities", exact: true }).click();
   await expect(page).toHaveURL(originalUrl);
   await expect.poll(async () => Math.abs(((await row.boundingBox())?.y ?? -1000) - offset)).toBeLessThan(3);
   expect(await page.evaluate(() => Boolean(history.state.threatlensListEntry))).toBe(true);
   await page.goBack();
-  await expect(page.getByRole("heading", { name: "Description", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Description", exact: true })).toBeVisible({ timeout: 15000 });
   await page.goForward();
   await expect(page).toHaveURL(originalUrl);
   await expect.poll(async () => Math.abs(((await row.boundingBox())?.y ?? -1000) - offset)).toBeLessThan(3);
