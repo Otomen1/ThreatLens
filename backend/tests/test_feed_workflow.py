@@ -9,6 +9,7 @@ from threatlens.api.routes.threat_feed import get_threat_feed_service, router
 from threatlens.ioc_feed.models import IocReport
 from threatlens.ioc_feed.parsers import normalize
 from threatlens.ioc_feed.storage import get_storage
+from threatlens.threat_feed.bookmarks import BookmarkRequest, availability
 from threatlens.threat_feed.evidence import explicit_cves, targeting
 from threatlens.threat_feed.models import (
     FeedEntity,
@@ -72,6 +73,62 @@ def news():
         topic=FeedTopic.RESEARCH,
         entities=(FeedEntity(type="cve", value="CVE-2026-1234", normalized_value="CVE-2026-1234"),),
     )
+
+
+def test_bookmark_availability_bounded_stored_metadata(storage, monkeypatch):
+    item = news().model_copy(update={"title": "CVE-2026-1234 advisory"})
+    storage.save_items([item])
+    get_storage(storage).save(report(), (), {})
+    monkeypatch.setattr(storage, "get_item", lambda *args: pytest.fail("Per-item read"))
+    body = {
+        "items": [
+            {"kind": "news", "id": item.id},
+            {"kind": "vulnerability", "id": "CVE-2026-1234"},
+            {"kind": "ioc", "id": "ioc-one"},
+            {"kind": "news", "id": "expired"},
+        ]
+    }
+    result = availability(storage, BookmarkRequest.model_validate(body))
+    assert [r.available for r in result] == [True, True, True, False]
+    assert result[0].title == item.title and result[-1].title is None
+    app = FastAPI()
+    app.include_router(router)
+    app.dependency_overrides[get_threat_feed_service] = lambda: ThreatFeedService(storage)
+    client = TestClient(app)
+    response = client.post("/api/v1/threat-feed/bookmarks/availability", json=body)
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "private, no-store"
+    assert set(response.json()[0]) == {"kind", "id", "available", "title"}
+    for invalid in (
+        {"items": []},
+        {"items": body["items"] * 6},
+        {"items": [{"kind": "poc", "id": "x"}]},
+        {"items": [{"kind": "news", "id": "x' OR 1=1"}]},
+    ):
+        assert (
+            client.post("/api/v1/threat-feed/bookmarks/availability", json=invalid).status_code
+            == 422
+        )
+
+
+def test_bookmark_sqlite_single_select(storage, monkeypatch):
+    if storage.backend != "sqlite":
+        return
+    import sqlite3
+
+    storage.save_items([news()])
+    connect = sqlite3.connect
+    queries = []
+
+    def tracked(*args, **kwargs):
+        db = connect(*args, **kwargs)
+        db.set_trace_callback(queries.append)
+        return db
+
+    monkeypatch.setattr(sqlite3, "connect", tracked)
+    request = BookmarkRequest.model_validate({"items": [{"kind": "news", "id": "news-one"}] * 20})
+    assert all(r.available for r in availability(storage, request))
+    assert len([q for q in queries if q.startswith("SELECT")]) == 1
 
 
 def test_exact_search_and_related_metadata(storage):

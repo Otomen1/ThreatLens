@@ -12,6 +12,7 @@ from typing import Annotated, Any, Literal
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response
 
 from ...threat_feed import FeedStorage, ThreatFeedService
+from ...threat_feed.bookmarks import BookmarkAvailability, BookmarkRequest, availability
 from ...threat_feed.models import (
     FeedHomeResponse,
     FeedListResponse,
@@ -44,6 +45,16 @@ def get_threat_feed_service() -> ThreatFeedService:
     if _service is None:
         _service = ThreatFeedService(FeedStorage())
     return _service
+
+
+@router.post("/bookmarks/availability", response_model=tuple[BookmarkAvailability, ...])
+def bookmark_availability(
+    body: BookmarkRequest,
+    response: Response,
+    service: Annotated[ThreatFeedService, Depends(get_threat_feed_service)],
+) -> tuple[BookmarkAvailability, ...]:
+    response.headers["Cache-Control"] = "private, no-store"
+    return availability(service.storage, body)
 
 
 @router.get("/summary", response_model=FeedSummary)

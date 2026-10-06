@@ -35,6 +35,9 @@ export const getVulnerability = (id: string) => get<Vulnerability>(`/threat-feed
 export const getFeedSummary = () => get<FeedSummary>("/threat-feed/summary");
 export const getFeedItem = (id: string) => get<FeedItem>(`/threat-feed/items/${encodeURIComponent(id)}`);
 export const getFeedSources = () => get<FeedSource[]>("/threat-feed/sources");
+export type BookmarkAvailability = { kind: "news" | "vulnerability" | "ioc"; id: string; available: boolean; title: string | null };
+export const checkFeedBookmarks = (items: { kind: BookmarkAvailability["kind"]; id: string }[], signal?: AbortSignal) =>
+  post<BookmarkAvailability[]>("/threat-feed/bookmarks/availability", { items: items.map(({ kind, id }) => ({ kind, id })) }, signal);
 export const refreshFeed = async () => {
   const result = await post<FeedRefresh>("/threat-feed/refresh", {});
   window.dispatchEvent(new Event("threat-feed-refreshed"));
