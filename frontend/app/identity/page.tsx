@@ -16,6 +16,8 @@ import {
   saveIdentityHistory,
   type IdentityHistoryRecord,
 } from "@/lib/identityHistory";
+import { useSessionIdentity } from "@/hooks/useSessionIdentity";
+import { assertPrivateOwner } from "@/lib/privateSession";
 import { checkPasswordExposure } from "@/lib/passwordExposure";
 import { generatePassword } from "@/lib/passwordGenerator";
 import { CopyButton } from "@/components/ui/CopyButton";
@@ -70,6 +72,7 @@ function ProviderDiagnostics({ status }: { status: IdentityFrameworkStatus | nul
 }
 
 export default function IdentityPage() {
+  const owner = useSessionIdentity();
   const [tab, setTab] = useState<Tab>(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tab") === "password" ? "password" : "email");
   const [status, setStatus] = useState<IdentityFrameworkStatus | null>(null);
   const [email, setEmail] = useState("");
@@ -102,16 +105,18 @@ export default function IdentityPage() {
   }, []);
 
   async function runEmailCheck(refresh: boolean) {
+    if (!owner) return;
     const normalized = email.trim().toLowerCase();
     if (!normalized) return;
     setBusy(true);
     setNotice(null);
     try {
-      const history = await identityHistory(normalized);
+      const history = await identityHistory(owner, normalized);
       const result = await checkIdentityEmail(normalized, refresh);
+      assertPrivateOwner(owner);
       setPrevious(history[0] ?? null);
       setEmailResult(result);
-      await saveIdentityHistory(normalized, result);
+      await saveIdentityHistory(owner, normalized, result);
       setNotice({ tone: "success", message: result.cache_status === "hit" ? "Cached identity result loaded." : "Identity check completed." });
     } catch (error) {
       setNotice({ tone: "error", message: error instanceof Error ? error.message : "Identity check failed." });
@@ -140,11 +145,12 @@ export default function IdentityPage() {
   }
 
   async function clearHistory(scope: "email" | "all") {
-    await clearIdentityHistory(scope === "email" ? email.trim().toLowerCase() : undefined);
+    if (!owner) return;
+    await clearIdentityHistory(owner, scope === "email" ? email.trim().toLowerCase() : undefined);
     setPrevious(null);
     if (scope === "email") setEmailResult(null);
     setConfirmClear(null);
-    setNotice({ tone: "success", message: scope === "email" ? "History for this email was cleared." : "All browser-local identity history was cleared." });
+    setNotice({ tone: "success", message: scope === "email" ? "History for this email was cleared." : "All identity history for your account was cleared." });
   }
 
   function createPassword() {

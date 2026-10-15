@@ -1,4 +1,6 @@
 import { expect, test } from "@playwright/test";
+import { mockOwnerSignIn } from "./owner-auth";
+test.beforeEach(async ({ page }) => { await mockOwnerSignIn(page); });
 
 const status = {
   status: "ready",

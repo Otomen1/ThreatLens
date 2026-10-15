@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { mockOwnerAccess } from "./owner-auth";
 
 const now = new Date().toISOString();
 const id = "11111111-1111-4111-8111-111111111111";
@@ -7,6 +8,7 @@ async function signIn(page: Page) {
   const session = { access_token: "mock-access-token", refresh_token: "mock-refresh-token", expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, token_type: "bearer", user };
   await page.context().addCookies([{ name: "sb-127-auth-token", value: `base64-${Buffer.from(JSON.stringify(session)).toString("base64url")}`, url: "http://localhost:31987" }]);
   await page.route("http://127.0.0.1:54321/auth/v1/**", (route) => route.fulfill({ json: user }));
+  await mockOwnerAccess(page, user.id);
 }
 test.beforeEach(async ({ page }) => {
   await page.route("**/api/v1/**", (route) => route.fulfill({ json: { status: "ok" } }));

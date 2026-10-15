@@ -1,4 +1,5 @@
 import { ApiError, authorizedFetch, get, post } from "./client";
+import { privateGeneration } from "../privateSession";
 
 export interface BackupPreview {
   valid: boolean;
@@ -6,6 +7,8 @@ export interface BackupPreview {
   cases: number;
   conflicts: number;
   errors: string[];
+  warnings?: string[];
+  legacy_confirmation_required?: boolean;
 }
 
 export interface RestoreResult {
@@ -30,8 +33,8 @@ export function validateBackup(bundle: unknown): Promise<BackupPreview> {
   return post<BackupPreview>("/backup/validate", bundle);
 }
 
-export function restoreBackup(bundle: unknown): Promise<RestoreResult> {
-  return post<RestoreResult>("/backup/restore", bundle);
+export function restoreBackup(bundle: unknown, allowLegacy = false): Promise<RestoreResult> {
+  return post<RestoreResult>(`/backup/restore${allowLegacy ? "?allow_legacy=true" : ""}`, bundle);
 }
 
 export function testBackup(bundle: unknown): Promise<BackupTestResult> {
@@ -43,7 +46,10 @@ export function getBackupHistory(): Promise<{ entries: BackupHistoryEntry[] }> {
 }
 
 export async function downloadBackup(): Promise<Blob> {
+  const generation=privateGeneration();
   const response = await authorizedFetch("/backup", { method: "GET" });
   if (!response.ok) throw new ApiError(`Request failed (${response.status}).`, response.status);
-  return response.blob();
+  const blob=await response.blob();
+  if(generation!==privateGeneration()) throw new DOMException("Session changed","AbortError");
+  return blob;
 }

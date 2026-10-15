@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { createClient } from "@/lib/supabase/browser";
+import { useOwnerSession } from "@/components/OwnerSessionProvider";
 import { getNavigationSummary, type NavigationSummary } from "@/lib/api";
 
 type NavItem = { href: string; label: string };
@@ -82,39 +83,31 @@ export function AppNav() {
   const pathname = usePathname();
   const router = useRouter();
   const navRef = useRef<HTMLElement>(null);
-  const [signedIn, setSignedIn] = useState(false);
+  const session = useOwnerSession();
+  const signedIn = session.status === "owner" || session.status === "blocked";
+  const owner = session.userId;
+  const summaryCache = useRef<{ owner: string; savedAt: number; value: NavigationSummary } | null>(null);
   const [openMenu, setOpenMenu] = useState<MenuName | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [summary, setSummary] = useState<NavigationSummary | null>(null);
+  const [summaryRecord, setSummary] = useState<{ owner: string; value: NavigationSummary } | null>(null);
+  const summary = summaryRecord?.owner === owner ? summaryRecord.value : null;
 
   useEffect(() => {
-    const client = createClient();
-    client.auth.getUser().then(({ data }) => setSignedIn(Boolean(data.user)));
-    const { data: subscription } = client.auth.onAuthStateChange((_event, session) => setSignedIn(Boolean(session?.user)));
-    return () => subscription.subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (!signedIn) return;
-    const key = "threatlens:navigation-summary:v1";
-    try {
-      const cached = JSON.parse(localStorage.getItem(key) ?? "null") as { savedAt: number; value: NavigationSummary } | null;
-      if (cached && Date.now() - cached.savedAt < 60_000) setSummary(cached.value);
-    } catch { localStorage.removeItem(key); }
+    setSummary(null);
+    try { localStorage.removeItem("threatlens:navigation-summary:v1"); } catch { /* Retire legacy private metadata. */ }
+    if (!owner) { summaryCache.current = null; return; }
+    const cached = summaryCache.current;
+    if (cached?.owner === owner && Date.now() - cached.savedAt < 60_000) setSummary({ owner, value: cached.value });
     const controller = new AbortController();
     function refreshSummary() {
       getNavigationSummary(controller.signal).then((value) => {
-        setSummary(value);
-        localStorage.setItem(key, JSON.stringify({ savedAt: Date.now(), value }));
+        if (!controller.signal.aborted) { setSummary({ owner: owner!, value }); summaryCache.current = { owner: owner!, savedAt: Date.now(), value }; }
       }).catch(() => undefined);
     }
     refreshSummary();
     window.addEventListener("threatlens:navigation-summary-invalidated", refreshSummary);
-    return () => {
-      controller.abort();
-      window.removeEventListener("threatlens:navigation-summary-invalidated", refreshSummary);
-    };
-  }, [signedIn]);
+    return () => { controller.abort(); window.removeEventListener("threatlens:navigation-summary-invalidated", refreshSummary); };
+  }, [owner]);
 
   useEffect(() => {
     setOpenMenu(null);

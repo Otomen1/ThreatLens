@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/browser";
+import { useOwnerSession } from "@/components/OwnerSessionProvider";
 import { isPrivateList, isRecoverableList, listRecovery, RECOVERY_STATE_KEY, type ListPosition } from "@/lib/listRecovery";
 import { occupiedHeaderBottom } from "@/lib/uiLayout";
 
@@ -13,6 +13,7 @@ function rowOf(anchor: HTMLAnchorElement): HTMLElement { return anchor.closest<H
 
 export function ListNavigationRecovery() {
   const pathname = usePathname();
+  const owner = useOwnerSession().userId;
   const params = useSearchParams();
   const url = `${pathname}${params.size ? `?${params}` : ""}`;
   const router = useRouter();
@@ -107,18 +108,10 @@ export function ListNavigationRecovery() {
   }, [router]);
 
   useEffect(() => {
-    let active = true;
-    try {
-      const client = createClient();
-      const update = (id: string | null) => {
-        if (!active) return;
-        if (id === null || (account.current !== undefined && account.current !== id)) { listRecovery.clearPrivate(); if (pending.current?.private) stopRestore.current(); }
-        account.current = id;
-      };
-      void client.auth.getSession().then(({ data }) => update(data.session?.user.id ?? null)).catch(() => update(null));
-      const { data } = client.auth.onAuthStateChange((_event, session) => update(session?.user.id ?? null));
-      return () => { active = false; data.subscription.unsubscribe(); };
-    } catch { listRecovery.clearPrivate(); }
-  }, []);
+    if (owner === null || (account.current !== undefined && account.current !== owner)) {
+      listRecovery.clearPrivate(); if (pending.current?.private) stopRestore.current();
+    }
+    account.current = owner;
+  }, [owner]);
   return null;
 }

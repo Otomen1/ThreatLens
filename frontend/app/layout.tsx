@@ -5,6 +5,7 @@ import "./globals.css";
 import { SystemStatus } from "@/components/SystemStatus";
 import { AppNav } from "@/components/AppNav";
 import { AppEnhancements } from "@/components/AppEnhancements";
+import { OwnerSessionProvider, PrivateSessionBoundary } from "@/components/OwnerSessionProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -35,9 +36,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans bg-zinc-950 text-white antialiased`}>
-        <SystemStatus />
+        <OwnerSessionProvider><SystemStatus />
         <AppNav />
-        <AppEnhancements>{children}</AppEnhancements>
+        <AppEnhancements><PrivateSessionBoundary>{children}</PrivateSessionBoundary></AppEnhancements>
+        </OwnerSessionProvider>
       </body>
     </html>
   );

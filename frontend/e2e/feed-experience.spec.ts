@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { mockOwnerAccess } from "./owner-auth";
 
 const now = new Date().toISOString();
 const news = { id: "news-preview", source_id: "talos", source_name: "Cisco Talos", source_kind: "rss", title: "Example campaign report", excerpt: "Source excerpt", summary: "A deterministic stored summary.", url: "https://example.test/report", published_at: new Date(Date.now() - 125_000).toISOString(), region: "global", relevance: "general", region_reasons: ["No explicit regional targeting"], topic: "research", severity: null, entities: [] };
@@ -135,6 +136,7 @@ test("Settings failures are independent and retry only the failed read", async (
   await page.route("**/api/v1/threat-feed/sources", (route) => {
     attempts++; return !ready ? route.fulfill({ status: 503, json: {} }) : route.fulfill({ json: [{ id: "talos", name: "Cisco Talos", kind: "rss", enabled: true, last_success_at: now, last_error_code: null, last_error: null, last_added: 1 }] });
   });
+  await mockOwnerAccess(page, user.id);
   await page.goto("/settings");
   await expect(page.getByRole("button", { name: "Retry feed source status" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Download backup", exact: true })).toBeVisible();

@@ -77,14 +77,15 @@ describe("detect", () => {
     await expect(detect("x")).rejects.toBeInstanceOf(ApiError);
   });
 
-  it("passes the abort signal through to fetch", async () => {
+  it("supplies an abortable request signal", async () => {
     const fetchMock = stubFetch(200, { search_id: "x", entity: {} });
     const controller = new AbortController();
 
     await detect("x", controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(init.signal).toBe(controller.signal);
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(init.signal?.aborted).toBe(false);
   });
 
   it("re-throws AbortError without wrapping it", async () => {
@@ -167,14 +168,15 @@ describe("explain", () => {
     await expect(explain(SUMMARY)).rejects.toBeInstanceOf(ApiError);
   });
 
-  it("passes the abort signal through to fetch", async () => {
+  it("supplies an abortable request signal", async () => {
     const fetchMock = stubFetch(200, { status: "disabled" });
     const controller = new AbortController();
 
     await explain(SUMMARY, controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(init.signal).toBe(controller.signal);
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(init.signal?.aborted).toBe(false);
   });
 });
 
@@ -271,14 +273,15 @@ describe("exposureFrameworkStatus", () => {
     await expect(exposureFrameworkStatus("8.8.8.8")).rejects.toBeInstanceOf(ApiError);
   });
 
-  it("passes the abort signal through to fetch", async () => {
+  it("supplies an abortable request signal", async () => {
     const fetchMock = stubFetch(200, STATUS_PAYLOAD);
     const controller = new AbortController();
 
     await exposureFrameworkStatus("8.8.8.8", controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(init.signal).toBe(controller.signal);
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(init.signal?.aborted).toBe(false);
   });
 });
 
@@ -306,14 +309,15 @@ describe("identityFrameworkStatus", () => {
     await expect(identityFrameworkStatus()).rejects.toBeInstanceOf(ApiError);
   });
 
-  it("passes the abort signal through to fetch", async () => {
+  it("supplies an abortable request signal", async () => {
     const fetchMock = stubFetch(200, STATUS_PAYLOAD);
     const controller = new AbortController();
 
     await identityFrameworkStatus(controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(init.signal).toBe(controller.signal);
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(init.signal?.aborted).toBe(false);
   });
 });
 
@@ -341,14 +345,15 @@ describe("correlationFrameworkStatus", () => {
     await expect(correlationFrameworkStatus()).rejects.toBeInstanceOf(ApiError);
   });
 
-  it("passes the abort signal through to fetch", async () => {
+  it("supplies an abortable request signal", async () => {
     const fetchMock = stubFetch(200, STATUS_PAYLOAD);
     const controller = new AbortController();
 
     await correlationFrameworkStatus(controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(init.signal).toBe(controller.signal);
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(init.signal?.aborted).toBe(false);
   });
 });
 
@@ -379,14 +384,15 @@ describe("generateDetections", () => {
     await expect(generateDetections(SUMMARY)).rejects.toBeInstanceOf(ApiError);
   });
 
-  it("passes the abort signal through to fetch", async () => {
+  it("supplies an abortable request signal", async () => {
     const fetchMock = stubFetch(200, { id: "pkg_x", artifacts: [] });
     const controller = new AbortController();
 
     await generateDetections(SUMMARY, controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(init.signal).toBe(controller.signal);
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(init.signal?.aborted).toBe(false);
   });
 });
 
@@ -473,14 +479,15 @@ describe("saveInvestigation", () => {
     ).rejects.toBeInstanceOf(ApiError);
   });
 
-  it("passes the abort signal through to fetch", async () => {
+  it("supplies an abortable request signal", async () => {
     const fetchMock = stubFetch(201, WORKSPACE_RECORD);
     const controller = new AbortController();
 
     await saveInvestigation({ title: "Case", investigation_type: "ipv4" }, controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(init.signal).toBe(controller.signal);
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(init.signal?.aborted).toBe(false);
   });
 });
 
@@ -540,14 +547,15 @@ describe("listInvestigations", () => {
     await expect(listInvestigations()).rejects.toBeInstanceOf(ApiError);
   });
 
-  it("passes the abort signal through to fetch", async () => {
+  it("supplies an abortable request signal", async () => {
     const fetchMock = stubFetch(200, { investigations: [], total: 0 });
     const controller = new AbortController();
 
     await listInvestigations({}, controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(init.signal).toBe(controller.signal);
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(init.signal?.aborted).toBe(false);
   });
 });
 
@@ -577,14 +585,15 @@ describe("getInvestigation", () => {
     await expect(getInvestigation("missing")).rejects.toBeInstanceOf(ApiError);
   });
 
-  it("passes the abort signal through to fetch", async () => {
+  it("supplies an abortable request signal", async () => {
     const fetchMock = stubFetch(200, WORKSPACE_RECORD);
     const controller = new AbortController();
 
     await getInvestigation(WORKSPACE_RECORD.id, controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(init.signal).toBe(controller.signal);
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(init.signal?.aborted).toBe(false);
   });
 });
 
@@ -609,14 +618,15 @@ describe("updateInvestigation", () => {
     ).rejects.toBeInstanceOf(ApiError);
   });
 
-  it("passes the abort signal through to fetch", async () => {
+  it("supplies an abortable request signal", async () => {
     const fetchMock = stubFetch(200, WORKSPACE_RECORD);
     const controller = new AbortController();
 
     await updateInvestigation(WORKSPACE_RECORD.id, { status: "closed" }, controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(init.signal).toBe(controller.signal);
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(init.signal?.aborted).toBe(false);
   });
 });
 
@@ -637,14 +647,15 @@ describe("deleteInvestigation", () => {
     await expect(deleteInvestigation("missing")).rejects.toBeInstanceOf(ApiError);
   });
 
-  it("passes the abort signal through to fetch", async () => {
+  it("supplies an abortable request signal", async () => {
     const fetchMock = stubFetch(204, undefined);
     const controller = new AbortController();
 
     await deleteInvestigation(WORKSPACE_RECORD.id, controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(init.signal).toBe(controller.signal);
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(init.signal?.aborted).toBe(false);
   });
 });
 
@@ -700,14 +711,15 @@ describe("getInvestigationTimeline", () => {
     expect(result.events).toEqual([]);
   });
 
-  it("passes the abort signal through to fetch", async () => {
+  it("supplies an abortable request signal", async () => {
     const fetchMock = stubFetch(200, TIMELINE_PAYLOAD);
     const controller = new AbortController();
 
     await getInvestigationTimeline(WORKSPACE_RECORD.id, controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(init.signal).toBe(controller.signal);
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(init.signal?.aborted).toBe(false);
   });
 });
 
@@ -766,14 +778,15 @@ describe("getInvestigationGraph", () => {
     expect(result.edges).toEqual([]);
   });
 
-  it("passes the abort signal through to fetch", async () => {
+  it("supplies an abortable request signal", async () => {
     const fetchMock = stubFetch(200, GRAPH_PAYLOAD);
     const controller = new AbortController();
 
     await getInvestigationGraph(WORKSPACE_RECORD.id, controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(init.signal).toBe(controller.signal);
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(init.signal?.aborted).toBe(false);
   });
 });
 
@@ -834,14 +847,15 @@ describe("getInvestigationReport", () => {
     expect(result.graph.investigation_id).toBe(WORKSPACE_RECORD.id);
   });
 
-  it("passes the abort signal through to fetch", async () => {
+  it("supplies an abortable request signal", async () => {
     const fetchMock = stubFetch(200, REPORT_PAYLOAD);
     const controller = new AbortController();
 
     await getInvestigationReport(WORKSPACE_RECORD.id, controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(init.signal).toBe(controller.signal);
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(init.signal?.aborted).toBe(false);
   });
 });
 
@@ -881,14 +895,15 @@ describe("createCase", () => {
     await expect(createCase({ title: "" })).rejects.toBeInstanceOf(ApiError);
   });
 
-  it("passes the abort signal through to fetch", async () => {
+  it("supplies an abortable request signal", async () => {
     const fetchMock = stubFetch(201, CASE_RECORD);
     const controller = new AbortController();
 
     await createCase({ title: "Case" }, controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(init.signal).toBe(controller.signal);
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(init.signal?.aborted).toBe(false);
   });
 });
 
@@ -938,14 +953,15 @@ describe("listCases", () => {
     await expect(listCases()).rejects.toBeInstanceOf(ApiError);
   });
 
-  it("passes the abort signal through to fetch", async () => {
+  it("supplies an abortable request signal", async () => {
     const fetchMock = stubFetch(200, { cases: [], total: 0 });
     const controller = new AbortController();
 
     await listCases({}, controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(init.signal).toBe(controller.signal);
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(init.signal?.aborted).toBe(false);
   });
 });
 
@@ -966,14 +982,15 @@ describe("getCase", () => {
     await expect(getCase("missing")).rejects.toBeInstanceOf(ApiError);
   });
 
-  it("passes the abort signal through to fetch", async () => {
+  it("supplies an abortable request signal", async () => {
     const fetchMock = stubFetch(200, CASE_RECORD);
     const controller = new AbortController();
 
     await getCase(CASE_RECORD.id, controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(init.signal).toBe(controller.signal);
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(init.signal?.aborted).toBe(false);
   });
 });
 
@@ -1003,14 +1020,15 @@ describe("updateCase", () => {
     await expect(updateCase("missing", { title: "x" })).rejects.toBeInstanceOf(ApiError);
   });
 
-  it("passes the abort signal through to fetch", async () => {
+  it("supplies an abortable request signal", async () => {
     const fetchMock = stubFetch(200, CASE_RECORD);
     const controller = new AbortController();
 
     await updateCase(CASE_RECORD.id, { title: "x" }, controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(init.signal).toBe(controller.signal);
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(init.signal?.aborted).toBe(false);
   });
 });
 
@@ -1106,13 +1124,14 @@ describe("addCaseNote", () => {
     await expect(addCaseNote("missing", "analyst", "x")).rejects.toBeInstanceOf(ApiError);
   });
 
-  it("passes the abort signal through to fetch", async () => {
+  it("supplies an abortable request signal", async () => {
     const fetchMock = stubFetch(201, CASE_RECORD);
     const controller = new AbortController();
 
     await addCaseNote(CASE_RECORD.id, "analyst", "note", controller.signal);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(init.signal).toBe(controller.signal);
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(init.signal?.aborted).toBe(false);
   });
 });

@@ -8,6 +8,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next({ request });
   }
   let response = NextResponse.next({ request });
+  const owner = process.env.THREATLENS_OWNER_USER_ID?.trim().toLowerCase();
+  if (!owner || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(owner) || !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+    return new NextResponse("Owner authentication is not configured.", { status: 503, headers: { "Cache-Control": "private, no-store" } });
+  }
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
@@ -29,6 +33,9 @@ export async function proxy(request: NextRequest) {
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("next", request.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);
+  }
+  if (protectedRoute && user?.id !== owner) {
+    return new NextResponse("This personal workspace is owner-only.", { status: 403, headers: { "Cache-Control": "private, no-store" } });
   }
   return response;
 }

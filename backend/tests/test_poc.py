@@ -242,7 +242,15 @@ def test_private_api_fail_closed_and_valid_contract(storage, monkeypatch):
     monkeypatch.setattr(poc, "supabase_auth_config", lambda: None)
     assert client.post("/api/v1/poc/lookup/metasploit", json={"cve": CVE}).status_code == 503
     monkeypatch.setattr(poc, "supabase_auth_config", lambda: ("https://auth.test", "key"))
-    monkeypatch.setattr(poc, "verify_supabase_token", AsyncMock(return_value=True))
+    from threatlens.api.auth import VerifiedIdentity
+
+    monkeypatch.setattr(
+        poc,
+        "verify_supabase_token",
+        AsyncMock(
+            return_value=VerifiedIdentity("00000000-0000-4000-8000-000000000001", float("inf"))
+        ),
+    )
     assert client.post("/api/v1/poc/lookup/metasploit", json={"cve": CVE}).status_code == 401
     headers = {"Authorization": "Bearer mock-token"}
     result = client.post("/api/v1/poc/lookup/metasploit", json={"cve": CVE}, headers=headers)
@@ -258,7 +266,7 @@ def test_private_api_fail_closed_and_valid_contract(storage, monkeypatch):
         ).status_code
         == 422
     )
-    monkeypatch.setattr(poc, "verify_supabase_token", AsyncMock(return_value=False))
+    monkeypatch.setattr(poc, "verify_supabase_token", AsyncMock(return_value=None))
     assert (
         client.post("/api/v1/poc/lookup/metasploit", json={"cve": CVE}, headers=headers).status_code
         == 401

@@ -1,4 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
+import { mockOwnerSignIn } from "./owner-auth";
+test.beforeEach(async ({ page }) => { await mockOwnerSignIn(page); });
 
 function entity(value: string, type = "domain") {
   return { type, value, normalized_value: value, confidence: 100, validation: "valid", possible_matches: [], routing: { providers: [] } };

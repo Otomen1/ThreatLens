@@ -8,13 +8,12 @@ router â€” it holds no route handlers or business logic of its own.
 
 from __future__ import annotations
 
+import asyncio
 import hmac
 import json
 import logging
 import os
 import time
-from collections import defaultdict, deque
-from threading import Lock
 from uuid import UUID, uuid4
 
 from fastapi import FastAPI, Request, Response
@@ -23,8 +22,16 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import RequestResponseEndpoint
 
 from ..system import build_system_router
-from .auth import supabase_auth_config, verify_supabase_token
+from .auth import (
+    VerifiedIdentity,
+    local_auth_bypass,
+    owner_user_id,
+    require_owner_identity,
+    supabase_auth_config,
+    verify_supabase_token,
+)
 from .health import router as health_router
+from .rate_limit import consume_owner_request
 from .routes import (
     ai,
     backup,
@@ -60,9 +67,7 @@ else:
     load_dotenv()
 
 _API_KEY = os.getenv("THREATLENS_API_KEY", "").strip()
-_RATE_LIMIT = int(os.getenv("THREATLENS_RATE_LIMIT_PER_MINUTE", "60")) if _API_KEY else 0
-_RATE_BUCKETS: defaultdict[str, deque[float]] = defaultdict(deque)
-_RATE_LOCK = Lock()
+_RATE_LIMIT = int(os.getenv("THREATLENS_RATE_LIMIT_PER_MINUTE", "60"))
 _PUBLIC_PATHS = {
     "/health",
     "/ready",
@@ -129,7 +134,9 @@ async def request_context(request: Request, call_next: RequestResponseEndpoint) 
                 "event": "http_request",
                 "request_id": request_id,
                 "method": request.method,
-                "path": request.url.path,
+                "path": "/api/v1/identity/password-range/[redacted]"
+                if request.url.path.startswith("/api/v1/identity/password-range/")
+                else request.url.path,
                 "status": response.status_code,
                 "duration_ms": elapsed_ms,
             },
@@ -143,13 +150,12 @@ async def request_context(request: Request, call_next: RequestResponseEndpoint) 
 async def protect_api(request: Request, call_next: RequestResponseEndpoint) -> Response:
     """Protect private API routes with Supabase auth or a service API key.
 
-    Local development remains unchanged when neither authentication mechanism
-    is configured.  Browser requests use their Supabase bearer token; scripts
-    may use the optional service API key.  Public health and Threat Feed routes
-    remain accessible without either credential.
+    Only the configured owner can access private data. The explicit local
+    development bypass is never honored on Vercel. Public feed routes remain public.
     """
     path = request.url.path
-    is_public = path in _PUBLIC_PATHS or path.startswith("/api/v1/threat-feed")
+    is_feed = path == "/api/v1/threat-feed" or path.startswith("/api/v1/threat-feed/")
+    is_public = path in _PUBLIC_PATHS or is_feed
     if request.method == "OPTIONS":
         return await call_next(request)
     if request.method == "POST" and path.startswith("/api/v1/backup"):
@@ -162,26 +168,94 @@ async def protect_api(request: Request, call_next: RequestResponseEndpoint) -> R
                 return JSONResponse(status_code=400, content={"detail": "Invalid content length"})
     is_private_api = path.startswith("/api/v1") and not is_public
     auth_config = supabase_auth_config()
-    if is_private_api and (auth_config is not None or _API_KEY):
+    if is_private_api:
+        if (path == "/api/v1/auth/me" or path.startswith("/api/v1/poc/")) and auth_config is None:
+            return JSONResponse(
+                status_code=503, content={"detail": "Sign-in service is unavailable"}
+            )
+        if local_auth_bypass() and auth_config is None and not _API_KEY:
+            return await call_next(request)
+        owner = owner_user_id()
+        if owner is None or (auth_config is None and not _API_KEY):
+            return JSONResponse(
+                status_code=503,
+                content={"detail": "Owner authentication is not configured", "retryable": False},
+            )
         supplied = request.headers.get("x-api-key", "")
         api_key_valid = bool(_API_KEY) and hmac.compare_digest(supplied, _API_KEY)
         bearer = request.headers.get("authorization", "")
         token = bearer[7:].strip() if bearer.lower().startswith("bearer ") else ""
-        user_valid = bool(token and auth_config and await verify_supabase_token(token, auth_config))
-        if not api_key_valid and not user_valid:
+        identity = (
+            await verify_supabase_token(token, auth_config) if token and auth_config else None
+        )
+        if api_key_valid:
+            identity = VerifiedIdentity(owner, float("inf"), "api_key")
+        if identity is None:
             return JSONResponse(status_code=401, content={"detail": "Authentication required"})
-
-        if _RATE_LIMIT > 0 and api_key_valid:
-            now = time.monotonic()
-            client = request.client.host if request.client else "unknown"
-            with _RATE_LOCK:
-                bucket = _RATE_BUCKETS[client]
-                while bucket and now - bucket[0] >= 60:
-                    bucket.popleft()
-                if len(bucket) >= _RATE_LIMIT:
-                    return JSONResponse(status_code=429, content={"detail": "Rate limit exceeded"})
-                bucket.append(now)
+        if identity.user_id != owner:
+            return JSONResponse(
+                status_code=403,
+                content={"detail": "This personal workspace is owner-only", "retryable": False},
+            )
+        request.state.identity = identity
+        try:
+            result = await asyncio.to_thread(consume_owner_request, owner, "private", _RATE_LIMIT)
+        except Exception as exc:
+            _logger.error("Owner request-limit storage unavailable: %s", type(exc).__name__)
+            return JSONResponse(
+                status_code=503, content={"detail": "Request protection is unavailable"}
+            )
+        if not result.allowed:
+            return JSONResponse(
+                status_code=429,
+                content={
+                    "detail": "Rate limit exceeded",
+                    "error_code": "rate_limited",
+                    "retryable": True,
+                },
+                headers={"Retry-After": str(result.retry_after)},
+            )
+        identity_scope = (
+            "password"
+            if path.startswith("/api/v1/identity/password-range/")
+            else "email"
+            if path == "/api/v1/identity/email/check"
+            else ""
+        )
+        if identity_scope:
+            name = (
+                "IDENTITY_PASSWORD_RATE_LIMIT_PER_MINUTE"
+                if identity_scope == "password"
+                else "IDENTITY_RATE_LIMIT_PER_MINUTE"
+            )
+            raw = os.getenv(name, "30")
+            limit = int(raw) if raw.isdigit() else 30
+            try:
+                result = await asyncio.to_thread(
+                    consume_owner_request, owner, identity_scope, limit
+                )
+            except Exception:
+                return JSONResponse(
+                    status_code=503, content={"detail": "Request protection is unavailable"}
+                )
+            if not result.allowed:
+                return JSONResponse(
+                    status_code=429,
+                    content={
+                        "detail": "Identity request limit reached",
+                        "error_code": "rate_limited",
+                        "retryable": True,
+                    },
+                    headers={"Retry-After": str(result.retry_after)},
+                )
     return await call_next(request)
+
+
+@app.get("/api/v1/auth/me")
+def owner_session(request: Request, response: Response) -> dict[str, str | bool]:
+    identity = require_owner_identity(request, signed_in=True)
+    response.headers["Cache-Control"] = "private, no-store"
+    return {"user_id": identity.user_id, "owner": True}
 
 
 # Operational-readiness endpoints. Mounted at the root (``/health``, ``/ready``,

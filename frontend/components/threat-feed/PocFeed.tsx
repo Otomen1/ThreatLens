@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useFeedParams, useFeedReady } from "./FeedPanelContext";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createClient } from "@/lib/supabase/browser";
+import { useOwnerSession } from "@/components/OwnerSessionProvider";
 import { ApiError } from "@/lib/api/client";
 import { lookupPoc, normalizePocCve, type PocSource, type PocSourceResult } from "@/lib/api/poc";
 import { LoadingRows } from "@/components/ui/Skeleton";
@@ -19,7 +19,8 @@ export function PocFeed() {
   useFeedReady(true);
   const router = useRouter();
   const [input, setInput] = useState(params.get("cve") ?? "");
-  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  const session = useOwnerSession();
+  const signedIn = session.status === "checking" ? null : Boolean(session.userId);
   const [states, setStates] = useState<Partial<Record<PocSource, SourceState>>>({});
   const [submitted, setSubmitted] = useState("");
   const [notice, setNotice] = useState("");
@@ -34,28 +35,10 @@ export function PocFeed() {
   }, []);
 
   useEffect(() => {
-    const client = createClient();
-    let active = true;
-    const update = (value: boolean) => {
-      if (!active) return;
-      signed.current = value;
-      setSignedIn(value);
-      if (!value) {
-        generation.current++;
-        Object.values(controllers.current).forEach((controller) => controller.abort());
-        setStates({});
-        setSubmitted("");
-        activeCve.current = "";
-      }
-    };
-    client.auth.getSession().then(({ data }) => update(Boolean(data.session))).catch(() => update(false));
-    const { data } = client.auth.onAuthStateChange((_event, session) => update(Boolean(session)));
-    return () => {
-      active = false;
-      data.subscription.unsubscribe();
-      cancelRequests();
-    };
-  }, [cancelRequests]);
+    signed.current = Boolean(session.userId);
+    cancelRequests(); setStates({}); setSubmitted(""); activeCve.current = "";
+    return cancelRequests;
+  }, [session.userId, cancelRequests]);
 
   useEffect(() => {
     setInput(urlCve);

@@ -1,4 +1,6 @@
 import { expect, test } from "@playwright/test";
+import { mockOwnerSignIn } from "./owner-auth";
+test.beforeEach(async ({ page }) => { await mockOwnerSignIn(page); });
 
 test("intelligence menu remains open while moving into its dropdown", async ({ page }) => {
   await page.goto("/");

@@ -14,6 +14,8 @@ import {
 } from "@/lib/api";
 import { clearBatchSession, loadBatchSession, saveBatchSession, type StoredBatchSession } from "@/lib/batchSession";
 import { ApiError } from "@/lib/api/client";
+import { useSessionIdentity } from "./useSessionIdentity";
+import { assertPrivateOwner } from "@/lib/privateSession";
 
 export interface BatchRow {
   entity: Entity;
@@ -39,6 +41,8 @@ function initialRow(entity: Entity): BatchRow {
 }
 
 export function useBatchInvestigation() {
+  const owner = useSessionIdentity();
+  const [sessionOwner, setSessionOwner] = useState(owner);
   const [preview, setPreview] = useState<BatchPreviewResponse | null>(null);
   const [rows, setRows] = useState<BatchRow[]>([]);
   const [previewing, setPreviewing] = useState(false);
@@ -162,17 +166,26 @@ export function useBatchInvestigation() {
     }));
   }, [processTasks]);
 
-  useEffect(() => { void loadBatchSession().then(setRecoverable).catch(() => undefined); }, []);
   useEffect(() => {
-    if (preview && rows.length > 1) void saveBatchSession({ savedAt: Date.now(), preview, rows, options: optionsRef.current });
-  }, [preview, rows]);
+    setSessionOwner(owner);
+    cancel(); setRows([]); setPreview(null); setPreviousResult(null); setRecoverable(null); setError(null);
+    rowsRef.current = [];
+    if (!owner) return;
+    let active = true;
+    void loadBatchSession(owner).then((value) => { if (active) { assertPrivateOwner(owner); setRecoverable(value); } }).catch(() => undefined);
+    return () => { active = false; };
+  }, [owner, cancel]);
+  useEffect(() => {
+    if (owner && owner === sessionOwner && preview && rows.length > 1) void saveBatchSession(owner, { savedAt: Date.now(), preview, rows, options: optionsRef.current }).catch(() => undefined);
+  }, [owner, sessionOwner, preview, rows]);
   const resume = useCallback(() => {
     if (!recoverable) return;
     optionsRef.current = recoverable.options;
     setPreview(recoverable.preview); setRows(recoverable.rows); setRecoverable(null);
   }, [recoverable]);
-  const discardRecovery = useCallback(() => { setRecoverable(null); void clearBatchSession(); }, []);
-  const clear = useCallback(() => { cancel(); setPreviousResult(null); setPreview(null); setRows([]); setError(null); void clearBatchSession(); }, [cancel]);
+  const discardRecovery = useCallback(() => { setRecoverable(null); if (owner) void clearBatchSession(owner).catch(() => undefined); }, [owner]);
+  const clear = useCallback(() => { cancel(); setPreviousResult(null); setPreview(null); setRows([]); setError(null); if (owner) void clearBatchSession(owner).catch(() => undefined); }, [cancel, owner]);
   const stage: WorkflowStage = previewing ? "extracting" : running ? "investigating" : preview?.requires_confirmation && !rows.length ? "awaiting_confirmation" : rows.length ? "completed" : "idle";
-  return { stage, preview, setPreview, rows, setRows, previewing, running, error, prepare, start, retry, cancel, clear, recoverable, resume, discardRecovery, previousResult, startedAt };
+  const currentSession = owner === sessionOwner;
+  return { stage: currentSession ? stage : "idle" as WorkflowStage, preview: currentSession ? preview : null, setPreview, rows: currentSession ? rows : [], setRows, previewing: currentSession && previewing, running: currentSession && running, error: currentSession ? error : null, prepare, start, retry, cancel, clear, recoverable: currentSession ? recoverable : null, resume, discardRecovery, previousResult: currentSession ? previousResult : null, startedAt: currentSession ? startedAt : null };
 }

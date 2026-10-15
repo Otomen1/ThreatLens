@@ -1,5 +1,6 @@
 // Shared transport primitives for the ThreatLens API client. Every subsystem
 // module in lib/api/ builds on these; nothing here is subsystem-specific.
+import { privateGeneration, trackPrivateRequest } from "../privateSession";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
 
@@ -33,6 +34,7 @@ async function accessToken(): Promise<string | undefined> {
 
 function errorMessage(status: number): string {
   if (status === 401) return "Please sign in again.";
+  if (status === 403) return "This personal workspace is restricted to its owner.";
   if (status === 429) return "Request rate limit reached. Wait before retrying.";
   if (status === 408 || status === 504) return "The service timed out. Previous results are unchanged.";
   if (status === 503) return "The service is temporarily unavailable.";
@@ -48,14 +50,26 @@ export async function authorizedFetch(
   path: string,
   init: RequestInit = {},
 ): Promise<Response> {
+  const isPrivate = !path.startsWith("/threat-feed/") && !["/health", "/ready", "/version"].includes(path);
+  const generation = privateGeneration();
   const token = await accessToken();
+  if (isPrivate && generation !== privateGeneration()) throw new DOMException("Session changed", "AbortError");
   const headers = new Headers(init.headers);
   if (token) headers.set("Authorization", `Bearer ${token}`);
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  init.signal?.addEventListener("abort", abort, { once: true });
+  if (init.signal?.aborted) controller.abort();
+  const untrack = isPrivate ? trackPrivateRequest(controller) : () => undefined;
   try {
-    return await fetch(`${API_BASE}${path}`, { ...init, headers });
+    const response = await fetch(`${API_BASE}${path}`, { ...init, headers, signal: controller.signal });
+    if (isPrivate && generation !== privateGeneration()) throw new DOMException("Session changed", "AbortError");
+    return response;
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") throw error;
     throw new ApiError("Could not reach the service.");
+  } finally {
+    untrack(); init.signal?.removeEventListener("abort", abort);
   }
 }
 
@@ -67,6 +81,7 @@ async function request<T>(
   cache?: RequestCache,
 ): Promise<T> {
   const headers = body === undefined ? undefined : { "Content-Type": "application/json" };
+  const generation = privateGeneration();
   const response = await authorizedFetch(path, {
     method,
     headers,
@@ -83,7 +98,9 @@ async function request<T>(
     throw new ApiError(errorMessage(response.status), response.status, { errorCode: codes.includes(safe.error_code ?? "") ? safe.error_code : undefined, retryable: typeof safe.retryable === "boolean" ? safe.retryable : undefined, retryAt: retryAt && Number.isFinite(retryAt) ? retryAt : undefined });
   }
   if (response.status === 204) return undefined as T;
-  return (await response.json()) as T;
+  const data = await response.json();
+  if (!path.startsWith("/threat-feed/") && generation !== privateGeneration()) throw new DOMException("Session changed", "AbortError");
+  return data as T;
 }
 
 export function post<T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> {

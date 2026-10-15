@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { mockOwnerAccess, mockOwnerSignIn } from "./owner-auth";
 
 const id = "11111111-1111-4111-8111-111111111111";
 function snapshot(value = "example.test") {
@@ -13,6 +14,7 @@ async function signIn(page: Page) {
   const session = { access_token: "mock-access-token", refresh_token: "mock-refresh-token", expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, token_type: "bearer", user };
   await page.context().addCookies([{ name: "sb-127-auth-token", value: `base64-${Buffer.from(JSON.stringify(session)).toString("base64url")}`, url: "http://localhost:31987" }]);
   await page.route("http://127.0.0.1:54321/auth/v1/**", (route) => route.fulfill({ json: user }));
+  await mockOwnerAccess(page, user.id);
 }
 test.beforeEach(async ({ page }) => {
   await page.route("**/api/v1/**", (route) => route.fulfill({ json: { status: "ok" } }));
@@ -26,6 +28,7 @@ test.beforeEach(async ({ page }) => {
 async function search(page: Page, value = "example.test") { await page.getByLabel("Search one or more IOCs").fill(value); await page.getByRole("button", { name: "Search", exact: true }).click(); }
 
 test("search animation stops on completion and cancellation, preserving previous results", async ({ page }) => {
+  await mockOwnerSignIn(page);
   let finish!: () => void;
   let pending = new Promise<void>((resolve) => { finish = resolve; });
   await page.route("**/api/v1/investigate", async (route) => { await pending; await route.fulfill({ json: snapshot() }).catch(() => undefined); });
@@ -78,6 +81,7 @@ test("save, generate, failed rule save, retry, review and export without regener
 });
 
 test("failed refresh and cancelled later search preserve the previous entity", async ({ page }) => {
+  await mockOwnerSignIn(page);
   await page.goto("/"); await search(page);
   await expect(page.getByRole("region", { name: "Result overview" })).toContainText("example.test");
   await page.route("**/api/v1/investigate", (route) => route.fulfill({ status: 503, json: { error_code: "upstream_error", retryable: true, error: "secret payload" } }));
@@ -100,11 +104,13 @@ test("signed-out start screen has no private requests; URL overrides preferences
   await page.goto("/?scan_mode=full");
   await expect(page.getByRole("region", { name: "Start here" })).toContainText("Sign in");
   await expect(page.getByLabel("Scan mode")).toHaveValue("full"); expect(privateCalls).toBe(0);
+  await mockOwnerSignIn(page);
   await page.goto("/detections?view=compact&page_size=10&language=sigma");
   await expect(page.getByLabel("Rule view")).toHaveValue("compact"); await expect(page.getByLabel("Rules per page")).toHaveValue("10");
 });
 
 test("settings reset does not clear bookmarks or identity history", async ({ page }) => {
+  await mockOwnerSignIn(page);
   await page.addInitScript(() => { localStorage.setItem("unrelated-history", "keep"); localStorage.setItem("threatlens.experience.v1", JSON.stringify({ version: 1, value: { scanMode: "full", view: "card" } })); });
   await page.goto("/settings"); await page.getByRole("button", { name: "Reset Preferences" }).click();
   await expect(page.getByLabel("Default scan")).toHaveValue("standard");
@@ -137,6 +143,7 @@ test("generation before save includes the package and stays usable on mobile", a
 });
 
 test("server cooldown blocks retry and refresh without provider calls", async ({ page }) => {
+  await mockOwnerSignIn(page);
   await page.goto("/"); await search(page);
   let attempts = 0;
   await page.route("**/api/v1/investigate", (route) => { attempts++; return route.fulfill({ status: 429, headers: { "Retry-After": "60" }, json: { error_code: "rate_limited", retryable: true } }); });

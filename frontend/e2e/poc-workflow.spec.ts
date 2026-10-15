@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { mockOwnerAccess } from "./owner-auth";
 
 const cve = "CVE-2021-44228";
 const resource = { source: "metasploit", id: "example", path: "modules/exploits/multi/example.rb", name: "Example official module", kind: "exploit", module_type: "exploit", description: "Source metadata only", cves: [cve], platforms: ["linux"], disclosure_date: null, modified_at: null, check_supported: true, severity: null, url: "https://github.com/rapid7/metasploit-framework/blob/master/modules/exploits/multi/example.rb", verification: "cve_reference_confirmed", locally_tested: false };
@@ -9,6 +10,7 @@ async function signIn(page: Page) {
   const session = { access_token: "mock-access-token", refresh_token: "mock-refresh-token", expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, token_type: "bearer", user };
   await page.context().addCookies([{ name: "sb-127-auth-token", value: `base64-${Buffer.from(JSON.stringify(session)).toString("base64url")}`, url: "http://localhost:31987" }]);
   await page.route("http://127.0.0.1:54321/auth/v1/**", (route) => route.fulfill({ json: user }));
+  await mockOwnerAccess(page, user.id);
 }
 
 test.beforeEach(async ({ page }) => {

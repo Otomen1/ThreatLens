@@ -1,4 +1,6 @@
 import { expect, test } from "@playwright/test";
+import { mockOwnerSignIn } from "./owner-auth";
+test.beforeEach(async ({ page }) => { await mockOwnerSignIn(page); });
 
 const investigation: Record<string, any> = {
   id: "11111111-1111-4111-8111-111111111111",
