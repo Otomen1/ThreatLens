@@ -10,7 +10,7 @@ class _Payload(BaseModel):
 
 
 def test_memory_cache_round_trip(monkeypatch) -> None:
-    monkeypatch.setenv("THREATLENS_STORAGE_BACKEND", "file")
+    monkeypatch.setenv("THREATLENS_STORAGE_BACKEND", "memory")
     cache = InvestigationCache()
     entry = cache.set("key", _Payload(value="safe"))
 
@@ -29,7 +29,7 @@ def test_cache_key_changes_with_mode_and_provider_configuration(monkeypatch) -> 
 
 
 def test_cache_delete_removes_entry(monkeypatch) -> None:
-    monkeypatch.setenv("THREATLENS_STORAGE_BACKEND", "file")
+    monkeypatch.setenv("THREATLENS_STORAGE_BACKEND", "memory")
     cache = InvestigationCache()
     cache.set("key", _Payload(value="safe"))
     cache.delete("key")

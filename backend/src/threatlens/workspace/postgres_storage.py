@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import importlib
 import os
-from contextlib import AbstractContextManager, nullcontext
+from contextlib import AbstractContextManager
 from typing import Any, cast
 from uuid import UUID
 
 from pydantic import ValidationError
 
+from ..record_database import personal_postgres_lock, postgres_connection, postgres_transaction
 from .exceptions import InvestigationNotFoundError, WorkspaceStorageError
 from .models import WorkspaceInvestigation
 from .storage import WorkspaceStorage
@@ -25,7 +26,7 @@ class PostgresWorkspaceStorage(WorkspaceStorage):
         try:
             psycopg = cast(Any, importlib.import_module("psycopg"))
             self._psycopg = psycopg
-            with self._psycopg.connect(self._url) as connection:
+            with postgres_connection(self._psycopg, self._url) as connection:
                 connection.execute("""
                     CREATE TABLE IF NOT EXISTS threatlens_workspace_records (
                         id uuid PRIMARY KEY,
@@ -33,6 +34,9 @@ class PostgresWorkspaceStorage(WorkspaceStorage):
                         payload jsonb NOT NULL
                     )
                 """)
+                connection.execute(
+                    "ALTER TABLE threatlens_workspace_records ENABLE ROW LEVEL SECURITY"
+                )
         except Exception as exc:
             raise WorkspaceStorageError(
                 "Could not initialize PostgreSQL workspace storage"
@@ -40,7 +44,7 @@ class PostgresWorkspaceStorage(WorkspaceStorage):
 
     def save(self, record: WorkspaceInvestigation) -> None:
         try:
-            with self._psycopg.connect(self._url) as connection:
+            with postgres_transaction(self._psycopg, self._url) as connection:
                 connection.execute(
                     """
                     INSERT INTO threatlens_workspace_records (id, updated_at, payload)
@@ -55,7 +59,7 @@ class PostgresWorkspaceStorage(WorkspaceStorage):
 
     def load(self, investigation_id: UUID) -> WorkspaceInvestigation:
         try:
-            with self._psycopg.connect(self._url) as connection:
+            with postgres_connection(self._psycopg, self._url) as connection:
                 row = connection.execute(
                     "SELECT payload FROM threatlens_workspace_records WHERE id = %s",
                     (investigation_id,),
@@ -73,7 +77,7 @@ class PostgresWorkspaceStorage(WorkspaceStorage):
 
     def delete(self, investigation_id: UUID) -> None:
         try:
-            with self._psycopg.connect(self._url) as connection:
+            with postgres_transaction(self._psycopg, self._url) as connection:
                 result = connection.execute(
                     "DELETE FROM threatlens_workspace_records WHERE id = %s", (investigation_id,)
                 )
@@ -86,7 +90,7 @@ class PostgresWorkspaceStorage(WorkspaceStorage):
 
     def list_all(self) -> list[WorkspaceInvestigation]:
         try:
-            with self._psycopg.connect(self._url) as connection:
+            with postgres_connection(self._psycopg, self._url) as connection:
                 rows = connection.execute(
                     "SELECT payload FROM threatlens_workspace_records ORDER BY updated_at DESC"
                 ).fetchall()
@@ -97,7 +101,7 @@ class PostgresWorkspaceStorage(WorkspaceStorage):
             raise WorkspaceStorageError("Could not list investigations") from exc
 
     def exists(self, investigation_id: UUID) -> bool:
-        with self._psycopg.connect(self._url) as connection:
+        with postgres_connection(self._psycopg, self._url) as connection:
             return (
                 connection.execute(
                     "SELECT 1 FROM threatlens_workspace_records WHERE id = %s", (investigation_id,)
@@ -106,4 +110,4 @@ class PostgresWorkspaceStorage(WorkspaceStorage):
             )
 
     def lock(self) -> AbstractContextManager[None]:
-        return nullcontext()
+        return personal_postgres_lock(self._psycopg, self._url)

@@ -5,19 +5,21 @@ from threatlens.api.routes.backup import test_backup as verify_backup
 
 
 def test_backup_digest_is_stable_and_valid() -> None:
-    bundle = BackupBundle(exported_at=datetime(2026, 1, 1, tzinfo=UTC))
+    bundle = BackupBundle(exported_at=datetime(2026, 1, 1, tzinfo=UTC), schema_version=1)
     signed = bundle.model_copy(update={"digest": _digest(bundle)})
     assert _errors(signed) == []
     assert _digest(signed) == signed.digest
 
 
 def test_backup_integrity_detects_tampering() -> None:
-    bundle = BackupBundle(exported_at=datetime(2026, 1, 1, tzinfo=UTC), digest="bad")
+    bundle = BackupBundle(
+        exported_at=datetime(2026, 1, 1, tzinfo=UTC), digest="bad", schema_version=1
+    )
     assert _errors(bundle) == ["Backup integrity check failed."]
 
 
 def test_backup_test_performs_isolated_round_trip() -> None:
-    bundle = BackupBundle(exported_at=datetime(2026, 1, 1, tzinfo=UTC))
+    bundle = BackupBundle(exported_at=datetime(2026, 1, 1, tzinfo=UTC), schema_version=1)
     signed = bundle.model_copy(update={"digest": _digest(bundle)})
     result = verify_backup(signed)
     assert result.valid

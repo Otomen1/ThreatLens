@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import importlib
 import os
-from contextlib import AbstractContextManager, nullcontext
+from contextlib import AbstractContextManager
 from typing import Any, cast
 from uuid import UUID
 
 from pydantic import ValidationError
 
+from ..record_database import personal_postgres_lock, postgres_connection, postgres_transaction
 from .exceptions import CaseNotFoundError, CaseStorageError
 from .models import Case
 from .storage import CaseStorage
@@ -23,7 +24,7 @@ class PostgresCaseStorage(CaseStorage):
         try:
             psycopg = cast(Any, importlib.import_module("psycopg"))
             self._psycopg = psycopg
-            with psycopg.connect(self._url) as connection:
+            with postgres_connection(psycopg, self._url) as connection:
                 connection.execute(
                     """CREATE TABLE IF NOT EXISTS threatlens_case_records (
                     id uuid PRIMARY KEY,
@@ -31,12 +32,13 @@ class PostgresCaseStorage(CaseStorage):
                     payload jsonb NOT NULL
                     )"""
                 )
+                connection.execute("ALTER TABLE threatlens_case_records ENABLE ROW LEVEL SECURITY")
         except Exception as exc:
             raise CaseStorageError("Could not initialize PostgreSQL case storage") from exc
 
     def save(self, case: Case) -> None:
         try:
-            with self._psycopg.connect(self._url) as connection:
+            with postgres_transaction(self._psycopg, self._url) as connection:
                 connection.execute(
                     """INSERT INTO threatlens_case_records (id, updated_at, payload)
                     VALUES (%s, %s, %s::jsonb)
@@ -49,7 +51,7 @@ class PostgresCaseStorage(CaseStorage):
 
     def load(self, case_id: UUID) -> Case:
         try:
-            with self._psycopg.connect(self._url) as connection:
+            with postgres_connection(self._psycopg, self._url) as connection:
                 row = connection.execute(
                     "SELECT payload FROM threatlens_case_records WHERE id = %s", (case_id,)
                 ).fetchone()
@@ -63,7 +65,7 @@ class PostgresCaseStorage(CaseStorage):
             raise CaseStorageError(f"Corrupt case record: {case_id}") from exc
 
     def delete(self, case_id: UUID) -> None:
-        with self._psycopg.connect(self._url) as connection:
+        with postgres_transaction(self._psycopg, self._url) as connection:
             result = connection.execute(
                 "DELETE FROM threatlens_case_records WHERE id = %s", (case_id,)
             )
@@ -71,14 +73,14 @@ class PostgresCaseStorage(CaseStorage):
                 raise CaseNotFoundError(case_id)
 
     def list_all(self) -> list[Case]:
-        with self._psycopg.connect(self._url) as connection:
+        with postgres_connection(self._psycopg, self._url) as connection:
             rows = connection.execute(
                 "SELECT payload FROM threatlens_case_records ORDER BY updated_at DESC"
             ).fetchall()
         return [Case.model_validate(row[0]) for row in rows]
 
     def exists(self, case_id: UUID) -> bool:
-        with self._psycopg.connect(self._url) as connection:
+        with postgres_connection(self._psycopg, self._url) as connection:
             return (
                 connection.execute(
                     "SELECT 1 FROM threatlens_case_records WHERE id = %s", (case_id,)
@@ -87,4 +89,4 @@ class PostgresCaseStorage(CaseStorage):
             )
 
     def lock(self) -> AbstractContextManager[None]:
-        return nullcontext()
+        return personal_postgres_lock(self._psycopg, self._url)

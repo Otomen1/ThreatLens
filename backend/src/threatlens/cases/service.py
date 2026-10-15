@@ -15,6 +15,7 @@ other Workspace-adjacent consumer (Timeline, Graph, Report) already uses.
 
 from __future__ import annotations
 
+from contextlib import AbstractContextManager
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
@@ -56,6 +57,10 @@ class CaseService:
     def snapshot(self) -> list[Case]:
         """Return all persisted cases for a portable backup."""
         return self._storage.list_all()
+
+    def lock(self) -> AbstractContextManager[None]:
+        """Hold this personal-record transaction across a combined operation."""
+        return self._storage.lock()
 
     def merge_snapshot(self, records: list[Case]) -> tuple[int, int, int]:
         """Safely add or update newer cases without deleting existing data."""

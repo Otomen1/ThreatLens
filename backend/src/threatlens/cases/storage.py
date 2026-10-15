@@ -17,6 +17,7 @@ from uuid import UUID
 
 from pydantic import ValidationError
 
+from ..atomic_file import atomic_write
 from ..storage_lock import file_lock
 from .exceptions import CaseNotFoundError, CaseStorageError
 from .models import Case
@@ -80,10 +81,9 @@ class LocalFileStorage(CaseStorage):
 
     def save(self, case: Case) -> None:
         path = self._path(case.id)
-        tmp = path.with_name(f"{path.name}.tmp")
         try:
-            tmp.write_text(case.model_dump_json(indent=2))
-            tmp.replace(path)
+            with self.lock():
+                atomic_write(path, case.model_dump_json(indent=2))
         except OSError as exc:
             raise CaseStorageError(f"Could not save case {case.id}") from exc
 
@@ -101,7 +101,8 @@ class LocalFileStorage(CaseStorage):
         if not path.exists():
             raise CaseNotFoundError(case_id)
         try:
-            path.unlink()
+            with self.lock():
+                path.unlink()
         except OSError as exc:
             raise CaseStorageError(f"Could not delete case {case_id}") from exc
 

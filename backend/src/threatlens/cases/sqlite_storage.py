@@ -1,14 +1,14 @@
-"""SQLite implementation of the CaseStorage contract."""
+"""Operation-scoped SQLite cases storage; safe across request threads."""
 
 from __future__ import annotations
 
 import sqlite3
 from contextlib import AbstractContextManager
 from pathlib import Path
-from typing import cast
 from uuid import UUID
 
-from ..sqlite_storage import connect, record_audit, transaction
+from ..record_database import personal_sqlite_lock, sqlite_connection, sqlite_transaction
+from ..sqlite_storage import record_audit
 from .exceptions import CaseNotFoundError, CaseStorageError
 from .models import Case
 from .storage import CaseStorage
@@ -16,42 +16,48 @@ from .storage import CaseStorage
 
 class SQLiteCaseStorage(CaseStorage):
     def __init__(self, database: Path) -> None:
+        self._database = database
         try:
-            self._db = connect(database)
+            with sqlite_connection(database):
+                pass
         except (OSError, sqlite3.Error) as exc:
-            raise CaseStorageError(f"Could not open SQLite database: {database}") from exc
+            raise CaseStorageError("Could not open local database") from exc
 
-    def save(self, case: Case) -> None:
+    def save(self, record: Case) -> None:
         try:
-            self._db.execute(
-                "INSERT OR REPLACE INTO case_records(id, updated_at, payload) VALUES (?, ?, ?)",
-                (str(case.id), case.updated_at.isoformat(), case.model_dump_json()),
-            )
-            record_audit(self._db, action="upsert", resource_type="case", resource_id=str(case.id))
+            with sqlite_transaction(self._database) as db:
+                db.execute(
+                    "INSERT OR REPLACE INTO case_records(id, updated_at, payload) VALUES (?, ?, ?)",
+                    (str(record.id), record.updated_at.isoformat(), record.model_dump_json()),
+                )
+                record_audit(db, action="upsert", resource_type="case", resource_id=str(record.id))
         except sqlite3.Error as exc:
-            raise CaseStorageError(f"Could not save case {case.id}") from exc
+            raise CaseStorageError("Could not save local record") from exc
 
-    def load(self, case_id: UUID) -> Case:
-        row = self._db.execute(
-            "SELECT payload FROM case_records WHERE id = ?", (str(case_id),)
-        ).fetchone()
+    def load(self, record_id: UUID) -> Case:
+        with sqlite_connection(self._database) as db:
+            row = db.execute(
+                "SELECT payload FROM case_records WHERE id = ?", (str(record_id),)
+            ).fetchone()
         if row is None:
-            raise CaseNotFoundError(case_id)
+            raise CaseNotFoundError(record_id)
         try:
             return Case.model_validate_json(row[0])
         except ValueError as exc:
-            raise CaseStorageError(f"Corrupt case record: {case_id}") from exc
+            raise CaseStorageError("Corrupt local record") from exc
 
-    def delete(self, case_id: UUID) -> None:
-        cursor = self._db.execute("DELETE FROM case_records WHERE id = ?", (str(case_id),))
-        if cursor.rowcount == 0:
-            raise CaseNotFoundError(case_id)
-        record_audit(self._db, action="delete", resource_type="case", resource_id=str(case_id))
+    def delete(self, record_id: UUID) -> None:
+        with sqlite_transaction(self._database) as db:
+            cursor = db.execute("DELETE FROM case_records WHERE id = ?", (str(record_id),))
+            if cursor.rowcount == 0:
+                raise CaseNotFoundError(record_id)
+            record_audit(db, action="delete", resource_type="case", resource_id=str(record_id))
 
     def list_all(self) -> list[Case]:
-        rows = self._db.execute(
-            "SELECT payload FROM case_records ORDER BY updated_at DESC"
-        ).fetchall()
+        with sqlite_connection(self._database) as db:
+            rows = db.execute(
+                "SELECT payload FROM case_records ORDER BY updated_at DESC"
+            ).fetchall()
         records: list[Case] = []
         for row in rows:
             try:
@@ -60,11 +66,12 @@ class SQLiteCaseStorage(CaseStorage):
                 continue
         return records
 
-    def exists(self, case_id: UUID) -> bool:
-        return (
-            self._db.execute("SELECT 1 FROM case_records WHERE id = ?", (str(case_id),)).fetchone()
-            is not None
-        )
+    def exists(self, record_id: UUID) -> bool:
+        with sqlite_connection(self._database) as db:
+            return (
+                db.execute("SELECT 1 FROM case_records WHERE id = ?", (str(record_id),)).fetchone()
+                is not None
+            )
 
     def lock(self) -> AbstractContextManager[None]:
-        return cast(AbstractContextManager[None], transaction(self._db))
+        return personal_sqlite_lock(self._database)

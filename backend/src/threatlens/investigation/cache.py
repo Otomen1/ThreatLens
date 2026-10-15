@@ -7,6 +7,7 @@ import importlib
 import json
 import os
 import sqlite3
+from contextlib import closing
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -14,7 +15,9 @@ from typing import Any, cast
 
 from pydantic import BaseModel
 
+from ..atomic_file import atomic_write
 from ..reasoning.engine import ENGINE_VERSION
+from ..storage_lock import file_lock
 
 DEFAULT_TTL_SECONDS = 12 * 60 * 60
 _PROVIDER_SECRET_NAMES = (
@@ -39,6 +42,14 @@ def cache_key(*, entity_type: str, value: str, scan_mode: str, providers: list[s
     configuration_material = "|".join(
         f"{name}:{os.getenv(name, '')}" for name in _PROVIDER_SECRET_NAMES
     )
+    if scan_mode == "full":
+        configuration_material += "|" + "|".join(
+            f"{name}:{value}"
+            for name, value in sorted(os.environ.items())
+            if name.startswith(
+                ("IDENTITY_", "HIBP_", "EXPOSURE_", "SHODAN_", "CENSYS_", "GREYNOISE_")
+            )
+        )
     configuration_version = hashlib.sha256(configuration_material.encode()).hexdigest()[:16]
     material = json.dumps(
         {
@@ -61,7 +72,7 @@ class InvestigationCache:
         self._backend = os.getenv("THREATLENS_STORAGE_BACKEND", "file").lower()
         self._url = os.getenv("DATABASE_URL", "")
         self._database = Path(os.getenv("THREATLENS_DATABASE_PATH", "data/threatlens.db"))
-        self._file = Path(os.getenv("THREATLENS_CACHE_PATH", "/tmp/threatlens-cache.json"))
+        self._file = Path(os.getenv("THREATLENS_CACHE_PATH", "data/investigation-cache.json"))
         self._psycopg: Any | None = None
         self._memory: dict[str, CacheEntry] = {}
         self._initialize()
@@ -73,9 +84,12 @@ class InvestigationCache:
                 connection.execute("""CREATE TABLE IF NOT EXISTS threatlens_investigation_cache (
                     cache_key text PRIMARY KEY, cached_at timestamptz NOT NULL,
                     expires_at timestamptz NOT NULL, payload jsonb NOT NULL)""")
+                connection.execute(
+                    "ALTER TABLE threatlens_investigation_cache ENABLE ROW LEVEL SECURITY"
+                )
         elif self._backend == "sqlite":
             self._database.parent.mkdir(parents=True, exist_ok=True)
-            with sqlite3.connect(self._database) as connection:
+            with closing(sqlite3.connect(self._database)) as connection, connection:
                 connection.execute("""CREATE TABLE IF NOT EXISTS investigation_cache (
                     cache_key TEXT PRIMARY KEY, cached_at TEXT NOT NULL,
                     expires_at TEXT NOT NULL, payload TEXT NOT NULL)""")
@@ -106,11 +120,20 @@ class InvestigationCache:
                     (key, entry.cached_at, entry.expires_at, payload),
                 )
         elif self._backend == "sqlite":
-            with sqlite3.connect(self._database) as connection:
+            with closing(sqlite3.connect(self._database)) as connection, connection:
                 connection.execute(
                     "INSERT OR REPLACE INTO investigation_cache VALUES (?,?,?,?)",
                     (key, entry.cached_at.isoformat(), entry.expires_at.isoformat(), payload),
                 )
+        elif self._backend == "file":
+            with file_lock(self._file.with_suffix(".lock")):
+                state = self._file_entries()
+                state[key] = {
+                    "payload": entry.payload,
+                    "cached_at": entry.cached_at.isoformat(),
+                    "expires_at": entry.expires_at.isoformat(),
+                }
+                atomic_write(self._file, json.dumps(state))
         else:
             self._memory[key] = entry
         return entry
@@ -126,7 +149,7 @@ class InvestigationCache:
             if row:
                 return CacheEntry(payload=dict(row[0]), cached_at=row[1], expires_at=row[2])
         elif self._backend == "sqlite":
-            with sqlite3.connect(self._database) as connection:
+            with closing(sqlite3.connect(self._database)) as connection, connection:
                 row = connection.execute(
                     "SELECT payload,cached_at,expires_at "
                     "FROM investigation_cache WHERE cache_key=?",
@@ -138,7 +161,33 @@ class InvestigationCache:
                     cached_at=datetime.fromisoformat(row[1]),
                     expires_at=datetime.fromisoformat(row[2]),
                 )
+        elif self._backend == "file":
+            with file_lock(self._file.with_suffix(".lock")):
+                value = self._file_entries().get(key)
+            if value:
+                return CacheEntry(
+                    payload=value["payload"],
+                    cached_at=datetime.fromisoformat(value["cached_at"]),
+                    expires_at=datetime.fromisoformat(value["expires_at"]),
+                )
         return self._memory.get(key)
+
+    def _file_entries(self) -> dict[str, Any]:
+        if not self._file.exists():
+            return {}
+        try:
+            raw = json.loads(self._file.read_text(encoding="utf-8"))
+            now = datetime.now(UTC)
+            return {
+                key: value
+                for key, value in raw.items()
+                if isinstance(value, dict)
+                and isinstance(value.get("payload"), dict)
+                and datetime.fromisoformat(value["expires_at"]) > now
+                and datetime.fromisoformat(value["cached_at"]).tzinfo is not None
+            }
+        except (ValueError, TypeError, KeyError, AttributeError):
+            return {}
 
     def delete(self, key: str) -> None:
         if self._psycopg is not None:
@@ -147,6 +196,11 @@ class InvestigationCache:
                     "DELETE FROM threatlens_investigation_cache WHERE cache_key=%s", (key,)
                 )
         elif self._backend == "sqlite":
-            with sqlite3.connect(self._database) as connection:
+            with closing(sqlite3.connect(self._database)) as connection, connection:
                 connection.execute("DELETE FROM investigation_cache WHERE cache_key=?", (key,))
         self._memory.pop(key, None)
+        if self._backend == "file":
+            with file_lock(self._file.with_suffix(".lock")):
+                state = self._file_entries()
+                state.pop(key, None)
+                atomic_write(self._file, json.dumps(state))

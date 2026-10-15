@@ -5,7 +5,7 @@ new intelligence engine. Every endpoint here is thin transport over
 :class:`~threatlens.workspace.service.WorkspaceService`; the workspace never
 computes an investigation result, it only stores and retrieves whatever the
 caller already produced via ``/investigate``, ``/detections``, or (in a future
-phase) correlation. No authentication — single-user, self-hosted.
+phase) correlation. Owner authentication is enforced by the API middleware.
 """
 
 from __future__ import annotations

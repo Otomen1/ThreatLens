@@ -5,8 +5,8 @@ An operational layer over the Workspace platform — not a new analytical
 subsystem. Every endpoint here is thin transport over
 :class:`~threatlens.cases.service.CaseService`; the service never recomputes
 or duplicates a linked investigation's content, it only stores a reference to
-its id. No authentication — single-user, self-hosted, matching every other
-Workspace-adjacent route.
+its id. Owner authentication is enforced by the API middleware; the Case
+owner label is descriptive metadata, not an access-control identity.
 """
 
 from __future__ import annotations

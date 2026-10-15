@@ -1,12 +1,8 @@
-"""Storage abstraction for the Investigation Workspace (Phase 8.0).
+"""Saved-investigation storage contract and local JSON implementation.
 
-``WorkspaceStorage`` is the seam: any backend that can save, load, delete,
-list, and check existence of a :class:`~threatlens.workspace.models.WorkspaceInvestigation`
-by id can serve the workspace. :class:`LocalFileStorage` is the only
-implementation this phase ships â€” one JSON file per investigation on local
-disk, no database. A future phase can add a database-backed implementation
-behind the same interface with no change to :class:`~threatlens.workspace.service.WorkspaceService`
-or the API layer.
+SQLite and PostgreSQL adapters implement the same interface. Local files use
+reentrant cross-process locks and unique atomic writes; serverless production
+must select durable PostgreSQL storage instead of ephemeral local files.
 """
 
 from __future__ import annotations
@@ -18,6 +14,7 @@ from uuid import UUID
 
 from pydantic import ValidationError
 
+from ..atomic_file import atomic_write
 from ..storage_lock import file_lock
 from .exceptions import InvestigationNotFoundError, WorkspaceStorageError
 from .models import WorkspaceInvestigation
@@ -83,10 +80,9 @@ class LocalFileStorage(WorkspaceStorage):
 
     def save(self, record: WorkspaceInvestigation) -> None:
         path = self._path(record.id)
-        tmp = path.with_name(f"{path.name}.tmp")
         try:
-            tmp.write_text(record.model_dump_json(indent=2))
-            tmp.replace(path)
+            with self.lock():
+                atomic_write(path, record.model_dump_json(indent=2))
         except OSError as exc:
             raise WorkspaceStorageError(f"Could not save investigation {record.id}") from exc
 
@@ -106,7 +102,8 @@ class LocalFileStorage(WorkspaceStorage):
         if not path.exists():
             raise InvestigationNotFoundError(investigation_id)
         try:
-            path.unlink()
+            with self.lock():
+                path.unlink()
         except OSError as exc:
             raise WorkspaceStorageError(
                 f"Could not delete investigation {investigation_id}"

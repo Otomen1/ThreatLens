@@ -9,20 +9,23 @@ import os
 import time
 from collections import deque
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Annotated, Any, cast
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, ConfigDict, Field
 
 from ...cases import Case, CaseService
+from ...record_database import postgres_transaction, sqlite_transaction
 from ...system import registry as metrics_registry
 from ...workspace import WorkspaceInvestigation, WorkspaceService
+from ..auth import owner_user_id
 from .cases import get_case_service
 from .workspace import get_workspace_service
 
 router = APIRouter()
 FORMAT = "threatlens-backup"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 MAX_BACKUP_RECORDS = 5_000
 MAX_BACKUP_BYTES = 10_000_000
 _history: deque[BackupHistoryEntry] = deque(maxlen=20)
@@ -35,6 +38,7 @@ class BackupBundle(BaseModel):
     schema_version: int = SCHEMA_VERSION
     exported_at: datetime
     application_version: str = "1.2.0"
+    owner_user_id: str | None = None
     investigations: list[WorkspaceInvestigation] = Field(
         default_factory=list, max_length=MAX_BACKUP_RECORDS
     )
@@ -48,6 +52,8 @@ class RestorePreview(BaseModel):
     cases: int
     conflicts: int
     errors: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    legacy_confirmation_required: bool = False
 
 
 class RestoreResult(BaseModel):
@@ -97,6 +103,8 @@ def _record(operation: str, success: bool, investigations: int, cases: int, star
 
 def _digest(bundle: BackupBundle) -> str:
     payload = bundle.model_dump(mode="json", exclude={"digest"})
+    if bundle.schema_version == 1:
+        payload.pop("owner_user_id", None)
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
     return hashlib.sha256(encoded).hexdigest()
 
@@ -105,12 +113,24 @@ def _errors(bundle: BackupBundle) -> list[str]:
     errors: list[str] = []
     if bundle.format != FORMAT:
         errors.append("Unsupported backup format.")
-    if bundle.schema_version != SCHEMA_VERSION:
+    if bundle.schema_version not in {1, SCHEMA_VERSION}:
         errors.append("Unsupported backup schema version.")
+    if bundle.schema_version == 2 and (
+        not bundle.owner_user_id or bundle.owner_user_id != owner_user_id()
+    ):
+        errors.append("Backup ownership does not match this personal workspace.")
     if not bundle.digest or bundle.digest != _digest(bundle):
         errors.append("Backup integrity check failed.")
     if len(bundle.model_dump_json().encode()) > MAX_BACKUP_BYTES:
         errors.append("Backup exceeds the maximum supported size.")
+    for records in (bundle.investigations, bundle.cases):
+        if len({record.id for record in records}) != len(records):
+            errors.append("Backup contains duplicate record IDs.")
+        if any(
+            record.updated_at.tzinfo is None or record.created_at.tzinfo is None
+            for record in records
+        ):
+            errors.append("Backup record timestamps must include a timezone.")
     return errors
 
 
@@ -135,7 +155,7 @@ def _merge_counts(
 def _restore_postgres(bundle: BackupBundle, url: str) -> RestoreResult:
     """Merge both record families in one PostgreSQL transaction."""
     psycopg = cast(Any, importlib.import_module("psycopg"))
-    with psycopg.connect(url) as db:
+    with postgres_transaction(psycopg, url) as db:
         workspace_existing = {
             str(row[0]): row[1]
             for row in db.execute(
@@ -154,13 +174,15 @@ def _restore_postgres(bundle: BackupBundle, url: str) -> RestoreResult:
             cursor.executemany(
                 "INSERT INTO threatlens_workspace_records(id,updated_at,payload) "
                 "VALUES (%s,%s,%s::jsonb) ON CONFLICT(id) DO UPDATE SET "
-                "updated_at=EXCLUDED.updated_at,payload=EXCLUDED.payload",
+                "updated_at=EXCLUDED.updated_at,payload=EXCLUDED.payload "
+                "WHERE threatlens_workspace_records.updated_at<EXCLUDED.updated_at",
                 [(item.id, item.updated_at, item.model_dump_json()) for item in workspace_writes],
             )
             cursor.executemany(
                 "INSERT INTO threatlens_case_records(id,updated_at,payload) "
                 "VALUES (%s,%s,%s::jsonb) ON CONFLICT(id) DO UPDATE SET "
-                "updated_at=EXCLUDED.updated_at,payload=EXCLUDED.payload",
+                "updated_at=EXCLUDED.updated_at,payload=EXCLUDED.payload "
+                "WHERE threatlens_case_records.updated_at<EXCLUDED.updated_at",
                 [(item.id, item.updated_at, item.model_dump_json()) for item in case_writes],
             )
     return RestoreResult(
@@ -179,11 +201,13 @@ def export_backup(
     cases: Annotated[CaseService, Depends(get_case_service)],
 ) -> Response:
     started = time.perf_counter()
-    bundle = BackupBundle(
-        exported_at=datetime.now(UTC),
-        investigations=workspace.snapshot(),
-        cases=cases.snapshot(),
-    )
+    with cases.lock(), workspace.lock():
+        bundle = BackupBundle(
+            exported_at=datetime.now(UTC),
+            owner_user_id=owner_user_id(),
+            investigations=workspace.snapshot(),
+            cases=cases.snapshot(),
+        )
     bundle = bundle.model_copy(update={"digest": _digest(bundle)})
     _record("export", True, len(bundle.investigations), len(bundle.cases), started)
     return Response(
@@ -211,6 +235,12 @@ def validate_backup(
         cases=len(bundle.cases),
         conflicts=conflicts,
         errors=errors,
+        warnings=[
+            "Legacy backup has no ownership metadata. Confirm it belongs to you before restore."
+        ]
+        if bundle.schema_version == 1
+        else [],
+        legacy_confirmation_required=bundle.schema_version == 1,
     )
     _record("validate", preview.valid, preview.investigations, preview.cases, started)
     return preview
@@ -255,18 +285,46 @@ def restore_backup(
     bundle: BackupBundle,
     workspace: Annotated[WorkspaceService, Depends(get_workspace_service)],
     cases: Annotated[CaseService, Depends(get_case_service)],
+    allow_legacy: Annotated[bool, Query()] = False,
 ) -> RestoreResult:
     started = time.perf_counter()
     errors = _errors(bundle)
     if errors:
         _record("restore", False, len(bundle.investigations), len(bundle.cases), started)
         raise HTTPException(status_code=422, detail=errors)
+    if bundle.schema_version == 1 and not allow_legacy:
+        raise HTTPException(
+            status_code=409, detail="Confirm ownership of this legacy backup before restore"
+        )
     database_url = os.getenv("DATABASE_URL", "")
     if os.getenv("THREATLENS_STORAGE_BACKEND", "file").lower() == "postgres" and database_url:
         result = _restore_postgres(bundle, database_url)
+    elif os.getenv("THREATLENS_STORAGE_BACKEND", "file").lower() == "sqlite":
+        path = Path(os.getenv("THREATLENS_DATABASE_PATH", "data/threatlens.db"))
+        with sqlite_transaction(path):
+            workspace_result = workspace.merge_snapshot(bundle.investigations)
+            case_result = cases.merge_snapshot(bundle.cases)
+        result = RestoreResult(
+            investigations_added=workspace_result[0],
+            investigations_updated=workspace_result[1],
+            investigations_skipped=workspace_result[2],
+            cases_added=case_result[0],
+            cases_updated=case_result[1],
+            cases_skipped=case_result[2],
+        )
     else:
-        workspace_result = workspace.merge_snapshot(bundle.investigations)
-        case_result = cases.merge_snapshot(bundle.cases)
+        try:
+            # Fixed order matches case-link operations; nested saves are reentrant.
+            with cases.lock(), workspace.lock():
+                workspace_result = workspace.merge_snapshot(bundle.investigations)
+                case_result = cases.merge_snapshot(bundle.cases)
+        except Exception as exc:
+            _record("restore", False, len(bundle.investigations), len(bundle.cases), started)
+            raise HTTPException(
+                status_code=500,
+                detail="Local restore was incomplete. Some records may have merged; "
+                "inspect Workspace before retrying.",
+            ) from exc
         result = RestoreResult(
             investigations_added=workspace_result[0],
             investigations_updated=workspace_result[1],

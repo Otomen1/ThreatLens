@@ -9,6 +9,7 @@ already-computed engine output attached verbatim by the caller.
 
 from __future__ import annotations
 
+from contextlib import AbstractContextManager
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
@@ -32,6 +33,10 @@ class WorkspaceService:
     def snapshot(self) -> list[WorkspaceInvestigation]:
         """Return all persisted records for a portable backup."""
         return self._storage.list_all()
+
+    def lock(self) -> AbstractContextManager[None]:
+        """Hold this personal-record transaction across a combined operation."""
+        return self._storage.lock()
 
     def merge_snapshot(self, records: list[WorkspaceInvestigation]) -> tuple[int, int, int]:
         """Safely add or update newer records without deleting existing data."""

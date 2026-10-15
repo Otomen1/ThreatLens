@@ -20,10 +20,12 @@ from typing import Any
 
 import httpx
 
+from ..release import release_version
+
 _DEFAULT_TIMEOUT = 10.0
 _DEFAULT_RETRIES = 2
 _DEFAULT_BACKOFF = 0.5
-_USER_AGENT = "ThreatLens/0.1 (+https://github.com/Otomen1/ThreatLens)"
+_USER_AGENT = f"ThreatLens/{release_version()} (+https://github.com/Otomen1/ThreatLens)"
 
 
 class ProviderHttpError(Exception):
@@ -139,13 +141,20 @@ class HttpClient:
                         from ..system.telemetry import observe_response
 
                         safe_headers = {
-                            key.lower(): value for key, value in response.headers.items()
-                            if key.lower() in {
-                                "x-ratelimit-remaining", "ratelimit-remaining",
-                                "x-rate-limit-remaining", "x-ratelimit-limit",
-                                "ratelimit-limit", "x-rate-limit-limit",
-                                "x-ratelimit-reset", "ratelimit-reset",
-                                "x-rate-limit-reset", "retry-after",
+                            key.lower(): value
+                            for key, value in response.headers.items()
+                            if key.lower()
+                            in {
+                                "x-ratelimit-remaining",
+                                "ratelimit-remaining",
+                                "x-rate-limit-remaining",
+                                "x-ratelimit-limit",
+                                "ratelimit-limit",
+                                "x-rate-limit-limit",
+                                "x-ratelimit-reset",
+                                "ratelimit-reset",
+                                "x-rate-limit-reset",
+                                "retry-after",
                             }
                         }
                         observe_response(response.status_code, safe_headers)
