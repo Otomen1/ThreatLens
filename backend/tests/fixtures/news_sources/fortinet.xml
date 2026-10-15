@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:feedburner="http://rssnamespace.org/feedburner/ext/1.0"><channel><title>Fortinet Threat Research</title><item>
+<title>Synthetic FortiGuard malware analysis</title>
+<link>https://feeds.fortinet.com/~/123/0/fortinet/blog/threat-research~synthetic-report</link>
+<guid isPermaLink="true">https://www.fortinet.com/blog/threat-research/synthetic-report</guid>
+<feedburner:origLink>https://www.fortinet.com/blog/threat-research/synthetic-report</feedburner:origLink>
+<pubDate>Wed, 14 Oct 2026 10:00:00 +0200</pubDate><category>Threat Research</category>
+<description><![CDATA[<p>A synthetic malware report. Indicators remain unverified.</p>]]></description>
+</item></channel></rss>

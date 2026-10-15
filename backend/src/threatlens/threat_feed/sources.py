@@ -8,6 +8,7 @@ import re
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from urllib.parse import urlsplit
 
 import httpx
 
@@ -57,6 +58,16 @@ SOURCES: tuple[SourceDefinition, ...] = (
     ),
     SourceDefinition("talos", "Cisco Talos", "rss", "https://blog.talosintelligence.com/rss/"),
     SourceDefinition("unit42", "Unit 42", "rss", "https://unit42.paloaltonetworks.com/feed/"),
+    SourceDefinition("ahnlab", "AhnLab ASEC", "rss", "https://asec.ahnlab.com/en/feed/"),
+    SourceDefinition(
+        "fortinet",
+        "Fortinet FortiGuard Labs",
+        "rss",
+        "https://feeds.fortinet.com/fortinet/blog/threat-research",
+    ),
+    SourceDefinition(
+        "eset", "ESET WeLiveSecurity", "rss", "https://www.welivesecurity.com/en/rss/feed/"
+    ),
 )
 
 
@@ -103,6 +114,19 @@ def parse_rss(payload: bytes) -> tuple[SourceEntry, ...]:
         atom_link = node.find("{http://www.w3.org/2005/Atom}link")
         if atom_link is not None:
             link = atom_link.attrib.get("href", link)
+        original = value("{http://rssnamespace.org/feedburner/ext/1.0}origLink")
+        if original:
+            try:
+                parsed = urlsplit(original)
+                if (
+                    parsed.scheme in {"https", "http"}
+                    and parsed.hostname
+                    and not parsed.username
+                    and not parsed.password
+                ):
+                    link = original
+            except ValueError:
+                pass
         title = clean_text(value("title", "{http://www.w3.org/2005/Atom}title"), limit=500)
         if not title or not link:
             continue
