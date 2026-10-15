@@ -30,7 +30,7 @@ def database_backed(storage: FeedStorage) -> bool:
 
 def run(storage: FeedStorage, query: str, parameters: list[Any]) -> list[Any]:
     if storage.psycopg is not None:
-        with storage.psycopg.connect(storage.url) as db:
+        with storage.connect_postgres() as db:
             return list(db.execute(query.replace("?", "%s"), parameters).fetchall())
     with closing(sqlite3.connect(storage.path)) as db, db:
         return list(db.execute(query, parameters).fetchall())

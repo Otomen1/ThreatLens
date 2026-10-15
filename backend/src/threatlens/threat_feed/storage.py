@@ -37,10 +37,16 @@ class FeedStorage:
         self.psycopg: Any | None = None
         self._init()
 
+    def connect_postgres(self) -> Any:
+        """Use unnamed statements with transaction poolers (including Supavisor)."""
+        if self.psycopg is None:
+            raise RuntimeError("PostgreSQL is not configured")
+        return self.psycopg.connect(self.url, prepare_threshold=None, connect_timeout=10)
+
     def _init(self) -> None:
         if self.backend == "postgres" and self.url:
             self.psycopg = cast(Any, importlib.import_module("psycopg"))
-            with self.psycopg.connect(self.url) as db:
+            with self.connect_postgres() as db:
                 self._schema(db, postgres=True)
         elif self.backend == "sqlite":
             self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -148,7 +154,7 @@ class FeedStorage:
         if not candidates:
             return 0
         if self.psycopg is not None:
-            with self.psycopg.connect(self.url) as db:
+            with self.connect_postgres() as db:
                 rows = db.execute(
                     "INSERT INTO threat_feed_items(id,published_at,payload,published_epoch) "
                     "SELECT id,published_at,payload::jsonb,published_epoch FROM "
@@ -208,6 +214,120 @@ class FeedStorage:
         self.memory_items.update({item.id: item for item in new_items})
         return len(new_items)
 
+    def repair_listing_items(self, items: list[ThreatFeedItem]) -> None:
+        """Correct old listing timestamps in place without changing bookmarked IDs."""
+        if not items:
+            return
+        from .logic import canonical_url
+        from .queries import database_backed, run
+        from .reference_store import news_reference, write
+
+        if database_backed(self):
+            markers = ",".join("?" for _ in items)
+            rows = run(
+                self,
+                f"SELECT CAST(payload AS text) FROM threat_feed_items WHERE id IN ({markers})",
+                [item.id for item in items],
+            )
+            previous = {
+                item.id: item
+                for row in rows
+                if (item := ThreatFeedItem.model_validate_json(row[0]))
+            }
+        else:
+            previous = self.memory_items
+        replacements = [
+            item.model_copy(update={"collected_at": old.collected_at})
+            for item in items
+            if (old := previous.get(item.id))
+            and old.source_kind == "metadata"
+            and old.source_id == item.source_id
+            and canonical_url(str(old.url)) == canonical_url(str(item.url))
+        ]
+        replacements = [item for item in replacements if item != previous[item.id]]
+        if not replacements:
+            return
+        query = "UPDATE threat_feed_items SET published_at=?,payload=?,published_epoch=? WHERE id=?"
+        values = [
+            (i.published_at.isoformat(), i.model_dump_json(), i.published_at.timestamp(), i.id)
+            for i in replacements
+        ]
+        if self.psycopg is not None:
+            query = query.replace("?", "%s").replace("payload=%s", "payload=%s::jsonb")
+            with self.connect_postgres() as db, db.cursor() as cursor:
+                cursor.executemany(query, values)
+                write(self, [news_reference(item) for item in replacements], db)
+        elif self.backend == "sqlite":
+            with closing(sqlite3.connect(self.path)) as db, db:
+                db.executemany(query, values)
+                write(self, [news_reference(item) for item in replacements], db)
+        else:
+            self.memory_items.update({item.id: item for item in replacements})
+        self._repair_listing_reports(replacements)
+
+    def _repair_listing_reports(self, items: list[ThreatFeedItem]) -> None:
+        """Correct materialized report dates too, without replacing official CVE data."""
+        from .models import VulnerabilityReport
+        from .queries import database_backed, run
+        from .vulnerabilities import ZERO_DAY
+
+        replacements = {item.id: item for item in items}
+        if database_backed(self):
+            markers = ",".join("?" for _ in items)
+            reports = (
+                "jsonb_array_elements(payload->'reports') AS report WHERE report->>'id'"
+                if self.psycopg is not None
+                else "json_each(payload,'$.reports') AS report "
+                "WHERE json_extract(report.value,'$.id')"
+            )
+            rows = run(
+                self,
+                "SELECT CAST(payload AS text) FROM threat_feed_vulnerabilities "
+                f"WHERE EXISTS(SELECT 1 FROM {reports} IN ({markers}))",
+                list(replacements),
+            )
+            records = [FeedVulnerability.model_validate_json(row[0]) for row in rows]
+        else:
+            records = [
+                record
+                for record in self.memory_vulnerabilities.values()
+                if any(report.id in replacements for report in record.reports)
+            ]
+        corrected = []
+        for record in records:
+            updated = []
+            for report in record.reports:
+                item = replacements.get(report.id)
+                updated.append(
+                    VulnerabilityReport(
+                        id=item.id,
+                        title=item.title,
+                        url=item.url,
+                        source_id=item.source_id,
+                        source_name=item.source_name,
+                        published_at=item.published_at,
+                        excerpt=item.excerpt or item.summary,
+                        zero_day=bool(ZERO_DAY.search(f"{item.title} {item.excerpt}")),
+                    )
+                    if item
+                    else report
+                )
+            dates = [report.published_at for report in updated]
+            dates.extend(value for value in (record.published_at, record.kev_added_at) if value)
+            corrected.append(
+                record.model_copy(
+                    update={
+                        "reports": tuple(
+                            sorted(updated, key=lambda r: r.published_at, reverse=True)
+                        ),
+                        "activity_at": max(dates),
+                        "reported_zero_day": any(report.zero_day for report in updated),
+                    }
+                )
+            )
+        if corrected:
+            self.save_vulnerabilities(corrected, replace=True)
+
     def _materialize_news(self, items: list[ThreatFeedItem]) -> None:
         if not items:
             return
@@ -230,7 +350,7 @@ class FeedStorage:
 
     def list_items(self) -> list[ThreatFeedItem]:
         if self.psycopg is not None:
-            with self.psycopg.connect(self.url) as db:
+            with self.connect_postgres() as db:
                 rows = db.execute(
                     "SELECT payload FROM threat_feed_items ORDER BY published_at DESC"
                 ).fetchall()
@@ -245,7 +365,7 @@ class FeedStorage:
 
     def home_snapshot(self) -> FeedStorageSnapshot:
         if self.psycopg is not None:
-            with self.psycopg.connect(self.url) as db:
+            with self.connect_postgres() as db:
                 rows = db.execute(
                     "SELECT 'item', payload FROM threat_feed_items "
                     "UNION ALL SELECT 'source', payload FROM threat_feed_sources "
@@ -292,7 +412,7 @@ class FeedStorage:
 
     def get_item(self, item_id: str) -> ThreatFeedItem | None:
         if self.psycopg is not None:
-            with self.psycopg.connect(self.url) as db:
+            with self.connect_postgres() as db:
                 row = db.execute(
                     "SELECT payload FROM threat_feed_items WHERE id=%s", (item_id,)
                 ).fetchone()
@@ -307,7 +427,7 @@ class FeedStorage:
 
     def delete_before(self, cutoff: datetime) -> None:
         if self.psycopg is not None:
-            with self.psycopg.connect(self.url) as db:
+            with self.connect_postgres() as db:
                 db.execute(
                     "DELETE FROM threat_feed_read_references WHERE activity_epoch<%s",
                     (cutoff.timestamp(),),
@@ -332,7 +452,7 @@ class FeedStorage:
     def save_source(self, source: FeedSourceStatus) -> None:
         payload = source.model_dump_json()
         if self.psycopg is not None:
-            with self.psycopg.connect(self.url) as db:
+            with self.connect_postgres() as db:
                 db.execute(
                     "INSERT INTO threat_feed_sources VALUES (%s,%s::jsonb) "
                     "ON CONFLICT(id) DO UPDATE SET payload=EXCLUDED.payload",
@@ -348,7 +468,7 @@ class FeedStorage:
 
     def list_sources(self) -> list[FeedSourceStatus]:
         if self.psycopg is not None:
-            with self.psycopg.connect(self.url) as db:
+            with self.connect_postgres() as db:
                 rows = db.execute("SELECT payload FROM threat_feed_sources").fetchall()
             return [FeedSourceStatus.model_validate(row[0]) for row in rows]
         if self.backend == "sqlite":
@@ -361,7 +481,7 @@ class FeedStorage:
         refresh_id = refresh.started_at.isoformat()
         payload = refresh.model_dump_json()
         if self.psycopg is not None:
-            with self.psycopg.connect(self.url) as db:
+            with self.connect_postgres() as db:
                 db.execute(
                     "INSERT INTO threat_feed_refresh_runs VALUES (%s,%s,%s::jsonb) "
                     "ON CONFLICT(id) DO UPDATE SET payload=EXCLUDED.payload",
@@ -376,7 +496,7 @@ class FeedStorage:
 
     def state(self, key: str) -> str | None:
         if self.psycopg is not None:
-            with self.psycopg.connect(self.url) as db:
+            with self.connect_postgres() as db:
                 row = db.execute(
                     "SELECT value FROM threat_feed_state WHERE key=%s", (key,)
                 ).fetchone()
@@ -391,7 +511,7 @@ class FeedStorage:
 
     def set_state(self, key: str, value: str) -> None:
         if self.psycopg is not None:
-            with self.psycopg.connect(self.url) as db:
+            with self.connect_postgres() as db:
                 db.execute(
                     "INSERT INTO threat_feed_state VALUES (%s,%s) "
                     "ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value",
@@ -427,7 +547,7 @@ class FeedStorage:
             return json.dumps(state), (True, False, datetime.fromtimestamp(stamp + 60, UTC))
 
         if self.psycopg is not None:
-            with self.psycopg.connect(self.url) as db:
+            with self.connect_postgres() as db:
                 db.execute(
                     "INSERT INTO threat_feed_state VALUES (%s,'{}') ON CONFLICT(key) DO NOTHING",
                     (key,),
@@ -456,7 +576,7 @@ class FeedStorage:
         """Atomically reserve collection and check the durable cooldown."""
         stamp = now.timestamp()
         if self.psycopg is not None:
-            with self.psycopg.connect(self.url) as db:
+            with self.connect_postgres() as db:
                 row = db.execute(
                     "INSERT INTO threat_feed_refresh_lease VALUES ('global',%s,%s) "
                     "ON CONFLICT(id) DO UPDATE SET owner=EXCLUDED.owner,"
@@ -531,7 +651,7 @@ class FeedStorage:
 
     def release_refresh(self, owner: str) -> None:
         if self.psycopg is not None:
-            with self.psycopg.connect(self.url) as db:
+            with self.connect_postgres() as db:
                 db.execute("DELETE FROM threat_feed_refresh_lease WHERE owner=%s", (owner,))
         elif self.backend == "sqlite":
             with closing(sqlite3.connect(self.path)) as db, db:
@@ -544,7 +664,7 @@ class FeedStorage:
 
     def list_vulnerabilities(self) -> list[FeedVulnerability]:
         if self.psycopg is not None:
-            with self.psycopg.connect(self.url) as db:
+            with self.connect_postgres() as db:
                 rows = db.execute("SELECT payload FROM threat_feed_vulnerabilities").fetchall()
             return [FeedVulnerability.model_validate(row[0]) for row in rows]
         if self.backend == "sqlite":
@@ -554,7 +674,11 @@ class FeedStorage:
         return list(self.memory_vulnerabilities.values())
 
     def save_vulnerabilities(
-        self, records: Iterable[FeedVulnerability], *, state: dict[str, str] | None = None
+        self,
+        records: Iterable[FeedVulnerability],
+        *,
+        state: dict[str, str] | None = None,
+        replace: bool = False,
     ) -> None:
         """Commit a source page and its synchronization cursor in one transaction."""
         candidates = list(records)
@@ -580,13 +704,14 @@ class FeedStorage:
             }
         else:
             previous = self.memory_vulnerabilities
-        candidates = [merge_record(previous.get(r.id), r) for r in candidates]
+        if not replace:
+            candidates = [merge_record(previous.get(r.id), r) for r in candidates]
         values = [
             (r.id, r.activity_at.isoformat(), r.model_dump_json(), r.activity_at.timestamp())
             for r in candidates
         ]
         if self.psycopg is not None:
-            with self.psycopg.connect(self.url) as db, db.cursor() as cursor:
+            with self.connect_postgres() as db, db.cursor() as cursor:
                 cursor.executemany(
                     "INSERT INTO threat_feed_vulnerabilities(id,activity_at,"
                     "payload,activity_epoch) VALUES (%s,%s,%s::jsonb,%s) "
@@ -621,7 +746,7 @@ class FeedStorage:
 
     def prune_vulnerabilities(self, cutoff: datetime) -> None:
         if self.psycopg is not None:
-            with self.psycopg.connect(self.url) as db:
+            with self.connect_postgres() as db:
                 db.execute(
                     "DELETE FROM threat_feed_vulnerabilities WHERE activity_at < %s",
                     (cutoff.isoformat(),),

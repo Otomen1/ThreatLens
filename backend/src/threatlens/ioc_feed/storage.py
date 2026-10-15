@@ -67,7 +67,7 @@ class IocStorage:
     def connection(self) -> Iterator[Any]:
         if self.pg:
             assert self.feed.psycopg is not None
-            with self.feed.psycopg.connect(self.feed.url) as db:
+            with self.feed.connect_postgres() as db:
                 yield db
         else:
             with closing(sqlite3.connect(self.feed.path)) as db, db:

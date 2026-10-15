@@ -2,16 +2,19 @@
 
 from __future__ import annotations
 
+import asyncio
 import email.utils
 import json
 import re
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta, timezone, tzinfo
 from urllib.parse import urlsplit
 
 import httpx
 
+from ..release import release_version
+from .listing import parse_listing
 from .logic import clean_text
 from .models import SourceEntry
 
@@ -37,18 +40,18 @@ SOURCES: tuple[SourceDefinition, ...] = (
     SourceDefinition(
         "cisa",
         "CISA Advisories",
-        "metadata",
-        "https://www.cisa.gov/news-events/cybersecurity-advisories",
+        "rss",
+        "https://cisa.gov/cybersecurity-advisories/all.xml",
     ),
-    SourceDefinition("mycert", "MyCERT", "metadata", "https://www.mycert.org.my/portal/advisories"),
+    SourceDefinition("mycert", "MyCERT", "rss", "https://www.mycert.org.my/portal/rss"),
     SourceDefinition(
         "nc4", "NACSA / NC4", "metadata", "https://www.nc4.gov.my/alertAdvisory?lang=en"
     ),
     SourceDefinition(
         "singcert",
         "Singapore CSA / SingCERT",
-        "metadata",
-        "https://www.csa.gov.sg/alerts-and-advisories/advisories/",
+        "rss",
+        "https://www.csa.gov.sg/alerts-and-advisories/advisories/rss.xml",
     ),
     SourceDefinition(
         "the_hacker_news", "The Hacker News", "rss", "https://feeds.feedburner.com/TheHackersNews"
@@ -72,32 +75,54 @@ SOURCES: tuple[SourceDefinition, ...] = (
 
 
 async def fetch_source(source: SourceDefinition) -> tuple[SourceEntry, ...]:
-    async with httpx.AsyncClient(timeout=10, follow_redirects=True) as client:
-        response = await client.get(source.url, headers={"User-Agent": "ThreatLens/1.2 ThreatFeed"})
-    response.raise_for_status()
-    if len(response.content) > MAX_RESPONSE_BYTES:
-        raise ValueError("source payload exceeded the safe size limit")
+    headers = {"Accept": "application/rss+xml, application/xml;q=0.9, */*;q=0.1"}
+    if source.id != "cisa":
+        headers["User-Agent"] = f"ThreatLens/{release_version()} ThreatFeed"
+    # CISA's feed accepts the HTTP library's normal agent but rejects the custom agent.
+    # Do not spoof a browser, retry a 403, or fetch article bodies as a workaround.
+    async with (
+        asyncio.timeout(25),
+        httpx.AsyncClient(timeout=httpx.Timeout(20, connect=10), follow_redirects=True) as client,
+        client.stream("GET", source.url, headers=headers) as response,
+    ):
+        response.raise_for_status()
+        body = bytearray()
+        async for chunk in response.aiter_bytes():
+            body.extend(chunk)
+            if len(body) > MAX_RESPONSE_BYTES:
+                raise ValueError("source payload exceeded the safe size limit")
+    payload = bytes(body)
     if source.kind == "rss":
-        return parse_rss(response.content)
-    if source.kind == "json":
-        return parse_kev(response.text)
-    return parse_metadata_listing(response.text, source.url)
+        entries = parse_rss(payload, source_id=source.id)
+    elif source.kind == "json":
+        entries = parse_kev(payload.decode("utf-8-sig"))
+    else:
+        entries = parse_metadata_listing(payload.decode("utf-8"), source.url)
+    if not entries:
+        raise ValueError("source returned no dated report metadata")
+    return entries
 
 
-def _date(value: str | None) -> datetime:
-    if value:
+def _date(value: str | None, default_tz: tzinfo = UTC) -> datetime | None:
+    if not value:
+        return None
+    # The permissive email parser ignores AM/PM in MyCERT's human-readable dates.
+    for pattern in ("%d %B %Y, %I:%M %p", "%d %b %Y", "%d %B %Y"):
+        try:
+            return datetime.strptime(value, pattern).replace(tzinfo=default_tz).astimezone(UTC)
+        except ValueError:
+            continue
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
         try:
             parsed = email.utils.parsedate_to_datetime(value)
-            return parsed.astimezone(UTC)
-        except (TypeError, ValueError):
-            try:
-                return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(UTC)
-            except ValueError:
-                pass
-    return datetime.now(UTC)
+        except (TypeError, ValueError, OverflowError):
+            return None
+    return (parsed if parsed.tzinfo else parsed.replace(tzinfo=default_tz)).astimezone(UTC)
 
 
-def parse_rss(payload: bytes) -> tuple[SourceEntry, ...]:
+def parse_rss(payload: bytes, *, source_id: str = "") -> tuple[SourceEntry, ...]:
     root = ET.fromstring(payload)
     entries = root.findall(".//item") or root.findall(".//{http://www.w3.org/2005/Atom}entry")
     output: list[SourceEntry] = []
@@ -130,18 +155,33 @@ def parse_rss(payload: bytes) -> tuple[SourceEntry, ...]:
         title = clean_text(value("title", "{http://www.w3.org/2005/Atom}title"), limit=500)
         if not title or not link:
             continue
+        excerpt = clean_text(
+            value("description", "summary", "{http://www.w3.org/2005/Atom}summary"), limit=1200
+        )
+        published = _date(
+            value(
+                "pubDate",
+                "published",
+                "{http://www.w3.org/2005/Atom}published",
+                "updated",
+                "{http://www.w3.org/2005/Atom}updated",
+                "{http://purl.org/dc/elements/1.1/}date",
+            )
+        )
+        if published is None and source_id == "mycert":
+            match = re.fullmatch(r"Published date:\s*(.+)", excerpt, re.I)
+            if match:
+                published = _date(match[1], timezone(timedelta(hours=8)))
+                excerpt = ""
+        if published is None:
+            continue
         output.append(
             SourceEntry(
                 guid=value("guid", "id", "{http://www.w3.org/2005/Atom}id") or None,
                 title=title,
-                excerpt=clean_text(
-                    value("description", "summary", "{http://www.w3.org/2005/Atom}summary"),
-                    limit=1200,
-                ),
+                excerpt=excerpt,
                 url=link,
-                published_at=_date(
-                    value("pubDate", "published", "updated", "{http://www.w3.org/2005/Atom}updated")
-                ),
+                published_at=published,
                 categories=tuple(
                     clean_text(item.text or "", limit=80) for item in node.findall("category")[:8]
                 ),
@@ -160,6 +200,9 @@ def parse_kev(payload: str) -> tuple[SourceEntry, ...]:
     )
     for row in rows[:MAX_ITEMS]:
         cve = str(row.get("cveID", ""))
+        published = _date(str(row.get("dateAdded", "")))
+        if published is None or not re.fullmatch(r"CVE-\d{4}-\d{4,}", cve):
+            continue
         title = f"{cve}: {row.get('vulnerabilityName', 'Known exploited vulnerability')}"
         output.append(
             SourceEntry(
@@ -167,7 +210,7 @@ def parse_kev(payload: str) -> tuple[SourceEntry, ...]:
                 title=title,
                 excerpt=clean_text(str(row.get("shortDescription", "")), limit=1200),
                 url=f"https://www.cisa.gov/known-exploited-vulnerabilities-catalog?search_api_fulltext={cve}",
-                published_at=_date(str(row.get("dateAdded", ""))),
+                published_at=published,
                 categories=("known exploited vulnerability",),
                 severity="critical" if "critical" in title.lower() else None,
                 vendor=clean_text(str(row.get("vendorProject", "")), limit=150) or None,
@@ -179,24 +222,5 @@ def parse_kev(payload: str) -> tuple[SourceEntry, ...]:
 
 
 def parse_metadata_listing(payload: str, base_url: str) -> tuple[SourceEntry, ...]:
-    """Extract linked advisory metadata only; never fetch article bodies."""
-    pattern = re.compile(
-        r'<a[^>]+href=["\'](?P<href>[^"\']+)["\'][^>]*>(?P<title>.*?)</a>', re.I | re.S
-    )
-    output: list[SourceEntry] = []
-    for match in pattern.finditer(payload):
-        title = clean_text(match.group("title"), limit=500)
-        if len(title) < 24 or not re.search(
-            r"advis|alert|cyber|vulnerab|malware|ransom|phish|scam", title, re.I
-        ):
-            continue
-        href = match.group("href")
-        if href.startswith("/"):
-            origin = re.match(r"https?://[^/]+", base_url)
-            href = f"{origin.group(0) if origin else ''}{href}"
-        if not href.startswith("http"):
-            continue
-        output.append(SourceEntry(title=title, url=href, published_at=datetime.now(UTC)))
-        if len(output) >= MAX_ITEMS:
-            break
-    return tuple(output)
+    """Read dated NC4 listing cards, not navigation or full article pages."""
+    return parse_listing(payload, base_url, limit=MAX_ITEMS)

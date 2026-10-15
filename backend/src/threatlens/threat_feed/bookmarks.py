@@ -78,7 +78,7 @@ def availability(
                 parameters.extend(values)
         query = " UNION ALL ".join(parts)
         if storage.psycopg is not None:
-            with storage.psycopg.connect(storage.url) as db:
+            with storage.connect_postgres() as db:
                 rows = db.execute(query, parameters).fetchall()
         else:
             with sqlite3.connect(storage.path) as db:

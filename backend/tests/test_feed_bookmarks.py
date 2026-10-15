@@ -80,7 +80,7 @@ def test_postgres_uses_one_parameterized_combined_query(storage, monkeypatch):
             calls.append((query, parameters))
             return SimpleNamespace(fetchall=lambda: [("news", news.model_dump(mode="json"))])
 
-    monkeypatch.setattr(storage, "psycopg", SimpleNamespace(connect=lambda _: DB()))
+    monkeypatch.setattr(storage, "psycopg", SimpleNamespace(connect=lambda _, **kwargs: DB()))
     request = BookmarkRequest.model_validate(
         {
             "items": [

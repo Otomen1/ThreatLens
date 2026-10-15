@@ -33,6 +33,7 @@ from .models import (
     FeedSummary,
     FeedTopic,
     RegionCount,
+    SourceEntry,
     ThreatFeedItem,
     VulnerabilityListResponse,
 )
@@ -45,6 +46,10 @@ PUBLIC_REFRESH_COOLDOWN = timedelta(minutes=30)
 HOME_CACHE_SECONDS = 300
 HOME_CACHE_SIZE = 32
 _logger = logging.getLogger("threatlens.threat_feed")
+
+
+class FeedStorageError(RuntimeError):
+    """A source downloaded successfully but its normalized records could not be saved."""
 
 
 async def collect_ioc_reports(feed: FeedStorage, now: datetime) -> int:
@@ -62,6 +67,7 @@ class ThreatFeedService:
             tuple[str, str, int | None, int, str], tuple[float, FeedHomeResponse]
         ] = OrderedDict()
         self._home_cache_lock = Lock()
+        self._collection_storage_lock = Lock()
         self._vulnerability_cache: OrderedDict[
             tuple[str, str, str, str, int, int, int, str], tuple[float, VulnerabilityListResponse]
         ] = OrderedDict()
@@ -93,15 +99,21 @@ class ThreatFeedService:
                 completed_at=now,
                 next_refresh_at=next_refresh,
             )
+        slots = asyncio.Semaphore(4)
+
+        async def collect(source: SourceDefinition) -> tuple[int, int]:
+            async with slots:
+                return await self._collect(source, now)
+
         results = await asyncio.gather(
-            *(self._collect(source, now) for source in SOURCES), return_exceptions=True
+            *(collect(source) for source in SOURCES), return_exceptions=True
         )
         added = seen = succeeded = 0
         errors: list[str] = []
         for source, result in zip(SOURCES, results, strict=True):
             if isinstance(result, BaseException):
                 errors.append(f"{source.name}: unavailable")
-                self._source_error(source, now, result)
+                await asyncio.to_thread(self._source_error, source, now, result)
                 continue
             source_added, source_seen = result
             added += source_added
@@ -293,16 +305,32 @@ class ThreatFeedService:
 
     async def _collect(self, source: SourceDefinition, now: datetime) -> tuple[int, int]:
         entries = await fetch_source(source)
+        try:
+            return await asyncio.to_thread(self._persist, source, entries, now)
+        except Exception as error:
+            raise FeedStorageError("Source records could not be saved") from error
+
+    def _persist(
+        self, source: SourceDefinition, entries: tuple[SourceEntry, ...], now: datetime
+    ) -> tuple[int, int]:
+        # Synchronous database work must not starve other source HTTP connections.
+        # Serialize read/merge/write operations to avoid competing within one refresh.
+        with self._collection_storage_lock:
+            return self._persist_entries(source, entries, now)
+
+    def _persist_entries(
+        self, source: SourceDefinition, entries: tuple[SourceEntry, ...], now: datetime
+    ) -> tuple[int, int]:
         items: list[ThreatFeedItem] = []
         cutoff = now - timedelta(days=RETENTION_DAYS)
         for entry in entries:
-            if entry.published_at < cutoff:
-                continue
             topic = classify_topic(entry)
             region, relevance, reasons = classify_region(source.id, entry)
             items.append(
                 ThreatFeedItem(
-                    id=stable_id(source.id, entry),
+                    id=stable_id(source.id, entry.model_copy(update={"guid": None}))
+                    if source.id == "singcert"
+                    else stable_id(source.id, entry),
                     source_id=source.id,
                     source_name=source.name,
                     source_kind=source.kind,
@@ -326,7 +354,9 @@ class ThreatFeedService:
                     ),
                 )
             )
-        added = self.storage.save_items(items)
+        if source.id in {"nc4", "singcert"}:
+            self.storage.repair_listing_items(items)
+        added = self.storage.save_items(item for item in items if item.published_at >= cutoff)
         self.storage.save_source(
             FeedSourceStatus(
                 id=source.id,
@@ -343,12 +373,26 @@ class ThreatFeedService:
         code = (
             "timeout"
             if isinstance(error, (TimeoutError, httpx.TimeoutException))
+            else "storage_error"
+            if isinstance(error, FeedStorageError)
+            else f"http_{error.response.status_code}"
+            if isinstance(error, httpx.HTTPStatusError)
+            else "invalid_metadata"
+            if isinstance(error, ValueError)
             else "source_unavailable"
         )
         _logger.exception("Threat feed source refresh failed: %s", source.id, exc_info=error)
         previous = next(
             (item for item in self.storage.list_sources() if item.id == source.id), None
         )
+        messages = {
+            "storage_error": "Downloaded source metadata could not be saved.",
+            "timeout": "The source request timed out; saved reports remain available.",
+            "invalid_metadata": "The source did not supply usable dated report metadata.",
+            "http_403": "The publisher refused the public feed request (HTTP 403).",
+            "http_400": "The publisher rejected the feed request (HTTP 400).",
+            "http_429": "The publisher rate-limited the feed request (HTTP 429).",
+        }
         self.storage.save_source(
             FeedSourceStatus(
                 id=source.id,
@@ -357,7 +401,7 @@ class ThreatFeedService:
                 last_success_at=previous.last_success_at if previous else None,
                 last_attempt_at=now,
                 last_error_code=code,
-                last_error="The source could not be refreshed safely.",
+                last_error=messages.get(code, "The source could not be refreshed safely."),
                 last_added=previous.last_added if previous else 0,
             )
         )

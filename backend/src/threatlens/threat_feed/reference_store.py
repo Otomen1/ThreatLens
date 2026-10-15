@@ -102,7 +102,7 @@ def write(storage: FeedStorage, records: list[FeedReference], db: Any = None) ->
         else:
             db.executemany(query, values)
     elif storage.psycopg is not None:
-        with storage.psycopg.connect(storage.url) as connection, connection.cursor() as cursor:
+        with storage.connect_postgres() as connection, connection.cursor() as cursor:
             cursor.executemany(query, values)
     else:
         with closing(sqlite3.connect(storage.path)) as connection, connection:

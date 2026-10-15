@@ -105,6 +105,34 @@ available as a clearly labelled fallback for up to 24 hours; malformed/expired
 entries are discarded. Background failures retain displayed reports, and obsolete
 requests are cancelled. Opening the homepage does not mark all regions as read.
 
+#### Source collection reliability
+
+CISA Advisories uses its official RSS endpoint at
+`https://cisa.gov/cybersecurity-advisories/all.xml`; MyCERT uses
+`https://www.mycert.org.my/portal/rss`, and SingCERT uses its advertised
+`https://www.csa.gov.sg/alerts-and-advisories/advisories/rss.xml` feed. NC4 is read
+from dated advisory cards on its listing page only. MyCERT's RSS dates are taken
+from its explicit “Published date” field and interpreted in Malaysia time.
+Missing or malformed publication dates are never replaced with collection time.
+Functional article query parameters (such as MyCERT's record ID) are preserved;
+tracking parameters are removed. Previously saved NC4/SingCERT listing records
+are corrected in place when their authoritative metadata is next collected,
+preserving IDs and first-collection timestamps. Retention then uses corrected dates.
+
+News collection runs at concurrency four. Blocking database persistence runs in a
+worker thread, separately from the source HTTP event loop. Downloads have a
+25-second overall deadline and are stopped while streaming if they exceed 2 MB.
+Failures retain existing reports and distinguish HTTP rejection, timeout, malformed
+metadata, and database storage failures. Publisher availability is not guaranteed;
+there are no automatic retries or browser/anti-bot impersonation.
+
+All Threat Feed/IOC PostgreSQL connections disable Psycopg automatic prepared
+statements (`prepare_threshold=None`) for compatibility with Supabase's transaction
+pooler. No new database migration, paid service or environment variable is required.
+If refreshes show `DuplicatePreparedStatement`, ensure the deployed code includes
+this connection configuration; changing API keys will not fix that database error.
+Local SQLite and memory tests do not replace a production PostgreSQL smoke check.
+
 The public Vulnerabilities tab groups official NVD records and related advisory/news reports by CVE, with search, severity, source, activity filters, and pagination. Reports without a CVE remain available. Scores retain their source and CVSS version; missing scores display as “Not rated.” A reported zero-day requires explicit source wording; CISA KEV membership indicates known exploitation, not necessarily a zero-day.
 
 NVD uses its public API without an API key. Collection initially covers seven days and subsequently uses incremental modification windows. Each refresh requests at most three pages, sequentially, with six seconds between requests. Unfinished pagination is persisted and resumed at the next refresh; the interface shows partial or delayed synchronization rather than promising a complete, real-time CVE catalogue. Records remain in the rolling 30-day activity window; older CVEs can return through recent KEV additions or reports.

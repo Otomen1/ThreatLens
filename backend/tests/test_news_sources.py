@@ -38,7 +38,10 @@ def test_unsafe_original_link_does_not_replace_publisher_link():
 
 
 def test_rss_item_cap_still_applies():
-    item = "<item><title>Synthetic report</title><link>https://example.test/report</link></item>"
+    item = (
+        "<item><title>Synthetic report</title><link>https://example.test/report</link>"
+        "<pubDate>Wed, 14 Oct 2026 08:00:00 GMT</pubDate></item>"
+    )
     assert len(parse_rss(f"<rss><channel>{item * 100}</channel></rss>".encode())) == MAX_ITEMS
 
 

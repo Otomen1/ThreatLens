@@ -6,7 +6,7 @@ import hashlib
 import html
 import re
 from datetime import datetime
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from ..search import detect, extract_ioc_report
 from .models import FeedEntity, FeedRegion, FeedTopic, SourceEntry
@@ -43,7 +43,14 @@ def clean_text(value: str, *, limit: int = 1200) -> str:
 def canonical_url(value: str) -> str:
     parsed = urlsplit(value.strip())
     path = parsed.path.rstrip("/") or "/"
-    return urlunsplit((parsed.scheme.lower(), parsed.netloc.lower(), path, "", ""))
+    query = urlencode(
+        [
+            (key, value)
+            for key, value in parse_qsl(parsed.query)
+            if not key.lower().startswith("utm_") and key.lower() not in {"fbclid", "gclid"}
+        ]
+    )
+    return urlunsplit((parsed.scheme.lower(), parsed.netloc.lower(), path, query, ""))
 
 
 def stable_id(source_id: str, entry: SourceEntry) -> str:
