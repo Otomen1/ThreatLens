@@ -6,8 +6,9 @@ import NewsFeed from "./NewsFeed";
 import { VulnerabilityFeed } from "./VulnerabilityFeed";
 import { IocFeed } from "./IocFeed";
 import { PocFeed } from "./PocFeed";
+import type { FeedRegion } from "@/lib/api/threatFeed";
 
-export function FeedPanels({ selected }: { selected: FeedTab }) {
+export function FeedPanels({ selected, newsRegion }: { selected: FeedTab; newsRegion?: FeedRegion }) {
   const params = useSearchParams();
   const key = params.toString();
   const [snapshots, setSnapshots] = useState<Partial<Record<FeedTab, string>>>({ [selected]: key });
@@ -21,7 +22,7 @@ export function FeedPanels({ selected }: { selected: FeedTab }) {
     {[...tabs].map((tab) => <div key={tab} hidden={tab !== visible} inert={previous && tab === visible} className={tab === visible ? "ui-panel-enter" : undefined}>
       <FeedParamsContext.Provider value={new URLSearchParams(tab === selected ? key : snapshots[tab])}>
         <FeedReadyContext.Provider value={{ tab, done }}>
-          {tab === "news" ? <NewsFeed /> : tab === "vulnerabilities" ? <VulnerabilityFeed /> : tab === "iocs" ? <IocFeed /> : <PocFeed />}
+          {tab === "news" ? <NewsFeed region={newsRegion} /> : tab === "vulnerabilities" ? <VulnerabilityFeed /> : tab === "iocs" ? <IocFeed /> : <PocFeed />}
         </FeedReadyContext.Provider>
       </FeedParamsContext.Provider>
     </div>)}

@@ -34,4 +34,11 @@ describe("Threat Feed browser cache", () => {
     localStorage.setItem("threatlens.feed.home.v1", "not-json");
     expect(readFeedHomeCache(params)).toBeNull();
   });
+
+  it("rejects broken row metadata and works when storage is blocked", () => {
+    writeFeedHomeCache(params, { ...response, sections: { ...response.sections, global: { items: [{ id: "broken" }] as FeedHomeResponse["sections"]["global"]["items"], total: 1 } } });
+    expect(readFeedHomeCache(params)).toBeNull();
+    vi.stubGlobal("localStorage", { getItem() { throw new Error("blocked"); }, setItem() { throw new Error("blocked"); }, removeItem() { throw new Error("blocked"); } });
+    expect(readFeedHomeCache(params)).toBeNull(); expect(() => writeFeedHomeCache(params, response)).not.toThrow();
+  });
 });

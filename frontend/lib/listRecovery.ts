@@ -1,10 +1,12 @@
+import { isNewsListPath } from "./newsFeed";
+
 export const RECOVERY_TTL = 30 * 60_000;
 export const RECOVERY_LIMIT = 50;
 export const RECOVERY_STATE_KEY = "threatlensListEntry";
 const lists = new Set(["/threat-feed", "/workspace", "/cases", "/detections"]);
 
-export function isRecoverableList(pathname: string): boolean { return lists.has(pathname); }
-export function isPrivateList(pathname: string): boolean { return pathname !== "/threat-feed"; }
+export function isRecoverableList(pathname: string): boolean { return lists.has(pathname) || isNewsListPath(pathname); }
+export function isPrivateList(pathname: string): boolean { return pathname !== "/threat-feed" && !isNewsListPath(pathname); }
 
 export type ListPosition = {
   id: string; url: string; y: number; anchor: string | null; offset: number;
@@ -28,7 +30,7 @@ export class ListRecoveryStore {
   get(id: string): ListPosition | undefined { this.prune(); return this.entries.get(id); }
   origin(detail: string, listPath: string): ListPosition | undefined {
     this.prune();
-    return [...this.entries.values()].reverse().find((item) => item.detail === detail && item.url.split("?")[0] === listPath);
+    return [...this.entries.values()].reverse().find((item) => item.detail === detail && (item.url.split("?")[0] === listPath || (listPath === "/threat-feed" && isNewsListPath(item.url.split("?")[0]))));
   }
   clearPrivate() { for (const [id, item] of this.entries) if (item.private) this.entries.delete(id); }
   get size() { this.prune(); return this.entries.size; }

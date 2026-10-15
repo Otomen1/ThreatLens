@@ -80,7 +80,32 @@ The workflow can also be started manually from GitHub Actions. Read state and bo
 
 ### News and Vulnerabilities
 
-News opens by default and retains the Global, Malaysia, and Southeast Asia sections. The public Vulnerabilities tab groups official NVD records and related advisory/news reports by CVE, with search, severity, source, activity filters, and pagination. Reports without a CVE remain available. Scores retain their source and CVSS version; missing scores display as “Not rated.” A reported zero-day requires explicit source wording; CISA KEV membership indicates known exploitation, not necessarily a zero-day.
+News opens by default with the existing activity cards, one newest-first table of
+the latest ten matching reports across all regions, and navigation cards for
+Global, Southeast Asia and Malaysia. Regional pages show ten reports per page:
+`/threat-feed/news/global`, `/threat-feed/news/southeast-asia`, and
+`/threat-feed/news/malaysia`. Search, topic and time filters carry into each region;
+regional pages also support oldest/newest sorting. Legacy `?region=...` links
+redirect to the matching page. Previews, local bookmarks, column preferences and
+article-to-list recovery remain available.
+
+The News source set also includes AhnLab ASEC (`https://asec.ahnlab.com/en/feed/`),
+Fortinet FortiGuard Labs (`https://feeds.fortinet.com/fortinet/blog/threat-research`)
+and ESET WeLiveSecurity (`https://www.welivesecurity.com/en/rss/feed/`). They join
+the existing refresh schedule, with independent source status and failure
+handling. Only bounded RSS metadata is collected; original Fortinet article links
+are preferred over tracking links. Feed viewing never triggers source collection
+or investigations. No new credentials, service or database migration is required.
+
+Homepage reads reuse the bounded combined endpoint with ten candidates per
+region (at most thirty payloads) before selecting the latest ten. Regional pages
+use one paginated items request, not a homepage-plus-list waterfall. Regional
+browser caches retain at most three recent listings, fresh for five minutes and
+available as a clearly labelled fallback for up to 24 hours; malformed/expired
+entries are discarded. Background failures retain displayed reports, and obsolete
+requests are cancelled. Opening the homepage does not mark all regions as read.
+
+The public Vulnerabilities tab groups official NVD records and related advisory/news reports by CVE, with search, severity, source, activity filters, and pagination. Reports without a CVE remain available. Scores retain their source and CVSS version; missing scores display as “Not rated.” A reported zero-day requires explicit source wording; CISA KEV membership indicates known exploitation, not necessarily a zero-day.
 
 NVD uses its public API without an API key. Collection initially covers seven days and subsequently uses incremental modification windows. Each refresh requests at most three pages, sequentially, with six seconds between requests. Unfinished pagination is persisted and resumed at the next refresh; the interface shows partial or delayed synchronization rather than promising a complete, real-time CVE catalogue. Records remain in the rolling 30-day activity window; older CVEs can return through recent KEV additions or reports.
 

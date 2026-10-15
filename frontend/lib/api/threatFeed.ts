@@ -49,8 +49,9 @@ export function getFeedHome(params: FeedHomeParams, options?: { fresh?: boolean;
   const path = `/threat-feed/home?${query.toString()}`;
   return options?.fresh ? getUncached<FeedHomeResponse>(path, options.signal) : get<FeedHomeResponse>(path, options?.signal);
 }
-export function getFeedItems(params: Record<string, string | number | undefined>) {
+export function getFeedItems(params: Record<string, string | number | undefined>, options?: { signal?: AbortSignal; fresh?: boolean }) {
   const query = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => { if (value !== undefined && value !== "") query.set(key, String(value)); });
-  return get<FeedList>(`/threat-feed/items?${query.toString()}`);
+  const path = `/threat-feed/items?${query.toString()}`;
+  return options?.fresh ? getUncached<FeedList>(path, options.signal) : get<FeedList>(path, options?.signal);
 }

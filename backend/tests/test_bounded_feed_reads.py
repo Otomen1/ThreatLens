@@ -47,19 +47,21 @@ def test_home_and_pages_match_memory_without_loading_whole_collections(tmp_path,
     database.list_vulnerabilities = lambda: (_ for _ in ()).throw(
         AssertionError("Full vulnerability read")
     )
-    with patch.object(
-        ThreatFeedItem, "model_validate_json", wraps=ThreatFeedItem.model_validate_json
-    ) as hydrate:
-        response = actual.home(limit_per_region=5)
-        assert hydrate.call_count == 15
-    baseline = expected.home(limit_per_region=5)
-    assert response.summary == baseline.summary
-    assert response.sections == baseline.sections
+    for limit in (5, 10):
+        with patch.object(
+            ThreatFeedItem, "model_validate_json", wraps=ThreatFeedItem.model_validate_json
+        ) as hydrate:
+            response = actual.home(limit_per_region=limit)
+            assert hydrate.call_count == 3 * limit
+        baseline = expected.home(limit_per_region=limit)
+        assert response.summary == baseline.summary
+        assert response.sections == baseline.sections
     for sort in ("newest", "oldest"):
         for region in FeedRegion:
-            assert actual.list_items(
-                region=region, page=2, page_size=7, sort=sort
-            ) == expected.list_items(region=region, page=2, page_size=7, sort=sort)
+            for page_size in (7, 10):
+                assert actual.list_items(
+                    region=region, page=2, page_size=page_size, sort=sort
+                ) == expected.list_items(region=region, page=2, page_size=page_size, sort=sort)
     found = search(database, "cve-2026-1234", {"news": 2, "vulnerability": 1, "ioc": 1})
     assert found.groups["news"].total == 120 and len(found.groups["news"].items) == 20
     assert found.groups["vulnerability"].total == 1
