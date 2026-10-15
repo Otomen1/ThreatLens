@@ -7,6 +7,7 @@ import json
 import os
 import sqlite3
 from collections.abc import Iterable
+from contextlib import closing
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -43,8 +44,29 @@ class FeedStorage:
                 self._schema(db, postgres=True)
         elif self.backend == "sqlite":
             self.path.parent.mkdir(parents=True, exist_ok=True)
-            with sqlite3.connect(self.path) as db:
+            with closing(sqlite3.connect(self.path)) as db, db:
                 self._schema(db, postgres=False)
+        if (self.psycopg is not None or self.backend == "sqlite") and self.state(
+            "bounded_reads_v1"
+        ) != "ready":
+            # One-time local metadata backfill, not an external collection.
+            from .vulnerabilities import link_reports
+
+            self.save_vulnerabilities(
+                link_reports(self.list_vulnerabilities(), self.list_items(), datetime.now(UTC))
+            )
+            self.set_state("bounded_reads_v1", "ready")
+        if (self.psycopg is not None or self.backend == "sqlite") and self.state(
+            "read_references_v1"
+        ) != "ready":
+            from .reference_store import news_reference, vulnerability_reference, write
+
+            write(
+                self,
+                [news_reference(r) for r in self.list_items()]
+                + [vulnerability_reference(r) for r in self.list_vulnerabilities()],
+            )
+            self.set_state("read_references_v1", "ready")
 
     @staticmethod
     def _schema(db: Any, *, postgres: bool) -> None:
@@ -83,6 +105,43 @@ class FeedStorage:
             "CREATE INDEX IF NOT EXISTS threat_feed_items_published_idx "
             "ON threat_feed_items(published_at DESC)"
         )
+        for table, column, timestamp in (
+            ("threat_feed_items", "published_epoch", "published_at"),
+            ("threat_feed_vulnerabilities", "activity_epoch", "activity_at"),
+        ):
+            if postgres:
+                db.execute(
+                    f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} double precision"
+                )
+                expression = f"EXTRACT(EPOCH FROM {timestamp}::timestamptz)"
+            else:
+                columns = {row[1] for row in db.execute(f"PRAGMA table_info({table})")}
+                if column not in columns:
+                    db.execute(f"ALTER TABLE {table} ADD COLUMN {column} real")
+                expression = f"(julianday({timestamp})-2440587.5)*86400.0"
+            db.execute(f"UPDATE {table} SET {column}={expression} WHERE {column} IS NULL")
+            db.execute(f"CREATE INDEX IF NOT EXISTS {table}_epoch_idx ON {table}({column} DESC,id)")
+        for key in ("region", "source_id", "topic"):
+            expression = f"payload->>'{key}'" if postgres else f"json_extract(payload,'$.{key}')"
+            db.execute(
+                f"CREATE INDEX IF NOT EXISTS threat_feed_{key}_epoch_idx "
+                f"ON threat_feed_items(({expression}),published_epoch DESC,id)"
+            )
+        db.execute(
+            f"CREATE TABLE IF NOT EXISTS threat_feed_read_references(kind text "
+            f"NOT NULL,id text NOT NULL,activity_epoch double precision NOT "
+            f"NULL,search_text text NOT NULL,payload {json_type} NOT NULL,PRIMARY KEY(kind,id))"
+        )
+        db.execute(
+            "CREATE INDEX IF NOT EXISTS threat_feed_references_activity_idx ON "
+            "threat_feed_read_references(kind,activity_epoch DESC,id)"
+        )
+        if postgres:
+            db.execute("ALTER TABLE threat_feed_read_references ENABLE ROW LEVEL SECURITY")
+            db.execute(
+                "CREATE INDEX IF NOT EXISTS threat_feed_references_payload_idx "
+                "ON threat_feed_read_references USING gin(payload)"
+            )
 
     def save_items(self, items: Iterable[ThreatFeedItem]) -> int:
         candidates = list(items)
@@ -91,32 +150,83 @@ class FeedStorage:
         if self.psycopg is not None:
             with self.psycopg.connect(self.url) as db:
                 rows = db.execute(
-                    "INSERT INTO threat_feed_items(id,published_at,payload) "
-                    "SELECT id,published_at,payload::jsonb FROM "
-                    "unnest(%s::text[],%s::text[],%s::text[]) "
-                    "AS batch(id,published_at,payload) ON CONFLICT DO NOTHING RETURNING id",
+                    "INSERT INTO threat_feed_items(id,published_at,payload,published_epoch) "
+                    "SELECT id,published_at,payload::jsonb,published_epoch FROM "
+                    "unnest(%s::text[],%s::text[],%s::text[],%s::double precision[]) "
+                    "AS batch(id,published_at,payload,published_epoch) "
+                    "ON CONFLICT DO NOTHING RETURNING id",
                     (
                         [item.id for item in candidates],
                         [item.published_at.isoformat() for item in candidates],
                         [item.model_dump_json() for item in candidates],
+                        [item.published_at.timestamp() for item in candidates],
                     ),
                 ).fetchall()
+                added_ids = {row[0] for row in rows}
+                from .reference_store import news_reference, write
+
+                write(
+                    self, [news_reference(item) for item in candidates if item.id in added_ids], db
+                )
+            self._materialize_news(candidates)
             return len(rows)
         if self.backend == "sqlite":
-            with sqlite3.connect(self.path) as db:
+            with closing(sqlite3.connect(self.path)) as db, db:
+                markers = ",".join("?" for _ in candidates)
+                existing = {
+                    row[0]
+                    for row in db.execute(
+                        f"SELECT id FROM threat_feed_items WHERE id IN ({markers})",
+                        [item.id for item in candidates],
+                    )
+                }
                 before = db.total_changes
                 db.executemany(
-                    "INSERT OR IGNORE INTO threat_feed_items VALUES (?,?,?)",
+                    "INSERT OR IGNORE INTO "
+                    "threat_feed_items(id,published_at,payload,published_epoch) VALUES (?,?,?,?)",
                     [
-                        (item.id, item.published_at.isoformat(), item.model_dump_json())
+                        (
+                            item.id,
+                            item.published_at.isoformat(),
+                            item.model_dump_json(),
+                            item.published_at.timestamp(),
+                        )
                         for item in candidates
                     ],
                 )
                 inserted = db.total_changes - before
+                from .reference_store import news_reference, write
+
+                write(
+                    self,
+                    [news_reference(item) for item in candidates if item.id not in existing],
+                    db,
+                )
+            self._materialize_news(candidates)
             return inserted
         new_items = [item for item in candidates if item.id not in self.memory_items]
         self.memory_items.update({item.id: item for item in new_items})
         return len(new_items)
+
+    def _materialize_news(self, items: list[ThreatFeedItem]) -> None:
+        if not items:
+            return
+        from .queries import run
+        from .vulnerabilities import link_reports
+
+        now = datetime.now(UTC)
+        generated = link_reports([], items, now)
+        if not generated:
+            return
+        placeholders = ",".join("?" for _ in generated)
+        rows = run(
+            self,
+            f"SELECT CAST(payload AS text) FROM "
+            f"threat_feed_vulnerabilities WHERE id IN ({placeholders})",
+            [record.id for record in generated],
+        )
+        existing = [FeedVulnerability.model_validate_json(row[0]) for row in rows]
+        self.save_vulnerabilities(link_reports(existing, items, now))
 
     def list_items(self) -> list[ThreatFeedItem]:
         if self.psycopg is not None:
@@ -126,7 +236,7 @@ class FeedStorage:
                 ).fetchall()
             return [ThreatFeedItem.model_validate(row[0]) for row in rows]
         if self.backend == "sqlite":
-            with sqlite3.connect(self.path) as db:
+            with closing(sqlite3.connect(self.path)) as db, db:
                 rows = db.execute(
                     "SELECT payload FROM threat_feed_items ORDER BY published_at DESC"
                 ).fetchall()
@@ -152,7 +262,7 @@ class FeedStorage:
             )
             refresh = next((str(payload) for kind, payload in rows if kind == "state"), None)
         elif self.backend == "sqlite":
-            with sqlite3.connect(self.path) as db:
+            with closing(sqlite3.connect(self.path)) as db, db:
                 rows = db.execute(
                     "SELECT 'item', payload FROM threat_feed_items "
                     "UNION ALL SELECT 'source', payload FROM threat_feed_sources "
@@ -188,7 +298,7 @@ class FeedStorage:
                 ).fetchone()
             return ThreatFeedItem.model_validate(row[0]) if row else None
         if self.backend == "sqlite":
-            with sqlite3.connect(self.path) as db:
+            with closing(sqlite3.connect(self.path)) as db, db:
                 row = db.execute(
                     "SELECT payload FROM threat_feed_items WHERE id=?", (item_id,)
                 ).fetchone()
@@ -199,10 +309,18 @@ class FeedStorage:
         if self.psycopg is not None:
             with self.psycopg.connect(self.url) as db:
                 db.execute(
+                    "DELETE FROM threat_feed_read_references WHERE activity_epoch<%s",
+                    (cutoff.timestamp(),),
+                )
+                db.execute(
                     "DELETE FROM threat_feed_items WHERE published_at < %s", (cutoff.isoformat(),)
                 )
         elif self.backend == "sqlite":
-            with sqlite3.connect(self.path) as db:
+            with closing(sqlite3.connect(self.path)) as db, db:
+                db.execute(
+                    "DELETE FROM threat_feed_read_references WHERE activity_epoch<?",
+                    (cutoff.timestamp(),),
+                )
                 db.execute(
                     "DELETE FROM threat_feed_items WHERE published_at < ?", (cutoff.isoformat(),)
                 )
@@ -221,7 +339,7 @@ class FeedStorage:
                     (source.id, payload),
                 )
         elif self.backend == "sqlite":
-            with sqlite3.connect(self.path) as db:
+            with closing(sqlite3.connect(self.path)) as db, db:
                 db.execute(
                     "INSERT OR REPLACE INTO threat_feed_sources VALUES (?,?)", (source.id, payload)
                 )
@@ -234,7 +352,7 @@ class FeedStorage:
                 rows = db.execute("SELECT payload FROM threat_feed_sources").fetchall()
             return [FeedSourceStatus.model_validate(row[0]) for row in rows]
         if self.backend == "sqlite":
-            with sqlite3.connect(self.path) as db:
+            with closing(sqlite3.connect(self.path)) as db, db:
                 rows = db.execute("SELECT payload FROM threat_feed_sources").fetchall()
             return [FeedSourceStatus.model_validate_json(row[0]) for row in rows]
         return list(self.memory_sources.values())
@@ -250,7 +368,7 @@ class FeedStorage:
                     (refresh_id, refresh_id, payload),
                 )
         elif self.backend == "sqlite":
-            with sqlite3.connect(self.path) as db:
+            with closing(sqlite3.connect(self.path)) as db, db:
                 db.execute(
                     "INSERT OR REPLACE INTO threat_feed_refresh_runs VALUES (?,?,?)",
                     (refresh_id, refresh_id, payload),
@@ -264,7 +382,7 @@ class FeedStorage:
                 ).fetchone()
             return str(row[0]) if row else None
         if self.backend == "sqlite":
-            with sqlite3.connect(self.path) as db:
+            with closing(sqlite3.connect(self.path)) as db, db:
                 row = db.execute(
                     "SELECT value FROM threat_feed_state WHERE key=?", (key,)
                 ).fetchone()
@@ -280,7 +398,7 @@ class FeedStorage:
                     (key, value),
                 )
         elif self.backend == "sqlite":
-            with sqlite3.connect(self.path) as db:
+            with closing(sqlite3.connect(self.path)) as db, db:
                 db.execute("INSERT OR REPLACE INTO threat_feed_state VALUES (?,?)", (key, value))
         else:
             self.memory_state[key] = value
@@ -321,7 +439,7 @@ class FeedStorage:
                 db.execute("UPDATE threat_feed_state SET value=%s WHERE key=%s", (value, key))
                 return result
         if self.backend == "sqlite":
-            with sqlite3.connect(self.path) as db:
+            with closing(sqlite3.connect(self.path)) as db, db:
                 db.execute("BEGIN IMMEDIATE")
                 row = db.execute(
                     "SELECT value FROM threat_feed_state WHERE key=?", (key,)
@@ -367,7 +485,7 @@ class FeedStorage:
                 )
                 return True
         if self.backend == "sqlite":
-            with sqlite3.connect(self.path) as db:
+            with closing(sqlite3.connect(self.path)) as db, db:
                 db.execute("BEGIN IMMEDIATE")
                 lease = db.execute(
                     "SELECT expires_at FROM threat_feed_refresh_lease WHERE id='global'"
@@ -416,7 +534,7 @@ class FeedStorage:
             with self.psycopg.connect(self.url) as db:
                 db.execute("DELETE FROM threat_feed_refresh_lease WHERE owner=%s", (owner,))
         elif self.backend == "sqlite":
-            with sqlite3.connect(self.path) as db:
+            with closing(sqlite3.connect(self.path)) as db, db:
                 db.execute("DELETE FROM threat_feed_refresh_lease WHERE owner=?", (owner,))
         else:
             with self._lease_lock:
@@ -430,7 +548,7 @@ class FeedStorage:
                 rows = db.execute("SELECT payload FROM threat_feed_vulnerabilities").fetchall()
             return [FeedVulnerability.model_validate(row[0]) for row in rows]
         if self.backend == "sqlite":
-            with sqlite3.connect(self.path) as db:
+            with closing(sqlite3.connect(self.path)) as db, db:
                 rows = db.execute("SELECT payload FROM threat_feed_vulnerabilities").fetchall()
             return [FeedVulnerability.model_validate_json(row[0]) for row in rows]
         return list(self.memory_vulnerabilities.values())
@@ -439,13 +557,41 @@ class FeedStorage:
         self, records: Iterable[FeedVulnerability], *, state: dict[str, str] | None = None
     ) -> None:
         """Commit a source page and its synchronization cursor in one transaction."""
-        values = [(r.id, r.activity_at.isoformat(), r.model_dump_json()) for r in records]
+        candidates = list(records)
+        from .reference_store import vulnerability_reference, write
+        from .vulnerabilities import merge_record
+
+        if self.psycopg is not None or self.backend == "sqlite":
+            from .queries import run
+
+            markers = ",".join("?" for _ in candidates)
+            rows = (
+                run(
+                    self,
+                    f"SELECT CAST(payload AS text) FROM "
+                    f"threat_feed_vulnerabilities WHERE id IN ({markers})",
+                    [r.id for r in candidates],
+                )
+                if candidates
+                else []
+            )
+            previous = {
+                r.id: r for row in rows if (r := FeedVulnerability.model_validate_json(row[0]))
+            }
+        else:
+            previous = self.memory_vulnerabilities
+        candidates = [merge_record(previous.get(r.id), r) for r in candidates]
+        values = [
+            (r.id, r.activity_at.isoformat(), r.model_dump_json(), r.activity_at.timestamp())
+            for r in candidates
+        ]
         if self.psycopg is not None:
             with self.psycopg.connect(self.url) as db, db.cursor() as cursor:
                 cursor.executemany(
-                    "INSERT INTO threat_feed_vulnerabilities VALUES (%s,%s,%s::jsonb) "
+                    "INSERT INTO threat_feed_vulnerabilities(id,activity_at,"
+                    "payload,activity_epoch) VALUES (%s,%s,%s::jsonb,%s) "
                     "ON CONFLICT(id) DO UPDATE SET activity_at=EXCLUDED.activity_at,"
-                    "payload=EXCLUDED.payload",
+                    "payload=EXCLUDED.payload,activity_epoch=EXCLUDED.activity_epoch",
                     values,
                 )
                 cursor.executemany(
@@ -453,15 +599,20 @@ class FeedStorage:
                     "DO UPDATE SET value=EXCLUDED.value",
                     list((state or {}).items()),
                 )
+                write(self, [vulnerability_reference(record) for record in candidates], db)
         elif self.backend == "sqlite":
-            with sqlite3.connect(self.path) as db:
+            with closing(sqlite3.connect(self.path)) as db, db:
                 db.executemany(
-                    "INSERT OR REPLACE INTO threat_feed_vulnerabilities VALUES (?,?,?)", values
+                    "INSERT OR REPLACE INTO "
+                    "threat_feed_vulnerabilities(id,activity_at,payload,activity_epoch) "
+                    "VALUES (?,?,?,?)",
+                    values,
                 )
                 db.executemany(
                     "INSERT OR REPLACE INTO threat_feed_state VALUES (?,?)",
                     list((state or {}).items()),
                 )
+                write(self, [vulnerability_reference(record) for record in candidates], db)
         else:
             self.memory_vulnerabilities.update(
                 {item[0]: FeedVulnerability.model_validate_json(item[2]) for item in values}
@@ -476,7 +627,7 @@ class FeedStorage:
                     (cutoff.isoformat(),),
                 )
         elif self.backend == "sqlite":
-            with sqlite3.connect(self.path) as db:
+            with closing(sqlite3.connect(self.path)) as db, db:
                 db.execute(
                     "DELETE FROM threat_feed_vulnerabilities WHERE activity_at < ?",
                     (cutoff.isoformat(),),

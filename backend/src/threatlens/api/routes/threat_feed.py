@@ -217,6 +217,21 @@ def vulnerability_detail(
     record_id: str,
     service: Annotated[ThreatFeedService, Depends(get_threat_feed_service)],
 ) -> FeedVulnerability:
+    from ...threat_feed.queries import database_backed, run
+
+    if database_backed(service.storage):
+        rows = run(
+            service.storage,
+            "SELECT CAST(payload AS text) FROM threat_feed_vulnerabilities "
+            "WHERE id IN (?,?) ORDER BY CASE WHEN id=? THEN 0 ELSE 1 END LIMIT 1",
+            [record_id.upper(), record_id, record_id.upper()],
+        )
+        records = link_reports(
+            [FeedVulnerability.model_validate_json(row[0]) for row in rows], [], datetime.now(UTC)
+        )
+        if not records:
+            raise HTTPException(status_code=404, detail="Vulnerability not found")
+        return records[0]
     records = link_reports(
         service.storage.list_vulnerabilities(), service.storage.list_items(), datetime.now(UTC)
     )

@@ -322,6 +322,20 @@ def vulnerability_list(
     page_size: int = 20,
     sort: str = "newest",
 ) -> VulnerabilityListResponse:
+    from .queries import database_backed, vulnerability_page
+
+    if database_backed(storage):
+        return vulnerability_page(
+            storage,
+            query=query,
+            category=category,
+            severity=severity,
+            source=source,
+            hours=hours,
+            page=page,
+            page_size=page_size,
+            sort=sort,
+        )
     now = datetime.now(UTC)
     records = link_reports(storage.list_vulnerabilities(), storage.list_items(), now)
     cutoff = now - timedelta(hours=hours)

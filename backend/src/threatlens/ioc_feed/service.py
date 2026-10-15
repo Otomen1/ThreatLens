@@ -41,6 +41,27 @@ def listing(
     now = datetime.now(UTC)
     normalized = normalize(query)
     query = normalized.value if normalized else query.strip()
+    result: ReportList | IndicatorList
+    if not storage.memory:
+        from .queries import listing as bounded_listing
+
+        result = bounded_listing(
+            storage,
+            query=query,
+            vendor=vendor,
+            kind=kind,
+            hours=hours,
+            page=page,
+            page_size=page_size,
+            view=view,
+            sort=sort,
+        )
+        with _lock:
+            _cache[key] = (time.monotonic() + 300, result)
+            _cache.move_to_end(key)
+            while len(_cache) > 32:
+                _cache.popitem(last=False)
+        return result
     records = storage.snapshot(
         query=query, vendor=vendor, kind=kind, cutoff=now - timedelta(hours=hours)
     )
@@ -58,7 +79,6 @@ def listing(
                 activity_at=max(old.activity_at, report.activity_at) if old else report.activity_at,
             )
     offset = (page - 1) * page_size
-    result: ReportList | IndicatorList
     if view == "indicators":
         items = sorted(
             groups.values(), key=lambda item: (item.activity_at, item.id), reverse=sort != "oldest"

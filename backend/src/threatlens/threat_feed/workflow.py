@@ -195,6 +195,12 @@ def references(storage: FeedStorage) -> list[FeedReference]:
 def _search(
     storage: FeedStorage, query: str, pages: dict[str, int], oldest: bool = False
 ) -> FeedSearch:
+    from .queries import database_backed
+
+    if database_backed(storage):
+        from .reference_store import search_index
+
+        return search_index(storage, query, pages, oldest)
     records = references(storage)
     normalized_cve = cve(query)
     observable = normalize(query)
@@ -226,6 +232,12 @@ def _search(
 
 
 def _related(storage: FeedStorage, kind: RecordKind, record_id: str) -> FeedRelated | None:
+    from .queries import database_backed
+
+    if database_backed(storage):
+        from .reference_store import related_index
+
+        return related_index(storage, kind, record_id)
     records = references(storage)
     source = next((r for r in records if r.kind == kind and r.id == record_id), None)
     if source is None:

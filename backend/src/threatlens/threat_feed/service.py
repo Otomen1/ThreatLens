@@ -217,6 +217,23 @@ class ThreatFeedService:
             if cached:
                 del self._home_cache[key]
 
+        from .queries import database_backed, home_page
+
+        if database_backed(self.storage):
+            response = home_page(
+                self.storage,
+                query=query,
+                topic=topic,
+                hours=hours,
+                limit_per_region=limit_per_region,
+                sort=sort,
+            )
+            with self._home_cache_lock:
+                self._home_cache[key] = (now_monotonic + HOME_CACHE_SECONDS, response)
+                self._home_cache.move_to_end(key)
+                while len(self._home_cache) > HOME_CACHE_SIZE:
+                    self._home_cache.popitem(last=False)
+            return response
         snapshot = self.storage.home_snapshot()
         now = datetime.now(UTC)
         recent_cutoff = now - timedelta(hours=24)
@@ -357,6 +374,20 @@ class ThreatFeedService:
         page_size: int = 20,
         sort: str = "newest",
     ) -> FeedListResponse:
+        from .queries import database_backed, news_page
+
+        if database_backed(self.storage):
+            return news_page(
+                self.storage,
+                region=region,
+                source=source,
+                topic=topic,
+                hours=hours,
+                query=query,
+                page=page,
+                page_size=page_size,
+                sort=sort,
+            )
         items = self.storage.list_items()
         cutoff = datetime.now(UTC) - timedelta(hours=hours) if hours else None
         needle = (query or "").strip().lower()
@@ -401,6 +432,12 @@ class ThreatFeedService:
         )
 
     def summary(self) -> FeedSummary:
+        from .queries import database_backed, home_page
+
+        if database_backed(self.storage):
+            return home_page(
+                self.storage, query=None, topic=None, hours=None, limit_per_region=0, sort="newest"
+            ).summary
         items = self.storage.list_items()
         recent_cutoff = datetime.now(UTC) - timedelta(hours=24)
         regions = {

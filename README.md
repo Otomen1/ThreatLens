@@ -1,5 +1,11 @@
 # ThreatLens
 
+## Personal-use security
+
+Private operations require your verified Supabase owner UUID. Before deploying
+the security upgrade, configure `THREATLENS_OWNER_USER_ID` and apply the supplied
+migration. See [owner setup, local history, storage and safe backups](docs/PERSONAL_SECURITY.md).
+
 ## Personal investigation experience
 
 Search stays the home page, with a compact start panel, retained results during

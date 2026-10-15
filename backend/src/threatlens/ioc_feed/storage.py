@@ -4,7 +4,7 @@ import json
 import os
 import sqlite3
 from collections.abc import Iterator
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 from datetime import UTC, datetime, timedelta
 from threading import Lock
 from typing import Any
@@ -46,6 +46,22 @@ class IocStorage:
             with self.connection() as db:
                 for statement in schema(self.pg):
                     db.execute(statement)
+            if feed.state("ioc_read_references_v1") != "ready":
+                from ..threat_feed.reference_store import ioc_reference, write
+
+                write(
+                    feed,
+                    [
+                        ioc_reference(r, items)
+                        for r, items in self.snapshot(
+                            query="",
+                            vendor="",
+                            kind="",
+                            cutoff=datetime.now(UTC) - timedelta(days=30),
+                        )
+                    ],
+                )
+                feed.set_state("ioc_read_references_v1", "ready")
 
     @contextmanager
     def connection(self) -> Iterator[Any]:
@@ -54,7 +70,7 @@ class IocStorage:
             with self.feed.psycopg.connect(self.feed.url) as db:
                 yield db
         else:
-            with sqlite3.connect(self.feed.path) as db:
+            with closing(sqlite3.connect(self.feed.path)) as db, db:
                 db.execute("PRAGMA foreign_keys=ON")
                 yield db
 
@@ -211,6 +227,9 @@ class IocStorage:
                     (key, value),
                 )
             maintain(db, self.sql, entry, self.pg, report.collected_at - timedelta(days=30))
+            from ..threat_feed.reference_store import ioc_reference, write
+
+            write(self.feed, [ioc_reference(report, indicators)], db)
 
     def changes(self, report_id: str, page: int = 1) -> dict[str, Any]:
         cutoff = datetime.now(UTC) - timedelta(days=30)
