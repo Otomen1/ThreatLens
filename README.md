@@ -104,6 +104,24 @@ Selection resets on filter/page changes and pauses while previous-filter results
 are displayed. Raw indicator rows and private PoC results are not bulk-bookmarked.
 No providers are called, migrations needed or paid services added by these controls.
 
+The News homepage also includes **Since your last visit**: counts and up to three
+recent records each for News, Vulnerabilities and IOC Reports. The read-only
+`GET /api/v1/threat-feed/activity?since=<timezone-aware timestamp>` uses the existing
+compact metadata index, with one bounded database query and five-minute public
+caching. It never collects sources or investigates indicators. First visits set a
+baseline instead of claiming all retained reports are new. Visits older than 30
+days are explicitly limited to retained activity.
+
+Only the last successful check timestamp is kept in versioned browser-local
+storage; a 30-minute tab session preserves the original comparison baseline across
+filters, navigation and reloads. Neither timestamp is part of database backups.
+The request sends the cutoff timestamp only, not an account ID, read history or
+bookmark list. Failed or cancelled reads do not advance it. **Mark caught up**
+updates the baseline without changing article read state or bookmarks. News counts
+use publication dates; vulnerability and IOC counts use their source-record
+activity dates, not collection timestamps, unread totals or complete source
+coverage. Delayed ingestion of older records may not appear in a later interval.
+
 The News source set also includes AhnLab ASEC (`https://asec.ahnlab.com/en/feed/`),
 Fortinet FortiGuard Labs (`https://feeds.fortinet.com/fortinet/blog/threat-research`)
 and ESET WeLiveSecurity (`https://www.welivesecurity.com/en/rss/feed/`). They join

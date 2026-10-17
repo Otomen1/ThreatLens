@@ -12,6 +12,13 @@ export type FeedRefresh = { status: string; items_added: number; sources_succeed
 export type FeedHomeSection = { items: FeedItem[]; total: number };
 export type FeedHomeResponse = { summary: FeedSummary; sections: Record<FeedRegion, FeedHomeSection>; generated_at: string; source_options?: FeedSourceOption[] };
 export type FeedHomeParams = { query?: string; topic?: string; source?: string; hours?: number; limit_per_region?: number; sort?: string };
+export type FeedActivityKind = "news" | "vulnerability" | "ioc";
+export type FeedActivityItem = { kind: FeedActivityKind; id: string; title: string; source: string; activity_at: string; href: string };
+export type FeedActivity = { since: string | null; window_start: string; generated_at: string; limited: boolean; groups: Record<FeedActivityKind, { total: number; items: FeedActivityItem[] }> };
+export function getFeedActivity(since: string | null, signal?: AbortSignal, fresh = false) {
+  const path = `/threat-feed/activity${since ? `?${new URLSearchParams({ since })}` : ""}`;
+  return fresh ? getUncached<FeedActivity>(path, signal) : get<FeedActivity>(path, signal);
+}
 
 export type Vulnerability = {
   targeting_evidence?: TargetEvidence[];

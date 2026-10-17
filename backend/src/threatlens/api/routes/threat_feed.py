@@ -12,6 +12,7 @@ from typing import Annotated, Any, Literal
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response
 
 from ...threat_feed import FeedStorage, ThreatFeedService
+from ...threat_feed.activity import FeedActivity, activity
 from ...threat_feed.bookmarks import BookmarkAvailability, BookmarkRequest, availability
 from ...threat_feed.models import (
     FeedHomeResponse,
@@ -88,6 +89,22 @@ def search_feed(
         {"news": news_page, "vulnerability": vulnerability_page, "ioc": ioc_page},
         sort == "oldest",
     )
+
+
+@router.get("/activity", response_model=FeedActivity)
+def feed_activity(
+    response: Response,
+    service: Annotated[ThreatFeedService, Depends(get_threat_feed_service)],
+    since: datetime | None = None,
+) -> FeedActivity:
+    try:
+        result = activity(service.storage, since)
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail="Invalid visit timestamp.") from error
+    response.headers["Cache-Control"] = (
+        "public, s-maxage=300, stale-while-revalidate=3600" if since else "no-store"
+    )
+    return result
 
 
 @router.get("/related/{kind}/{record_id}", response_model=FeedRelated)

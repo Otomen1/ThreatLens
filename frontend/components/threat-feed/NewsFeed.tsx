@@ -16,6 +16,7 @@ import { clearNewsRegionCache } from "@/lib/newsRegionCache";
 import { markRegionSeen } from "@/lib/threatFeedState";
 import { useFeedSelection } from "@/hooks/useFeedSelection";
 import { FeedBulkActions } from "./FeedBulkActions";
+import { FeedBrief } from "./FeedBrief";
 
 function FeedSkeleton({ regional }: { regional: boolean }) {
   return <div className="space-y-6">
@@ -99,6 +100,7 @@ export default function NewsFeed({ region }: { region?: FeedRegion }) {
     {!ready ? loading ? <FeedSkeleton regional={Boolean(region)} /> : <div role="alert" className="rounded-xl border border-zinc-800 p-6 text-sm text-zinc-400"><p>{status}</p><button onClick={() => void load()} className="mt-3 rounded-lg border border-zinc-700 px-3 py-2">Retry loading feed</button></div> : <>
       {home && <section key={home.generated_at} aria-label="News activity" className="animate-data-pulse grid gap-3 rounded-xl sm:grid-cols-3"><div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p className="text-xs text-zinc-500">New in 24 hours</p><p className="mt-1 text-2xl font-semibold">{Object.values(home.summary.regions).reduce((sum, value) => sum + value.recent, 0)}</p></div><div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p className="text-xs text-zinc-500">Source-reported entities</p><p className="mt-1 text-2xl font-semibold">{home.summary.new_iocs}</p></div><div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p className="text-xs text-zinc-500">Last refresh</p><p className="mt-2 text-sm text-zinc-200">{home.summary.last_refreshed_at ? new Date(home.summary.last_refreshed_at).toLocaleString() : "Not refreshed yet"}</p></div></section>}
       <section className="space-y-4" aria-label="News listing">
+        {home && <FeedBrief />}
         <NewsFilters query={query} topic={topic} source={source} sources={home?.source_options ?? listing?.source_options ?? []} hours={hours} update={update} />
         {home && source && <p className="text-xs text-zinc-500">Activity cards cover all sources; reports below match your selected publisher.</p>}
         <p role="status" aria-live="polite" className="min-h-5 text-sm text-zinc-400">{previousFilters && "Previous filter results · "}{status}</p>
