@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib
 import os
+import sys
 import time
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -54,7 +55,7 @@ def _process_file_lock(path: Path, *, timeout: float) -> Iterator[None]:
         deadline = time.monotonic() + timeout
         while True:
             try:
-                if os.name == "nt":
+                if sys.platform == "win32":
                     import msvcrt
 
                     handle.seek(0)
@@ -70,7 +71,7 @@ def _process_file_lock(path: Path, *, timeout: float) -> Iterator[None]:
         try:
             yield
         finally:
-            if os.name == "nt":
+            if sys.platform == "win32":
                 import msvcrt
 
                 handle.seek(0)
