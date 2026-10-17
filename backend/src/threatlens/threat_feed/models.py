@@ -85,11 +85,17 @@ class FeedRefreshResult(BaseModel):
     next_refresh_at: datetime | None = None
 
 
+class FeedSourceOption(BaseModel):
+    id: str
+    name: str
+
+
 class FeedListResponse(BaseModel):
     items: tuple[ThreatFeedItem, ...]
     total: int
     page: int
     page_size: int
+    source_options: tuple[FeedSourceOption, ...] = ()
 
 
 class RegionCount(BaseModel):
@@ -115,6 +121,7 @@ class FeedHomeResponse(BaseModel):
     summary: FeedSummary
     sections: dict[FeedRegion, FeedHomeSection]
     generated_at: datetime
+    source_options: tuple[FeedSourceOption, ...] = ()
 
 
 class SourceEntry(BaseModel):

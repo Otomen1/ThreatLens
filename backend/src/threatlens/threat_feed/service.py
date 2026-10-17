@@ -37,7 +37,7 @@ from .models import (
     ThreatFeedItem,
     VulnerabilityListResponse,
 )
-from .sources import SOURCES, SourceDefinition, fetch_source
+from .sources import SOURCE_OPTIONS, SOURCES, SourceDefinition, fetch_source
 from .storage import FeedStorage
 from .vulnerabilities import link_reports, sync_nvd, vulnerability_list
 
@@ -64,7 +64,7 @@ class ThreatFeedService:
     def __init__(self, storage: FeedStorage) -> None:
         self.storage = storage
         self._home_cache: OrderedDict[
-            tuple[str, str, int | None, int, str], tuple[float, FeedHomeResponse]
+            tuple[str, str, int | None, int, str, str], tuple[float, FeedHomeResponse]
         ] = OrderedDict()
         self._home_cache_lock = Lock()
         self._collection_storage_lock = Lock()
@@ -212,6 +212,7 @@ class ThreatFeedService:
         hours: int | None = None,
         limit_per_region: int = 5,
         sort: str = "newest",
+        source: str | None = None,
     ) -> FeedHomeResponse:
         key = (
             (query or "").strip().lower(),
@@ -219,6 +220,7 @@ class ThreatFeedService:
             hours,
             limit_per_region,
             sort,
+            source or "",
         )
         now_monotonic = time.monotonic()
         with self._home_cache_lock:
@@ -239,6 +241,7 @@ class ThreatFeedService:
                 hours=hours,
                 limit_per_region=limit_per_region,
                 sort=sort,
+                source=source,
             )
             with self._home_cache_lock:
                 self._home_cache[key] = (now_monotonic + HOME_CACHE_SECONDS, response)
@@ -257,6 +260,7 @@ class ThreatFeedService:
                 item
                 for item in snapshot.items
                 if item.region == region
+                and (not source or item.source_id == source)
                 and (topic is None or item.topic == topic)
                 and (filtered_cutoff is None or item.published_at >= filtered_cutoff)
                 and (
@@ -295,7 +299,9 @@ class ThreatFeedService:
             next_refresh_at=refreshed + PUBLIC_REFRESH_COOLDOWN if refreshed else None,
             source_errors=sum(source.last_error_code is not None for source in snapshot.sources),
         )
-        response = FeedHomeResponse(summary=summary, sections=sections, generated_at=now)
+        response = FeedHomeResponse(
+            summary=summary, sections=sections, generated_at=now, source_options=SOURCE_OPTIONS
+        )
         with self._home_cache_lock:
             self._home_cache[key] = (now_monotonic + HOME_CACHE_SECONDS, response)
             self._home_cache.move_to_end(key)
@@ -456,6 +462,7 @@ class ThreatFeedService:
             total=len(filtered),
             page=page,
             page_size=page_size,
+            source_options=SOURCE_OPTIONS,
         )
 
     def get_item(self, item_id: str) -> ThreatFeedItem | None:

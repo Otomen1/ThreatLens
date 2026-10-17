@@ -4,13 +4,14 @@ import type { TargetEvidence } from "@/components/threat-feed/FeedFilters";
 export type FeedRegion = "global" | "malaysia" | "southeast_asia";
 export type FeedEntity = { type: string; value: string; normalized_value: string; disposition: string; verified: boolean };
 export type FeedItem = { targeting_evidence?: TargetEvidence[]; id: string; source_id: string; source_name: string; source_kind: string; title: string; excerpt: string; summary: string; url: string; published_at: string; region: FeedRegion; relevance: string; region_reasons: string[]; topic: string; severity: string | null; entities: FeedEntity[] };
-export type FeedList = { items: FeedItem[]; total: number; page: number; page_size: number };
+export type FeedSourceOption = { id: string; name: string };
+export type FeedList = { items: FeedItem[]; total: number; page: number; page_size: number; source_options?: FeedSourceOption[] };
 export type FeedSummary = { regions: Record<FeedRegion, { total: number; recent: number }>; critical: number; new_iocs: number; last_refreshed_at: string | null; next_refresh_at: string | null; source_errors: number };
 export type FeedSource = { id: string; name: string; kind: string; enabled: boolean; last_success_at: string | null; last_error_code: string | null; last_error: string | null; last_added: number };
 export type FeedRefresh = { status: string; items_added: number; sources_succeeded: number; sources_attempted: number; next_refresh_at: string | null };
 export type FeedHomeSection = { items: FeedItem[]; total: number };
-export type FeedHomeResponse = { summary: FeedSummary; sections: Record<FeedRegion, FeedHomeSection>; generated_at: string };
-export type FeedHomeParams = { query?: string; topic?: string; hours?: number; limit_per_region?: number; sort?: string };
+export type FeedHomeResponse = { summary: FeedSummary; sections: Record<FeedRegion, FeedHomeSection>; generated_at: string; source_options?: FeedSourceOption[] };
+export type FeedHomeParams = { query?: string; topic?: string; source?: string; hours?: number; limit_per_region?: number; sort?: string };
 
 export type Vulnerability = {
   targeting_evidence?: TargetEvidence[];

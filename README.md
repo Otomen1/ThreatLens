@@ -84,10 +84,25 @@ News opens by default with the existing activity cards, one newest-first table o
 the latest ten matching reports across all regions, and navigation cards for
 Global, Southeast Asia and Malaysia. Regional pages show ten reports per page:
 `/threat-feed/news/global`, `/threat-feed/news/southeast-asia`, and
-`/threat-feed/news/malaysia`. Search, topic and time filters carry into each region;
+`/threat-feed/news/malaysia`. Search, topic, publisher/source and time filters carry into each region;
 regional pages also support oldest/newest sorting. Legacy `?region=...` links
 redirect to the matching page. Previews, local bookmarks, column preferences and
 article-to-list recovery remain available.
+
+Filter presets are browser-local and shared across News, Vulnerabilities and IOC
+Reports (including indicator-view filters). Save up to ten named presets containing
+selected filters, region and sort order only. Search text, IOC values, articles,
+private PoC results, credentials and pagination are never captured. Apply is
+explicit and resets pagination/search; removing a preset leaves other data intact.
+
+News, Vulnerabilities and IOC Reports offer current-page selection with **Mark
+selected read** and **Save selected**. These are browser-local actions, not
+investigations or database saves. Bulk bookmark saving is additive, retains
+existing titles and bookmarks, and reports duplicates or the 500-bookmark limit
+without evicting older entries. Reading retains the existing 500-per-kind limit.
+Selection resets on filter/page changes and pauses while previous-filter results
+are displayed. Raw indicator rows and private PoC results are not bulk-bookmarked.
+No providers are called, migrations needed or paid services added by these controls.
 
 The News source set also includes AhnLab ASEC (`https://asec.ahnlab.com/en/feed/`),
 Fortinet FortiGuard Labs (`https://feeds.fortinet.com/fortinet/blog/threat-research`)

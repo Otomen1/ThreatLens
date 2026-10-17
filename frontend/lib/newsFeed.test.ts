@@ -41,4 +41,9 @@ describe("News selection and navigation", () => {
     expect(store.origin("/threat-feed/report", "/threat-feed")?.url).toBe("/threat-feed/news/malaysia?page=2");
     expect(isRecoverableList("/threat-feed/news/unknown")).toBe(false);
   });
+  it("preserves selected publisher in regional, legacy and back links", () => {
+    const params = new URLSearchParams("source=ahnlab&hours=720&page=2&tab=news&region=malaysia");
+    expect(newsHref("malaysia", params, true)).toBe("/threat-feed/news/malaysia?source=ahnlab&hours=720&page=2");
+    expect(newsHref(undefined, params)).toBe("/threat-feed?source=ahnlab&hours=720");
+  });
 });

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { clearFeedBookmarks, savedFeed, saveFeedBookmark, exportFeedBookmarks, parseBookmarkImport, mergeFeedBookmarks, previewBookmarkMerge } from "./feedBookmarks";
+import { addFeedBookmarks, clearFeedBookmarks, savedFeed, saveFeedBookmark, exportFeedBookmarks, parseBookmarkImport, mergeFeedBookmarks, previewBookmarkMerge } from "./feedBookmarks";
 
 describe("feed bookmarks", () => {
   beforeEach(() => {
@@ -57,5 +57,21 @@ describe("feed bookmarks", () => {
     expect(savedFeed()[0].id).toBe("0");
     vi.stubGlobal("localStorage", { getItem: () => null, setItem: () => { throw new Error("quota"); } });
     expect(() => mergeFeedBookmarks(incoming)).toThrow();
+  });
+  it("bulk save adds only, preserves duplicate titles, and writes once", () => {
+    saveFeedBookmark("news", "old", "Keep title");
+    const writes = vi.spyOn(localStorage, "setItem"); vi.mocked(window.dispatchEvent).mockClear();
+    expect(addFeedBookmarks("news", [{ id: "old", title: "Changed" }, { id: "new", title: "New" }, { id: "new", title: "Duplicate" }])).toEqual({ added: 1, duplicates: 2, skipped: 0 });
+    expect(writes).toHaveBeenCalledTimes(1); expect(window.dispatchEvent).toHaveBeenCalledTimes(1);
+    expect(savedFeed().map((item) => item.title)).toEqual(["Keep title", "New"]);
+    expect(addFeedBookmarks("news", [{ id: "old", title: "Changed" }]).duplicates).toBe(1);
+    expect(savedFeed()).toHaveLength(2);
+  });
+  it("bulk save caps additions, rejects malformed IDs and leaves current entries intact", () => {
+    for (let i = 0; i < 500; i++) saveFeedBookmark("news", String(i), "Existing");
+    expect(addFeedBookmarks("ioc", [{ id: "new", title: "New" }])).toEqual({ added: 0, duplicates: 0, skipped: 1 });
+    expect(() => addFeedBookmarks("news", [{ id: "bad/id", title: "Bad" }])).toThrow();
+    expect(() => addFeedBookmarks("news", Array(101).fill({ id: "id", title: "Title" }))).toThrow();
+    expect(savedFeed()[0].id).toBe("0");
   });
 });

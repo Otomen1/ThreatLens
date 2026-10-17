@@ -8,6 +8,13 @@ export const NEWS_REGION_DETAILS: Record<FeedRegion, { label: string; icon: stri
 };
 export const NEWS_TOPICS = ["advisory", "vulnerability", "active_exploitation", "phishing", "ransomware", "malware", "breach", "supply_chain", "threat_actor", "scam", "research"];
 export const NEWS_PAGE_SIZE = 10;
+export function validNewsSource(value: string | null): string {
+  return value && /^[a-z0-9_]{1,64}$/.test(value) ? value : "";
+}
+export function validSourceOptions(value: unknown): boolean {
+  return value === undefined || (Array.isArray(value) && value.length <= 50 && value.every((item) =>
+    item && typeof item.id === "string" && validNewsSource(item.id) && typeof item.name === "string" && item.name.length <= 150));
+}
 export function isNewsItem(value: unknown): value is FeedItem {
   if (!value || typeof value !== "object") return false;
   const item = value as FeedItem;
@@ -27,7 +34,7 @@ export function newsPath(region?: FeedRegion): string {
 }
 export function newsHref(region: FeedRegion | undefined, params: URLSearchParams, keepPage = false): string {
   const next = new URLSearchParams();
-  for (const key of ["query", "topic", "hours", ...(region ? ["sort"] : []), ...(keepPage && region ? ["page"] : [])]) {
+  for (const key of ["query", "topic", "source", "hours", ...(region ? ["sort"] : []), ...(keepPage && region ? ["page"] : [])]) {
     const value = params.get(key);
     if (value) next.set(key, value);
   }

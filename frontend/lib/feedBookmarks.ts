@@ -78,3 +78,11 @@ export function mergeFeedBookmarks(incoming: FeedBookmark[]) {
   window.dispatchEvent(new Event("feed-bookmarks"));
   return { added: preview.additions.length, duplicates: preview.duplicates, skipped: preview.skipped };
 }
+
+export function addFeedBookmarks(kind: SavedKind, items: { id: string; title: string }[]) {
+  if (items.length > 100) throw new Error("Select at most 100 reports at a time.");
+  const saved_at = new Date().toISOString();
+  const incoming = items.map(({ id, title }) => ({ kind, id, title: title.slice(0, 500), href: path(kind, id), saved_at }));
+  try { return mergeFeedBookmarks(incoming); }
+  catch { throw new Error("Could not save selected bookmarks. Check browser storage and try again."); }
+}

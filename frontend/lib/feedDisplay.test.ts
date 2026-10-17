@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { FEED_DISPLAY_KEY, readFeedDisplay, writeFeedDisplay, markFeedRead, readFeedReading, relativeAge, exactDate } from "./feedDisplay";
+import { FEED_DISPLAY_KEY, readFeedDisplay, writeFeedDisplay, markFeedRead, markFeedReadMany, readFeedReading, relativeAge, exactDate } from "./feedDisplay";
 
 describe("feed display and reading", () => {
   beforeEach(() => {
@@ -32,5 +32,19 @@ describe("feed display and reading", () => {
     expect(relativeAge("2026-10-07T00:00:00Z", now)).toBe("Scheduled / future date");
     expect(relativeAge("invalid", now)).toBe("Not supplied");
     expect(exactDate("2026-10-05T22:00:00Z")).toMatch(/GMT/);
+  });
+  it("marks a batch in one write and event, preserving other kinds", () => {
+    markFeedRead("ioc", "same"); markFeedRead("news", "old");
+    const writes = vi.spyOn(localStorage, "setItem"); vi.mocked(window.dispatchEvent).mockClear();
+    expect(markFeedReadMany("news", ["old", "new", "new"])).toEqual({ marked: 1, alreadyRead: 1 });
+    expect(writes).toHaveBeenCalledTimes(1); expect(window.dispatchEvent).toHaveBeenCalledTimes(1);
+    expect([...readFeedReading()]).toEqual(["news:old", "news:new", "ioc:same"]);
+    expect(() => markFeedReadMany("news", ["bad/id"])).toThrow();
+    expect(() => markFeedReadMany("news", Array(101).fill("id"))).toThrow();
+  });
+  it("surfaces bulk reading storage failures", () => {
+    vi.spyOn(localStorage, "setItem").mockImplementation(() => { throw new Error("blocked"); });
+    expect(() => markFeedReadMany("news", ["new"])).toThrow(/unavailable/);
+    expect(readFeedReading().size).toBe(0);
   });
 });

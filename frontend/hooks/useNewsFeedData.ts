@@ -15,9 +15,9 @@ function delay(signal: AbortSignal): Promise<void> {
   });
 }
 
-export function useNewsFeedData(region: FeedRegion | undefined, query: string, topic: string, hours: number, page: number, sort: string) {
+export function useNewsFeedData(region: FeedRegion | undefined, query: string, topic: string, hours: number, page: number, sort: string, source = "") {
   const scope = region ?? "home";
-  const key = JSON.stringify({ scope, query, topic, hours, page: region ? page : 1, sort: region ? sort : "newest" });
+  const key = JSON.stringify({ scope, query, topic, hours, page: region ? page : 1, sort: region ? sort : "newest", ...(source ? { source } : {}) });
   const [data, setData] = useState<Data | null>(null);
   const [status, setStatus] = useState("Loading threat feed…");
   const [loading, setLoading] = useState(true);
@@ -28,7 +28,7 @@ export function useNewsFeedData(region: FeedRegion | undefined, query: string, t
     const active = ++requestId.current;
     controller.current?.abort();
     const abort = new AbortController(); controller.current = abort;
-    const homeParams = { query, topic, hours, limit_per_region: 10, sort: "newest" };
+    const homeParams = { query, topic, hours, source: source || undefined, limit_per_region: 10, sort: "newest" };
     const cached = fresh ? null : region ? readNewsRegionCache(key) : readFeedHomeCache(homeParams);
     setLoading(true);
     if (cached) {
@@ -41,7 +41,7 @@ export function useNewsFeedData(region: FeedRegion | undefined, query: string, t
       if (!fresh) await delay(abort.signal);
       let value: Data;
       if (region) {
-        const listing = await getFeedItems({ region, query, topic, hours, page, page_size: 10, sort }, { signal: abort.signal, fresh });
+        const listing = await getFeedItems({ region, query, topic, hours, page, page_size: 10, sort, source: source || undefined }, { signal: abort.signal, fresh });
         value = { scope, key, listing };
       } else {
         const home = await getFeedHome(homeParams, { signal: abort.signal, fresh });
@@ -57,7 +57,7 @@ export function useNewsFeedData(region: FeedRegion | undefined, query: string, t
       setStatus(previous.current?.scope === scope ? "Could not update the feed. Showing the last available reports." : "The feed is temporarily unavailable. Try again shortly.");
       return false;
     } finally { if (active === requestId.current) setLoading(false); }
-  }, [region, query, topic, hours, page, sort, scope, key]);
+  }, [region, query, topic, hours, page, sort, source, scope, key]);
   const cancel = useCallback(() => { requestId.current++; controller.current?.abort(); }, []);
   useEffect(() => {
     void load();

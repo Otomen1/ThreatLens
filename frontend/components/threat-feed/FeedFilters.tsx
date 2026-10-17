@@ -9,7 +9,7 @@ export function FeedFilters({ poc = false, newsRegion }: { poc?: boolean; newsRe
   const params = useSearchParams(); const router = useRouter();
   const news = Boolean(newsRegion) || (!poc && !["vulnerabilities", "iocs"].includes(params.get("tab") ?? ""));
   const base = newsPath(newsRegion);
-  const names = news ? ["query", "topic", "hours", ...(newsRegion ? ["sort"] : [])] : poc ? ["tool", "kind"] : params.get("tab") === "vulnerabilities" ? ["query", "hours", "source", "severity", "category", "sort"] : ["query", "hours", "vendor", "kind", "sort"];
+  const names = news ? ["query", "topic", "source", "hours", ...(newsRegion ? ["sort"] : [])] : poc ? ["tool", "kind"] : params.get("tab") === "vulnerabilities" ? ["query", "hours", "source", "severity", "category", "sort"] : ["query", "hours", "vendor", "kind", "sort"];
   const change = (key: string, value: string) => { const next = new URLSearchParams(params.toString()); value ? next.set(key, value) : next.delete(key); next.delete("page"); router.replace(`${base}?${next}`, { scroll: false }); };
   const defaults: Record<string, string> = { hours: "168", sort: "newest", category: "all" };
   const filters = names.filter((name) => Boolean(params.get(name)) && params.get(name) !== defaults[name]);

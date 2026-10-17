@@ -1,6 +1,6 @@
 import type { FeedList } from "./api/threatFeed";
 import { FEED_CACHE_FRESH_MS, FEED_CACHE_MAX_MS } from "./threatFeedCache";
-import { isNewsItem } from "./newsFeed";
+import { isNewsItem, validSourceOptions } from "./newsFeed";
 
 const KEY = "threatlens.feed.news-regions.v1";
 type Entry = { key: string; savedAt: number; response: FeedList };
@@ -12,7 +12,7 @@ function validEntry(value: unknown): value is Entry {
     && Date.now() - item.savedAt <= FEED_CACHE_MAX_MS && !!response
     && Number.isInteger(response.total) && response.total >= 0 && Number.isInteger(response.page) && response.page > 0
     && response.page_size === 10 && Array.isArray(response.items) && response.items.length <= 10
-    && response.items.every(isNewsItem);
+    && response.items.every(isNewsItem) && validSourceOptions(response.source_options);
 }
 function entries(): Entry[] {
   try {

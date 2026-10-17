@@ -43,13 +43,22 @@ export function readFeedReading(): Set<string> {
   } catch { return new Set(); }
 }
 export function markFeedRead(kind: typeof kinds[number], id: string) {
-  if (!/^[A-Za-z0-9_.:-]{1,200}$/.test(id)) return;
-  try {
-    const current = readFeedReading(); current.delete(`${kind}:${id}`); current.add(`${kind}:${id}`);
-    const ids = Object.fromEntries(kinds.map((k) => [k, [...current].filter((v) => v.startsWith(`${k}:`)).map((v) => v.slice(k.length + 1)).slice(-500)]));
-    localStorage.setItem(READING_KEY, JSON.stringify({ version: 1, ids }));
-    window.dispatchEvent(new Event("threatlens:feed-reading"));
-  } catch { /* Reading is optional browser-local state. */ }
+  try { markFeedReadMany(kind, [id]); } catch { /* Reading is optional browser-local state. */ }
+}
+export function markFeedReadMany(kind: typeof kinds[number], values: string[]) {
+  if (!kinds.includes(kind) || values.length > 100 || values.some((id) => !/^[A-Za-z0-9_.:-]{1,200}$/.test(id))) throw new Error("Invalid reading selection.");
+  const current = readFeedReading();
+  let marked = 0;
+  for (const id of new Set(values)) {
+    const key = `${kind}:${id}`;
+    if (!current.has(key)) marked++;
+    current.delete(key); current.add(key);
+  }
+  const ids = Object.fromEntries(kinds.map((k) => [k, [...current].filter((v) => v.startsWith(`${k}:`)).map((v) => v.slice(k.length + 1)).slice(-500)]));
+  try { localStorage.setItem(READING_KEY, JSON.stringify({ version: 1, ids })); }
+  catch { throw new Error("Browser reading storage is unavailable. Reports are unchanged."); }
+  window.dispatchEvent(new Event("threatlens:feed-reading"));
+  return { marked, alreadyRead: new Set(values).size - marked };
 }
 export function relativeAge(value: string, now: number): string {
   const time = Date.parse(value);

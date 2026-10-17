@@ -1,5 +1,5 @@
 import type { FeedHomeParams, FeedHomeResponse } from "./api/threatFeed";
-import { isNewsItem } from "./newsFeed";
+import { isNewsItem, validSourceOptions } from "./newsFeed";
 
 const STORAGE_KEY = "threatlens.feed.home.v1";
 const SCHEMA_VERSION = 1;
@@ -25,6 +25,7 @@ export function feedHomeCacheKey(params: FeedHomeParams): string {
     hours: params.hours ?? null,
     limit_per_region: params.limit_per_region ?? 5,
     sort: params.sort ?? 'newest',
+    ...(params.source ? { source: params.source } : {}),
   });
 }
 
@@ -35,6 +36,7 @@ export function readFeedHomeCache(params: FeedHomeParams): CachedFeedHome | null
     const cached = JSON.parse(raw) as StoredFeedHome;
     const age = Date.now() - cached.savedAt;
     if (cached.version !== SCHEMA_VERSION || !Number.isFinite(age) || age < 0 || age > FEED_CACHE_MAX_MS || !cached.response?.summary?.regions || !cached.response?.sections
+      || !validSourceOptions(cached.response.source_options)
       || !["global", "malaysia", "southeast_asia"].every((region) => {
         const key = region as keyof FeedHomeResponse["sections"];
         const section = cached.response.sections[key];

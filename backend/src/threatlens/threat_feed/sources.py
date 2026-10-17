@@ -16,7 +16,7 @@ import httpx
 from ..release import release_version
 from .listing import parse_listing
 from .logic import clean_text
-from .models import SourceEntry
+from .models import FeedSourceOption, SourceEntry
 
 MAX_RESPONSE_BYTES = 2_000_000
 MAX_ITEMS = 50
@@ -72,6 +72,9 @@ SOURCES: tuple[SourceDefinition, ...] = (
         "eset", "ESET WeLiveSecurity", "rss", "https://www.welivesecurity.com/en/rss/feed/"
     ),
 )
+
+
+SOURCE_OPTIONS = tuple(FeedSourceOption(id=source.id, name=source.name) for source in SOURCES)
 
 
 async def fetch_source(source: SourceDefinition) -> tuple[SourceEntry, ...]:

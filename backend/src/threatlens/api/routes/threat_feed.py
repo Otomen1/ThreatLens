@@ -114,6 +114,7 @@ def home(
     query: Annotated[str | None, Query(max_length=200)] = None,
     limit_per_region: Annotated[int, Query(ge=1, le=20)] = 5,
     sort: Literal["newest", "oldest"] = "newest",
+    source: Annotated[str | None, Query(max_length=64)] = None,
 ) -> Any:
     result = service.home(
         query=query,
@@ -121,6 +122,7 @@ def home(
         hours=hours,
         limit_per_region=limit_per_region,
         sort=sort,
+        source=source,
     )
     identity = json.dumps(
         {
@@ -132,6 +134,7 @@ def home(
             "hours": hours,
             "limit": limit_per_region,
             "sort": sort,
+            "source": source or "",
         },
         sort_keys=True,
         separators=(",", ":"),

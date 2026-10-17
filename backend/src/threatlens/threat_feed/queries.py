@@ -19,6 +19,7 @@ from .models import (
     ThreatFeedItem,
     VulnerabilityListResponse,
 )
+from .sources import SOURCE_OPTIONS
 
 if TYPE_CHECKING:
     from .storage import FeedStorage
@@ -123,6 +124,7 @@ def news_page(
         total=next(int(r[2]) for r in rows if r[0] == "count"),
         page=page,
         page_size=page_size,
+        source_options=SOURCE_OPTIONS,
     )
 
 
@@ -134,10 +136,11 @@ def home_page(
     hours: int | None,
     limit_per_region: int,
     sort: str,
+    source: str | None = None,
 ) -> FeedHomeResponse:
     now = datetime.now(UTC)
     recent = (now - timedelta(hours=24)).timestamp()
-    where, parameters = news_where(storage, None, None, topic, hours, query, now)
+    where, parameters = news_where(storage, None, source, topic, hours, query, now)
     order = "ASC" if sort == "oldest" else "DESC"
     region, severity = field(storage, "region"), field(storage, "severity")
     entity_count = (
@@ -198,6 +201,7 @@ def home_page(
             for r in FeedRegion
         },
         generated_at=now,
+        source_options=SOURCE_OPTIONS,
     )
 
 

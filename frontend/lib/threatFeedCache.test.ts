@@ -29,6 +29,15 @@ describe("Threat Feed browser cache", () => {
     writeFeedHomeCache(params, response);
     expect(readFeedHomeCache({ ...params, topic: "malware" })).toBeNull();
   });
+  it("isolates publisher filters while accepting older caches without a source catalog", () => {
+    writeFeedHomeCache(params, response);
+    expect(readFeedHomeCache({ ...params, source: "ahnlab" })).toBeNull();
+    writeFeedHomeCache({ ...params, source: "ahnlab" }, { ...response, source_options: [{ id: "ahnlab", name: "AhnLab ASEC" }] });
+    expect(readFeedHomeCache(params)).toBeNull();
+    expect(readFeedHomeCache({ ...params, source: "ahnlab" })).not.toBeNull();
+    writeFeedHomeCache(params, { ...response, source_options: [{ id: "bad/path", name: "Invalid" }] });
+    expect(readFeedHomeCache(params)).toBeNull();
+  });
 
   it("removes malformed cached data", () => {
     localStorage.setItem("threatlens.feed.home.v1", "not-json");
