@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useFeedParams } from "./FeedPanelContext";
 import type { FeedRegion } from "@/lib/api/threatFeed";
 import { captureFeedPreset, feedPresetHref, readFeedPresets, removeFeedPreset, saveFeedPreset, type FeedPreset, type PresetView } from "@/lib/feedPresets";
 import { useToast } from "@/components/ui/ToastProvider";
 
 const control = "rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs focus-visible:outline focus-visible:outline-sky-400 disabled:opacity-40";
 export function FeedPresets({ view, region }: { view: PresetView; region?: FeedRegion }) {
-  const router = useRouter(), params = useSearchParams();
+  const router = useRouter(), params = useFeedParams();
   const { notify } = useToast();
   const [items, setItems] = useState<FeedPreset[]>([]);
   const [selected, setSelected] = useState("");
@@ -28,7 +29,7 @@ export function FeedPresets({ view, region }: { view: PresetView; region?: FeedR
       notify("Filter preset saved locally.");
     } catch (error) { setMessage(error instanceof Error ? error.message : "Couldn't save this preset."); }
   }
-  return <details className="mt-4 rounded-lg border border-zinc-800 px-3 py-2 text-xs text-zinc-400">
+  return <details className="rounded-lg border border-zinc-800 px-3 py-2 text-xs text-zinc-400">
     <summary className="cursor-pointer focus-visible:outline focus-visible:outline-sky-400">Filter presets · Browser-local</summary>
     <div className="mt-3 flex flex-wrap items-center gap-2">
       <select aria-label="Saved filter presets" value={active?.id ?? ""} onChange={(event) => setSelected(event.target.value)} className={`${control} min-w-0 max-w-full`}><option value="">Choose a preset ({items.length}/10)</option>{items.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.view === "iocs" ? "IOC Reports" : item.view === "news" ? "News" : "Vulnerabilities"}</option>)}</select>

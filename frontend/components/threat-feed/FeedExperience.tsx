@@ -27,7 +27,7 @@ export function FeedExperience({ children }: { children: ReactNode }) {
 export function FeedTableControls({ table }: { table: FeedTable }) {
   const { display, change } = useFeedDisplay();
   return <details className="rounded-lg border border-zinc-800 px-3 py-2 text-xs text-zinc-400">
-    <summary className="cursor-pointer">Table display options</summary>
+    <summary className="cursor-pointer focus-visible:outline focus-visible:outline-sky-400">Table display options</summary>
     <div className="mt-3 flex flex-wrap items-center gap-4"><label>Spacing <select aria-label="Table spacing" className="ml-2 rounded border border-zinc-700 bg-zinc-950 p-1" value={display.density} onChange={(e) => change({ ...display, density: e.target.value === "comfortable" ? "comfortable" : "compact" })}><option value="compact">Compact</option><option value="comfortable">Comfortable</option></select></label>
       <fieldset className="flex flex-wrap gap-3"><legend className="mb-2">Visible columns (title is always shown)</legend>{Object.entries(FEED_COLUMNS[table]).map(([key, label]) => <label key={key}><input type="checkbox" checked={!display.hidden[table]?.includes(key)} onChange={(e) => change({ ...display, hidden: { ...display.hidden, [table]: e.target.checked ? (display.hidden[table] ?? []).filter((v) => v !== key) : [...(display.hidden[table] ?? []), key] } })} /> {label}</label>)}</fieldset>
       <button className="rounded border border-zinc-700 px-2 py-1 text-sky-300" onClick={() => change({ ...display, density: "compact", hidden: { ...display.hidden, [table]: [] } })}>Reset table display</button>

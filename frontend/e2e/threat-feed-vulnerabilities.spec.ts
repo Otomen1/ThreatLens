@@ -180,7 +180,7 @@ test("tab loading retains the previous view and filter reset preserves the selec
   await page.getByRole("button", { name: "Reset filters", exact: true }).click();
   await expect(page).toHaveURL(/tab=vulnerabilities/);
   await expect.poll(() => new URL(page.url()).searchParams.has("severity")).toBe(false);
-  await expect(page.getByText("0 filters active", { exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Feed toolbar" }).getByText("0 filters active", { exact: true })).toBeVisible();
 });
 
 test("unassigned CVE and missing scores remain readable on mobile", async ({ page }) => {

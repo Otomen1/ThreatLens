@@ -52,6 +52,7 @@ test("publisher filtering survives regional navigation, pagination and reset", a
 test("presets retain safe filters only, restore regional state and survive reload", async ({ page }) => {
   const { requests, errors } = await mocks(page);
   await page.goto("/threat-feed/news/global?source=ahnlab&hours=720&page=2&query=private@example.test");
+  await page.getByText("More options", { exact: true }).click();
   await page.getByText("Filter presets · Browser-local", { exact: true }).click();
   await page.getByRole("button", { name: "Save current filters", exact: true }).click();
   await page.getByLabel("Preset name", { exact: true }).fill("AhnLab 30 days");
@@ -59,11 +60,13 @@ test("presets retain safe filters only, restore regional state and survive reloa
   const stored = await page.evaluate(() => localStorage.getItem("threatlens.feed.presets.v1"));
   expect(stored).not.toMatch(/private@|query|page=/);
   await page.goto("/threat-feed?tab=vulnerabilities&severity=critical");
+  await page.getByText("More options", { exact: true }).click();
   await page.getByText("Filter presets · Browser-local", { exact: true }).click();
   await page.getByRole("button", { name: "Save current filters", exact: true }).click();
   await page.getByLabel("Preset name", { exact: true }).fill("Critical vulnerabilities");
   await page.getByRole("button", { name: "Save preset", exact: true }).click();
   await page.reload();
+  await page.getByText("More options", { exact: true }).click();
   await page.getByText("Filter presets · Browser-local", { exact: true }).click();
   await page.getByLabel("Saved filter presets").selectOption({ label: "AhnLab 30 days · News" });
   await page.getByRole("button", { name: "Apply preset", exact: true }).click();
@@ -91,7 +94,7 @@ test("current-page bulk actions preserve duplicates and clear selection on navig
   await expect(toolbar.getByRole("status")).toHaveText("0 saved · 10 already saved.");
   await page.getByRole("button", { name: "Next", exact: true }).click();
   await expect(page.getByText("0 selected", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Save selected", exact: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Save selected", exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "Previous", exact: true }).click();
   await expect(page.getByText("0 selected", { exact: true })).toBeVisible();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("threatlens.feed.read.v1")!).ids.news.length)).toBe(10);

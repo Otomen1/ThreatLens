@@ -13,6 +13,7 @@ export function TableHeadings() {
     const layer = document.createElement("div");
     layer.className = "floating-table-headings";
     layer.setAttribute("aria-hidden", "true");
+    layer.inert = true;
     document.body.append(layer);
     let tables: HTMLElement[] = [];
     let frame = 0;
@@ -23,7 +24,7 @@ export function TableHeadings() {
       if (needsScan) {
         tables = Array.from(root.querySelectorAll<HTMLElement>('main table, main [role="table"]'));
         for (const node of watched) if (!node.isConnected) { resize.unobserve(node); watched.delete(node); }
-        for (const node of document.querySelectorAll('nav[aria-label="Primary navigation"], [data-pinned-header]')) {
+        for (const node of [...tables, ...document.querySelectorAll('nav[aria-label="Primary navigation"], [data-pinned-header]')]) {
           if (!watched.has(node)) { watched.add(node); resize.observe(node); }
         }
         needsScan = false;

@@ -22,6 +22,15 @@ main [role="row"]:has([role="cell"]):hover, main [role="row"]:has([role="cell"])
 @keyframes panel-enter { from { opacity: 0.8; } to { opacity: 1; } }
 .ui-panel-enter { animation: panel-enter 120ms ease-out; }
 .feed-date:hover .feed-date-tip, .feed-date:focus-within .feed-date-tip { display: block; }
+.feed-more-options[open] { flex-basis: 100%; }
+.feed-brief-details[open] { flex-basis: 100%; }
+.feed-more-options > summary { width: fit-content; }
+.feed-toolbar :is(input:not([type="checkbox"]), select) { min-width: 0; max-width: 100%; }
+.feed-interactive, .feed-toolbar :is(button, input, select, summary),
+[aria-label="Report selection"] :is(button, input) {
+  transition: color 150ms ease-out, background-color 150ms ease-out, border-color 150ms ease-out, box-shadow 150ms ease-out;
+}
+.feed-selection-actions { animation: panel-enter 120ms ease-out; }
 @keyframes feed-preview-enter { from { transform: translateX(20px); } to { transform: translateX(0); } }
 .feed-preview { animation: feed-preview-enter 150ms ease-out; }
 .feed-date-tip { white-space: normal; }

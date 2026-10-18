@@ -47,13 +47,14 @@ test("returning brief preserves its baseline through filtering and reload, with 
   const brief = page.getByRole("region", { name: "Since your last visit" });
   await expect(brief.getByLabel("News published: 8", { exact: true })).toBeVisible();
   await expect(brief.getByLabel("Vulnerability activity: 4", { exact: true })).toBeVisible();
-  await brief.getByText("Recent activity · Up to three per category", { exact: true }).click();
+  await brief.getByText("Brief details", { exact: true }).click();
   await expect(brief.getByRole("link", { name: "Recent vulnerability", exact: true })).toHaveAttribute("href", "/threat-feed/vulnerabilities/vulnerability-recent");
   await page.getByLabel("Topic", { exact: true }).selectOption("malware");
   await expect(page).toHaveURL(/topic=malware/);
   await expect(brief.getByLabel("News published: 8", { exact: true })).toBeVisible();
   await page.reload();
   await expect(brief.getByLabel("News published: 8", { exact: true })).toBeVisible();
+  await brief.getByText("Brief details", { exact: true }).click();
   expect(requests.filter((url) => url.pathname.endsWith("/activity")).every((url) => url.searchParams.get("since") === previous)).toBe(true);
   await brief.getByRole("button", { name: "Mark caught up", exact: true }).click();
   await expect(brief.getByRole("status")).toHaveText(/Caught up as of the checked time/);
@@ -70,6 +71,7 @@ test("failed brief update keeps counts and the successful checkpoint without blo
   await expect(brief.getByLabel("News published: 8", { exact: true })).toBeVisible();
   const checkpoint = await page.evaluate(() => localStorage.getItem("threatlens.feed.visit.v1"));
   state.failed = true;
+  await brief.getByText("Brief details", { exact: true }).click();
   await brief.getByRole("button", { name: "Check for updates", exact: true }).click();
   await expect(brief.getByRole("status")).toHaveText(/Previous brief retained.*baseline has not advanced/);
   await expect(brief.getByLabel("News published: 8", { exact: true })).toBeVisible();
@@ -97,6 +99,7 @@ test("mobile brief discloses retention and blocked storage; obsolete responses c
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   const before = await page.evaluate(() => localStorage.getItem("threatlens.feed.visit.v1"));
   state.delayed = true;
+  await brief.getByText("Brief details", { exact: true }).click();
   await brief.getByRole("button", { name: "Check for updates", exact: true }).click();
   await page.goto("/");
   expect(await page.evaluate(() => localStorage.getItem("threatlens.feed.visit.v1"))).toBe(before);

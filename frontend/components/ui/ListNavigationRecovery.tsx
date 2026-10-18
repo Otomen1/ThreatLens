@@ -38,6 +38,7 @@ export function ListNavigationRecovery() {
     let frame = 0;
     let restoring = false;
     let active = true;
+    let corrections = 0;
     const finish = () => { if (!active) return; active = false; observer.disconnect(); cancelAnimationFrame(frame); clearTimeout(timer); if (pending.current === returning) pending.current = null; };
     const attempt = () => {
       if (restoring || internalUrl() !== url) return;
@@ -45,13 +46,18 @@ export function ListNavigationRecovery() {
       if (!ready) return;
       restoring = true;
       // Let the selected rows, compact header and Next's own scroll handling settle.
-      frame = requestAnimationFrame(() => { frame = requestAnimationFrame(() => {
+      const place = () => {
+        if (!active || internalUrl() !== url) return;
         const link = returning.anchor ? [...document.querySelectorAll<HTMLAnchorElement>("main a[href]")].find((node) => visible(rowOf(node)) && `${node.pathname}${node.search}` === returning.anchor) : null;
         const anchor = returning.row ? document.querySelector<HTMLElement>(`[data-list-anchor="${CSS.escape(returning.row)}"]`) : link ? rowOf(link) : null;
         const y = anchor ? window.scrollY + anchor.getBoundingClientRect().top - returning.offset : returning.y;
         window.scrollTo({ top: Math.max(0, y), behavior: "instant" });
-        finish();
-      }); });
+        // A compact header can resize immediately after the first restored scroll.
+        // Recheck for a few frames only; wheel/touch/key input still cancels this.
+        if (++corrections < 4) frame = requestAnimationFrame(place);
+        else finish();
+      };
+      frame = requestAnimationFrame(() => { frame = requestAnimationFrame(place); });
     };
     const observer = new MutationObserver(attempt);
     observer.observe(document.querySelector("[data-app-content]") ?? document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["data-list-ready", "hidden"] });

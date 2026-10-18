@@ -104,6 +104,17 @@ Selection resets on filter/page changes and pauses while previous-filter results
 are displayed. Raw indicator rows and private PoC results are not bulk-bookmarked.
 No providers are called, migrations needed or paid services added by these controls.
 
+Stored-feed views group search, filters, sort order and active filter chips in one
+toolbar. Open **More options** for filter presets and **Table display options**.
+Bulk action buttons appear only after selection; Clear Selection restores keyboard
+focus to the page-selection control. The visit brief keeps its counts compact;
+open **Brief details** for recent items, timestamps, privacy notes and caught-up
+controls. Errors and retention warnings remain visible when details are closed.
+News, vulnerability and IOC rows share readable badges and title styling; missing
+severity is neutral, not a warning. Existing sticky heading labels are reused and
+remain aligned below the measured search header during scrolling, resizing and
+column changes. Hover/focus feedback stays subtle and respects reduced motion.
+
 The News homepage also includes **Since your last visit**: counts and up to three
 recent records each for News, Vulnerabilities and IOC Reports. The read-only
 `GET /api/v1/threat-feed/activity?since=<timezone-aware timestamp>` uses the existing

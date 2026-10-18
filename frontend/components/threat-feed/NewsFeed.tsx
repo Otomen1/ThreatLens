@@ -9,7 +9,7 @@ import { NewsTable } from "./NewsTable";
 import { refreshFeed, type FeedRegion, type FeedSourceOption } from "@/lib/api/threatFeed";
 import { useToast } from "@/components/ui/ToastProvider";
 import { SearchLoading } from "@/components/ui/SearchLoading";
-import { FeedTableControls } from "./FeedExperience";
+import { FeedToolbar } from "./FeedToolbar";
 import { useNewsFeedData } from "@/hooks/useNewsFeedData";
 import { NEWS_PAGE_SIZE, NEWS_REGIONS, NEWS_REGION_DETAILS, NEWS_TOPICS, latestNews, newsHref, validNewsSource } from "@/lib/newsFeed";
 import { clearNewsRegionCache } from "@/lib/newsRegionCache";
@@ -30,7 +30,7 @@ function FeedSkeleton({ regional }: { regional: boolean }) {
 }
 
 function NewsFilters({ query, topic, source, sources, hours, update }: { query: string; topic: string; source: string; sources: FeedSourceOption[]; hours: string; update: (key: string, value: string) => void }) {
-  return <div className="grid gap-3 rounded-2xl border border-zinc-800 bg-zinc-900 p-4 md:grid-cols-2 xl:grid-cols-[minmax(180px,1fr)_180px_200px_160px]">
+  return <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(180px,1fr)_160px_180px_130px]">
     <input aria-label="Search threat feed" value={query} onChange={(event) => update("query", event.target.value)} placeholder="Search titles, summaries, sources…" className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-sky-500" />
     <select aria-label="Topic" value={topic} onChange={(event) => update("topic", event.target.value)} className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"><option value="">All topics</option>{NEWS_TOPICS.map((value) => <option key={value} value={value}>{value.replaceAll("_", " ")}</option>)}</select>
     <select aria-label="News source" value={source} onChange={(event) => update("source", event.target.value)} className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"><option value="">All sources</option>{source && !sources.some((item) => item.id === source) && <option value={source}>Current source: {source}</option>}{sources.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
@@ -101,11 +101,10 @@ export default function NewsFeed({ region }: { region?: FeedRegion }) {
       {home && <section key={home.generated_at} aria-label="News activity" className="animate-data-pulse grid gap-3 rounded-xl sm:grid-cols-3"><div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p className="text-xs text-zinc-500">New in 24 hours</p><p className="mt-1 text-2xl font-semibold">{Object.values(home.summary.regions).reduce((sum, value) => sum + value.recent, 0)}</p></div><div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p className="text-xs text-zinc-500">Source-reported entities</p><p className="mt-1 text-2xl font-semibold">{home.summary.new_iocs}</p></div><div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p className="text-xs text-zinc-500">Last refresh</p><p className="mt-2 text-sm text-zinc-200">{home.summary.last_refreshed_at ? new Date(home.summary.last_refreshed_at).toLocaleString() : "Not refreshed yet"}</p></div></section>}
       <section className="space-y-4" aria-label="News listing">
         {home && <FeedBrief />}
-        <NewsFilters query={query} topic={topic} source={source} sources={home?.source_options ?? listing?.source_options ?? []} hours={hours} update={update} />
+        <FeedToolbar table="news" region={region}><NewsFilters query={query} topic={topic} source={source} sources={home?.source_options ?? listing?.source_options ?? []} hours={hours} update={update} /></FeedToolbar>
         {home && source && <p className="text-xs text-zinc-500">Activity cards cover all sources; reports below match your selected publisher.</p>}
-        <p role="status" aria-live="polite" className="min-h-5 text-sm text-zinc-400">{previousFilters && "Previous filter results · "}{status}</p>
+        <p role="status" aria-live="polite" className={status || previousFilters ? "text-sm text-zinc-400" : "sr-only"}>{previousFilters && "Previous filter results · "}{status}</p>
         {!loading && status.startsWith("Could not update") && <button className="rounded-lg border border-zinc-700 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-sky-400" onClick={() => void load()}>Retry loading feed</button>}
-        <FeedTableControls table="news" />
         <FeedBulkActions key={viewKey} kind="news" items={items} selection={selection} disabled={selectionPaused} />
         <NewsTable title={title} items={items} total={total} offset={region ? (displayedPage - 1) * NEWS_PAGE_SIZE : 0} rowSelection={{ selection, disabled: selectionPaused }} />
       </section>

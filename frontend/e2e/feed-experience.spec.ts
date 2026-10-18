@@ -64,11 +64,13 @@ test("column choices and spacing persist, preview distinguishes not-rated record
   const { errors } = await mocks(page);
   await page.goto("/threat-feed?tab=vulnerabilities");
   await expect(page.getByRole("columnheader", { name: "Affected product" })).toBeVisible();
+  await page.getByText("More options", { exact: true }).click();
   await page.getByText("Table display options", { exact: true }).click();
   await page.getByRole("checkbox", { name: "Affected product" }).uncheck();
   await page.getByLabel("Table spacing").selectOption("comfortable");
   await expect(page.getByRole("columnheader", { name: "Affected product" })).toHaveCount(0);
   await page.reload(); await expect(page.getByRole("columnheader", { name: "Affected product" })).toHaveCount(0);
+  await page.getByText("More options", { exact: true }).click();
   await page.getByText("Table display options", { exact: true }).click();
   await expect(page.getByLabel("Table spacing")).toHaveValue("comfortable");
   await page.getByRole("button", { name: `Preview ${vuln.title}` }).click();

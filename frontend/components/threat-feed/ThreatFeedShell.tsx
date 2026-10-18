@@ -11,8 +11,6 @@ import { UnifiedFeedSearch } from "./FeedWorkflow";
 import { FeedHeader } from "./FeedHeader";
 import { SavedFeed } from "./SavedFeed";
 import { FeedFilters } from "./FeedFilters";
-import { FeedPresets } from "./FeedPresets";
-import type { PresetView } from "@/lib/feedPresets";
 import { LoadingRows } from "@/components/ui/Skeleton";
 import { FeedViewNavigation } from "./FeedViewNavigation";
 import { FeedExperience } from "./FeedExperience";
@@ -33,8 +31,7 @@ function FeedTabs({ region }: { region?: FeedRegion }) {
       <div className="mx-auto max-w-6xl px-4">
         <FeedViewNavigation selected={selected} headerRef={headerRef} />
         <FeedStatus manualPoc={selected === "poc"} />
-        {!params.has("view") && <FeedFilters poc={selected === "poc"} newsRegion={region} />}
-        {selected !== "poc" && (!params.has("view") || (selected === "iocs" && params.get("view") === "indicators")) && <FeedPresets view={selected as PresetView} region={region} />}
+        {selected === "poc" && !params.has("view") && <div className="mt-4"><FeedFilters poc /></div>}
       </div>
       {params.get("view") === "saved" ? <SavedFeed /> : params.get("view") === "search" ? <UnifiedFeedSearch /> : <FeedPanels selected={selected as FeedTab} newsRegion={region} />}
     </div>
