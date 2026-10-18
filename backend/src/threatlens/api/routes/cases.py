@@ -12,7 +12,7 @@ owner label is descriptive metadata, not an access-control identity.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
@@ -35,11 +35,16 @@ from ...cases import (
     SQLiteCaseStorage,
     UpdateCaseRequest,
 )
+from ...cases.exceptions import CaseFeedLimitError
+from ...cases.feed import resolve_reference
+from ...cases.models import FeedReferenceKey
+from ...threat_feed import ThreatFeedService
 from ...workspace import WorkspaceService
 from ...workspace.exceptions import InvestigationNotFoundError
 from ..experience import StartSummary, start_summary
 from ..schemas import NavigationSummary
 from .poc import require_signed_in
+from .threat_feed import get_threat_feed_service
 from .workspace import get_workspace_service
 
 router = APIRouter()
@@ -79,6 +84,56 @@ def get_case_service() -> CaseService:
             storage = LocalFileStorage(settings.storage_dir)
         _case_service = CaseService(storage, get_workspace_service())
     return _case_service
+
+
+@router.post(
+    "/api/v1/cases/{case_id}/feed", response_model=Case, dependencies=[Depends(require_signed_in)]
+)
+def attach_feed_reference(
+    case_id: UUID,
+    body: FeedReferenceKey,
+    response: Response,
+    service: Annotated[CaseService, Depends(get_case_service)],
+    feed: Annotated[ThreatFeedService, Depends(get_threat_feed_service)],
+) -> Case:
+    response.headers["Cache-Control"] = "private, no-store"
+    try:
+        current = service.get(case_id)
+        # A repeated request remains successful even after the feed record expires.
+        record_id = (
+            body.id.upper()
+            if body.kind == "vulnerability" and body.id.upper().startswith("CVE-")
+            else body.id
+        )
+        if any((ref.kind, ref.id) == (body.kind, record_id) for ref in current.feed_references):
+            return current
+        reference = resolve_reference(feed.storage, body)
+        if reference is None:
+            raise HTTPException(status_code=404, detail="Feed record unavailable or expired")
+        return service.attach_feed(case_id, reference)
+    except CaseNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="Case not found") from exc
+    except CaseFeedLimitError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.delete(
+    "/api/v1/cases/{case_id}/feed/{kind}/{record_id}",
+    response_model=Case,
+    dependencies=[Depends(require_signed_in)],
+)
+def remove_feed_reference(
+    case_id: UUID,
+    kind: Literal["news", "vulnerability", "ioc"],
+    record_id: str,
+    response: Response,
+    service: Annotated[CaseService, Depends(get_case_service)],
+) -> Case:
+    response.headers["Cache-Control"] = "private, no-store"
+    try:
+        return service.remove_feed(case_id, kind, record_id)
+    except CaseNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="Case not found") from exc
 
 
 @router.post("/api/v1/cases", response_model=Case, status_code=201)

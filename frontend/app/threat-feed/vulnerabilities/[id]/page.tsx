@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { TargetingBadge } from "@/components/threat-feed/FeedFilters";
 import { BookmarkButton } from "@/components/threat-feed/SavedFeed";
+import { AddToCase } from "@/components/threat-feed/AddToCase";
 import { RelatedIntelligence } from "@/components/threat-feed/FeedWorkflow";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -36,6 +37,7 @@ export default function VulnerabilityDetail() {
       <section className="rounded-2xl border border-zinc-800 p-6"><h2 className="font-medium">Description</h2><p className="mt-3 text-sm leading-6 text-zinc-300">{item.description || "No description supplied."}</p><h3 className="mt-5 text-sm font-medium">Affected products</h3><p className="mt-2 text-sm text-zinc-400">{item.products.join(", ") || "Not specified by the available sources."}</p></section>
       <section className="rounded-2xl border border-zinc-800 p-6"><h2 className="font-medium">Source scores</h2>{item.scores.length ? <ul className="mt-3 space-y-2 text-sm text-zinc-400">{item.scores.map((score, index) => <li key={`${score.source}-${score.version}-${index}`}>{score.score} / 10 · CVSS {score.version} · {score.severity ?? "Not rated"} · {score.source}</li>)}</ul> : <p className="mt-3 text-sm text-zinc-500">Not rated — no score supplied.</p>}</section>
       <section className="rounded-2xl border border-zinc-800 p-6"><h2 className="font-medium">Related reports and supporting sources</h2><p className="mt-2 text-xs text-zinc-500">Zero-day labels require explicit source wording. Known exploitation alone does not establish zero-day status.</p><div className="mt-4 space-y-4">{item.reports.map((report) => <div key={report.id}><a href={report.url} target="_blank" rel="noreferrer" className="text-sm text-sky-300 hover:underline">{report.title} ↗</a><p className="mt-1 text-xs text-zinc-500">{report.source_name} · {new Date(report.published_at).toLocaleDateString()}{report.zero_day && " · Reports a zero-day"}</p><p className="mt-2 text-sm text-zinc-400">{report.excerpt}</p></div>)}</div><ul className="mt-5 space-y-2">{item.references.map((url) => <li key={url}><a href={url} target="_blank" rel="noreferrer" className="break-all text-xs text-sky-400 hover:underline">{url} ↗</a></li>)}</ul></section>
+      <AddToCase kind="vulnerability" id={item.id} />
       <TargetingBadge evidence={item.targeting_evidence} /><RelatedIntelligence kind="vulnerability" id={id} />
     </>}
   </main>;

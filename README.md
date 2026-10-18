@@ -35,6 +35,35 @@ bookmark IDs migrate on first access. Records that expired or cannot be loaded
 remain bookmarked and show an unavailable state. No articles, IOC lists, API keys,
 tokens, or PoC results are retained in Saved or synchronized to Supabase.
 
+### Add a feed reference to a private Case
+
+After signing in as the verified owner, choose **Add to Case** in a News,
+Vulnerability, or IOC report detail (also available in its preview). Choose an
+existing Case and confirm. The Case list is loaded only when you open the picker;
+this action never runs providers, creates an investigation, imports IOC lists,
+or changes a detection rule. Public feed reading remains unchanged.
+
+Cases retain at most 100 compact references: source kind/ID, title, available
+publication date, attachment time, source links, attribution and license. These
+are source-reported, unverified snapshots, not proof of a shared campaign or
+current malicious activity. Original feed details may expire after 30 days;
+the Case's saved attribution and source links remain. **Remove reference** requires
+confirmation and removes only that Case link, not a feed item or investigation.
+
+`POST /api/v1/cases/{id}/feed` accepts only `{kind,id}` and resolves attribution
+from stored metadata, never from client-supplied titles or links. Repeated saves
+of the same kind/ID are idempotent, including after feed expiry. Removal uses
+`DELETE /api/v1/cases/{id}/feed/{kind}/{record_id}`. Both require verified owner
+sign-in and return private, no-store responses. Pending browser requests and
+displayed private Case data are discarded on sign-out/account change.
+
+References use the existing Case JSON storage, with file/SQLite/PostgreSQL
+support: **no migration, extra credential or paid service is required**. Existing
+Cases default to an empty reference list. Personal backups include nonempty Case
+references (not the public feed dataset); legacy v1/v2 backup digests still
+validate. If saving fails, keep the report open, inspect the Case or retry the
+same attachment manually. No automatic retries consume requests.
+
 Stored views support newest/oldest activity ordering, removable URL filter chips,
 and Reset Filters; resetting preserves the active tab. Regional-targeting evidence
 is separate from News section routing. Targeting badges require explicit source

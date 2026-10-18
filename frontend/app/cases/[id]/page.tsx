@@ -17,6 +17,7 @@ import {
   type WorkspaceInvestigation,
 } from "@/lib/api";
 import { entityLabel } from "@/lib/investigation";
+import { CaseFeedReferences } from "@/components/cases/CaseFeedReferences";
 
 type State =
   | { kind: "loading" }
@@ -101,6 +102,7 @@ export default function CaseDetailPage() {
             )}
             <DetailHeader record={state.record} onUpdate={applyUpdate} />
             <LinkedInvestigations record={state.record} onChange={load} onError={setActionError} />
+            <CaseFeedReferences key={state.record.id} record={state.record} onChange={(record) => setState({ kind: "ready", record })} />
             <NotesSection record={state.record} onChange={load} onError={setActionError} />
           </>
         )}

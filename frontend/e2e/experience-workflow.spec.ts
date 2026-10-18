@@ -145,6 +145,7 @@ test("generation before save includes the package and stays usable on mobile", a
 test("server cooldown blocks retry and refresh without provider calls", async ({ page }) => {
   await mockOwnerSignIn(page);
   await page.goto("/"); await search(page);
+  await expect(page.getByRole("region", { name: "Result overview" })).toContainText("example.test");
   let attempts = 0;
   await page.route("**/api/v1/investigate", (route) => { attempts++; return route.fulfill({ status: 429, headers: { "Retry-After": "60" }, json: { error_code: "rate_limited", retryable: true } }); });
   await page.getByRole("button", { name: "Refresh now" }).click();

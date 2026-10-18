@@ -103,6 +103,11 @@ def _record(operation: str, success: bool, investigations: int, cases: int, star
 
 def _digest(bundle: BackupBundle) -> str:
     payload = bundle.model_dump(mode="json", exclude={"digest"})
+    # Empty optional references did not exist in earlier v1/v2 backups.
+    # Keep their original digest canonicalization while signing nonempty references.
+    for case in payload["cases"]:
+        if not case.get("feed_references"):
+            case.pop("feed_references", None)
     if bundle.schema_version == 1:
         payload.pop("owner_user_id", None)
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()

@@ -20,8 +20,8 @@ from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from ..workspace.service import WorkspaceService
-from .exceptions import InvalidStatusTransitionError
-from .models import Case, CaseNote, CasePriority, CaseStatus
+from .exceptions import CaseFeedLimitError, InvalidStatusTransitionError
+from .models import MAX_FEED_REFERENCES, Case, CaseFeedReference, CaseNote, CasePriority, CaseStatus
 from .schemas import AddNoteRequest, CreateCaseRequest, UpdateCaseRequest
 from .storage import CaseStorage
 
@@ -249,3 +249,43 @@ class CaseService:
             )
             self._storage.save(updated)
         return updated
+
+    def attach_feed(self, case_id: UUID, reference: CaseFeedReference) -> Case:
+        """Idempotently append a source snapshot inside the existing transaction."""
+        with self._storage.lock():
+            existing = self._storage.load(case_id)
+            if any(
+                (ref.kind, ref.id) == (reference.kind, reference.id)
+                for ref in existing.feed_references
+            ):
+                return existing
+            if len(existing.feed_references) >= MAX_FEED_REFERENCES:
+                raise CaseFeedLimitError(
+                    "This Case already has 100 feed references. Remove one first."
+                )
+            updated = existing.model_copy(
+                update={
+                    "feed_references": [*existing.feed_references, reference],
+                    "updated_at": datetime.now(UTC),
+                }
+            )
+            self._storage.save(updated)
+            return updated
+
+    def remove_feed(self, case_id: UUID, kind: str, record_id: str) -> Case:
+        """Remove only the Case reference, never the public source record."""
+        with self._storage.lock():
+            existing = self._storage.load(case_id)
+            remaining = [
+                ref for ref in existing.feed_references if (ref.kind, ref.id) != (kind, record_id)
+            ]
+            if len(remaining) == len(existing.feed_references):
+                return existing
+            updated = existing.model_copy(
+                update={
+                    "feed_references": remaining,
+                    "updated_at": datetime.now(UTC),
+                }
+            )
+            self._storage.save(updated)
+            return updated

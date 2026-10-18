@@ -23,6 +23,10 @@ class CaseStorageError(CaseError):
     """The storage backend could not read or write a record."""
 
 
+class CaseFeedLimitError(CaseError):
+    """A Case has reached its bounded source-reference capacity."""
+
+
 class InvalidStatusTransitionError(CaseError):
     """The requested status change is not allowed from the case's current status."""
 

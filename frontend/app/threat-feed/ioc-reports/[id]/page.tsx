@@ -4,6 +4,7 @@ import Link from "next/link";
 import { TargetingBadge } from "@/components/threat-feed/FeedFilters";
 import { IocChanges } from "@/components/threat-feed/IocChanges";
 import { BookmarkButton } from "@/components/threat-feed/SavedFeed";
+import { AddToCase } from "@/components/threat-feed/AddToCase";
 import { RelatedIntelligence } from "@/components/threat-feed/FeedWorkflow";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -37,6 +38,7 @@ export default function IocReportDetail() {
       {!filtered.length && <p className="text-sm text-zinc-500">No indicators match these filters.</p>}
       <nav aria-label="Report indicator pagination" className="flex items-center gap-3"><button className={control} disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</button><span className="text-xs">Page {page} · {filtered.length} indicators</span><button className={control} disabled={page * 20 >= filtered.length} onClick={() => setPage(page + 1)}>Next</button></nav>
       <footer className="text-xs text-zinc-500">{data.report.attribution} · <a className="text-sky-300" href={data.report.license_url} target="_blank" rel="noreferrer">{data.report.license}</a>. Exports retain attribution and required notices.</footer>
+      <AddToCase kind="ioc" id={data.report.id} />
       <IocChanges report={data.report} />
       <TargetingBadge evidence={data.report.targeting_evidence} /><RelatedIntelligence kind="ioc" id={id} />
     </>}

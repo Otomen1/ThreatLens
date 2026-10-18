@@ -21,9 +21,10 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import StrEnum
+from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, JsonValue
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, JsonValue, field_validator
 
 CASE_FRAMEWORK_VERSION = "1.0"
 
@@ -31,6 +32,43 @@ MAX_TITLE_LENGTH = 200
 MAX_DESCRIPTION_LENGTH = 2000
 MAX_NOTE_LENGTH = 4000
 MAX_AUTHOR_LENGTH = 200
+MAX_FEED_REFERENCES = 100
+
+
+class FeedReferenceKey(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    kind: Literal["news", "vulnerability", "ioc"]
+    id: str = Field(min_length=1, max_length=200, pattern=r"^[A-Za-z0-9_.:-]+$")
+
+
+class CaseFeedSource(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    name: str = Field(min_length=1, max_length=200)
+    url: HttpUrl
+
+    @field_validator("url")
+    @classmethod
+    def no_credentials(cls, value: HttpUrl) -> HttpUrl:
+        if value.username or value.password:
+            raise ValueError("Credential-bearing source links are not supported")
+        return value
+
+
+class CaseFeedReference(FeedReferenceKey):
+    """Compact source snapshot, not an investigation or a verified verdict."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    title: str = Field(min_length=1, max_length=500)
+    sources: tuple[CaseFeedSource, ...] = Field(default=(), max_length=10)
+    published_at: datetime | None = None
+    attached_at: datetime
+    attribution: str = Field(default="", max_length=1000)
+    license: str | None = Field(default=None, max_length=200)
+    disposition: Literal["source-reported"] = "source-reported"
+    verified: Literal[False] = False
 
 
 class CaseStatus(StrEnum):
@@ -108,5 +146,8 @@ class Case(BaseModel):
     owner: str | None = None
     tags: list[str] = Field(default_factory=list)
     linked_workspace_ids: list[UUID] = Field(default_factory=list)
+    feed_references: list[CaseFeedReference] = Field(
+        default_factory=list, max_length=MAX_FEED_REFERENCES
+    )
     notes: list[CaseNote] = Field(default_factory=list)
     metadata: dict[str, JsonValue] = Field(default_factory=dict)

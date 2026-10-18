@@ -260,6 +260,16 @@ class IocStorage:
             "baseline": "Changes observed by ThreatLens only; no vendor archive implied.",
         }
 
+    def get_report(self, report_id: str) -> IocReport | None:
+        """Read one report's metadata without loading its indicator list."""
+        if self.memory:
+            return self.reports.get(report_id)
+        with self.connection() as db:
+            row = db.execute(
+                self.sql("SELECT payload FROM threat_feed_ioc_reports WHERE id=?"), (report_id,)
+            ).fetchone()
+        return IocReport.model_validate(self.decode(row[0])) if row else None
+
     def detail(self, report_id: str) -> tuple[IocReport, tuple[Indicator, ...]] | None:
         if self.memory:
             report = self.reports.get(report_id)

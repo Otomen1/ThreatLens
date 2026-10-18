@@ -15,6 +15,20 @@ export interface CaseNote {
   content: string;
 }
 
+export type CaseFeedKind = "news" | "vulnerability" | "ioc";
+export interface CaseFeedReference {
+  kind: CaseFeedKind;
+  id: string;
+  title: string;
+  sources: { name: string; url: string }[];
+  published_at: string | null;
+  attached_at: string;
+  attribution: string;
+  license: string | null;
+  disposition: "source-reported";
+  verified: false;
+}
+
 export interface Case {
   id: string;
   title: string;
@@ -26,8 +40,17 @@ export interface Case {
   owner: string | null;
   tags: string[];
   linked_workspace_ids: string[];
+  feed_references?: CaseFeedReference[];
   notes: CaseNote[];
   metadata: Record<string, unknown>;
+}
+
+export function attachFeedToCase(caseId: string, kind: CaseFeedKind, id: string, signal?: AbortSignal): Promise<Case> {
+  return post<Case>(`/cases/${encodeURIComponent(caseId)}/feed`, { kind, id }, signal);
+}
+
+export function removeFeedFromCase(caseId: string, kind: CaseFeedKind, id: string, signal?: AbortSignal): Promise<Case> {
+  return delWithBody<Case>(`/cases/${encodeURIComponent(caseId)}/feed/${kind}/${encodeURIComponent(id)}`, signal);
 }
 
 export interface CreateCaseRequest {
