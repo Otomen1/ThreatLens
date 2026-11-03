@@ -1,5 +1,6 @@
 import { get, getUncached, post } from "./client";
 import type { TargetEvidence } from "@/components/threat-feed/FeedFilters";
+import { clearPublicFeedCache } from "../publicFeedCache";
 
 export type FeedRegion = "global" | "malaysia" | "southeast_asia";
 export type FeedEntity = { type: string; value: string; normalized_value: string; disposition: string; verified: boolean };
@@ -35,7 +36,9 @@ export type VulnerabilityList = {
   sources: string[]; last_synced_at: string | null; sync_status: string; generated_at: string;
 };
 export function getVulnerabilities(params: URLSearchParams, fresh = false, signal?: AbortSignal) {
-  const path = `/threat-feed/vulnerabilities?${params}`;
+  const query = new URLSearchParams(params);
+  if (fresh) query.set("fresh", "true");
+  const path = `/threat-feed/vulnerabilities?${query}`;
   return fresh ? getUncached<VulnerabilityList>(path, signal) : get<VulnerabilityList>(path, signal);
 }
 export const getVulnerability = (id: string) => get<Vulnerability>(`/threat-feed/vulnerabilities/${encodeURIComponent(id)}`);
@@ -48,18 +51,23 @@ export const checkFeedBookmarks = (items: { kind: BookmarkAvailability["kind"]; 
   post<BookmarkAvailability[]>("/threat-feed/bookmarks/availability", { items: items.map(({ kind, id }) => ({ kind, id })) }, signal);
 export const refreshFeed = async () => {
   const result = await post<FeedRefresh>("/threat-feed/refresh", {});
-  window.dispatchEvent(new Event("threat-feed-refreshed"));
+  if (result.status === "completed") {
+    for (const key of ["threatlens.feed.home.v1", "threatlens.feed.news-regions.v1", "threatlens.feed.vulnerabilities.v1"]) clearPublicFeedCache(key);
+    window.dispatchEvent(new Event("threat-feed-refreshed"));
+  }
   return result;
 };
 export function getFeedHome(params: FeedHomeParams, options?: { fresh?: boolean; signal?: AbortSignal }) {
   const query = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => { if (value !== undefined && value !== "") query.set(key, String(value)); });
+  if (options?.fresh) query.set("fresh", "true");
   const path = `/threat-feed/home?${query.toString()}`;
   return options?.fresh ? getUncached<FeedHomeResponse>(path, options.signal) : get<FeedHomeResponse>(path, options?.signal);
 }
 export function getFeedItems(params: Record<string, string | number | undefined>, options?: { signal?: AbortSignal; fresh?: boolean }) {
   const query = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => { if (value !== undefined && value !== "") query.set(key, String(value)); });
+  if (options?.fresh) query.set("fresh", "true");
   const path = `/threat-feed/items?${query.toString()}`;
   return options?.fresh ? getUncached<FeedList>(path, options.signal) : get<FeedList>(path, options?.signal);
 }

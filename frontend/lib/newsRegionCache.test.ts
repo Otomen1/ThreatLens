@@ -11,11 +11,11 @@ beforeEach(() => {
 });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 describe("Bounded regional News browser cache", () => {
-  it("separates filters, retains at most three entries and replaces a matching key", () => {
-    for (const key of ["my:1", "my:2", "sea:1", "global:1"]) writeNewsRegionCache(key, result);
+  it("separates filters, retains at most eight entries and replaces a matching key", () => {
+    for (const key of ["my:1", "my:2", "sea:1", "global:1", "global:2", "global:3", "global:4", "global:5", "global:6"]) writeNewsRegionCache(key, result);
     expect(readNewsRegionCache("my:1")).toBeNull(); expect(readNewsRegionCache("my:2")?.response).toEqual(result);
     writeNewsRegionCache("my:2", { ...result, total: 2 });
-    expect(JSON.parse(values.get(KEY)!).entries).toHaveLength(3);
+    expect(JSON.parse(values.get(KEY)!).entries).toHaveLength(8);
     expect(readNewsRegionCache("my:2")?.response.total).toBe(2);
     expect(readNewsRegionCache("different filters")).toBeNull();
   });

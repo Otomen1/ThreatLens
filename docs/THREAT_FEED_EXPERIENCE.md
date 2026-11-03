@@ -12,6 +12,58 @@
 No dependencies, paid services, external collection requests, or database
 migrations are added. Existing detail URLs and full-page navigation remain.
 
+## News and Vulnerabilities loading reliability
+
+Public Threat Feed GET requests skip authentication/session lookup, omit bearer
+tokens and cookies, and coalesce identical in-flight reads. Each consumer can
+cancel without cancelling other consumers; the upstream browser request stops
+when everyone cancels. Ordinary public reads have a 12-second deadline, including
+body loading. This deadline does not apply to source-collection POSTs or private
+PoC lookups. Failed reads and mutations are never retried automatically.
+
+News home, regional News and Vulnerabilities use the same browser cache policy:
+five minutes fresh, up to 24 hours as an older fallback, eight filter/page entries
+and at most 1 MiB per view. Older browser caches remain readable. Fresh entries
+render without another list request. Older entries render immediately and update
+in the background. Invalid responses cannot replace a good list or cache entry.
+Search typing is briefly debounced; pagination and explicit reloads start directly.
+Rows remain visible on loading, timeout and errors. A hint appears after four
+seconds; Retry is manual and respects a supplied retry time.
+
+**Reload saved data** only reads the database. It bypasses browser/CDN and warm
+backend caches using `fresh=true` with a no-store response. **Refresh sources**
+contacts the existing source collectors and retains the durable 30-minute public
+cooldown. A failed collection or failed follow-up read cannot produce a success
+notification. Successful collection clears compact browser caches. The six-hour
+schedule, source failure isolation and retention policies are unchanged.
+
+Detailed collection diagnostics load only when expanded, with a five-minute
+in-memory copy. Their failure cannot delay the main table. Collection time,
+publication dates and browser-cache freshness remain distinct.
+
+Feed and IOC database setup use version markers in the existing feed-state table.
+Current schemas skip DDL. Upgrades acquire one transaction advisory lock in
+PostgreSQL, or a SQLite immediate transaction, before any table changes, then
+recheck the marker. Markers commit only with successful setup. RLS stays enabled.
+Future schema changes must use a new marker version. A process lock also prevents
+duplicate service construction in one instance. Existing metadata backfills stay
+idempotent and use no external requests.
+
+PostgreSQL connections retain unnamed statements for transaction poolers and use
+a four-second connect timeout. Each transaction sets a six-second statement
+timeout and two-second lock timeout locally, without changing pooled session
+defaults. Bounded list reads still use one combined data query, plus this
+transaction-local timeout setup. `Server-Timing: feed;dur=...` on home and
+vulnerability responses measures handler work, excluding connection startup in
+the dependency, network transit and browser rendering. Warm CDN responses can
+carry an older timing; it is diagnostic evidence, not a latency promise.
+
+Tests cover SQLite concurrent startup/rollback, PostgreSQL driver lock ordering,
+request cancellation/deadlines, cache expiry/bounds and browser recovery. Live
+PostgreSQL concurrency and production latency require deployment verification;
+local fixtures do not establish either. No paid cache, new table, migration,
+credential or provider request is needed to test these changes.
+
 ## Previews and dates
 
 The separate Preview button in News, Vulnerabilities and IOC Reports reads the

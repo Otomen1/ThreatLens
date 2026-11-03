@@ -103,10 +103,15 @@ test("legacy URLs, filter reset and bookmarks preserve the regional workflow", a
 test("regional cache survives a failed background load and keeps cooldown feedback", async ({ page }) => {
   await mocks(page); await page.goto("/threat-feed/news/southeast-asia");
   await expect(page.getByRole("link", { name: "Southeast Asia report 1", exact: true })).toBeVisible();
+  await page.evaluate(() => {
+    const key = "threatlens.feed.news-regions.v1", cache = JSON.parse(localStorage.getItem(key)!);
+    cache.entries.forEach((entry: { savedAt: number }) => { entry.savedAt -= 6 * 60000; });
+    localStorage.setItem(key, JSON.stringify(cache));
+  });
   await page.route("**/api/v1/threat-feed/items?*", route => route.abort()); await page.reload();
   await expect(page.getByRole("link", { name: "Southeast Asia report 1", exact: true })).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: /last available reports/ })).toBeVisible();
-  await page.getByRole("button", { name: "Refresh feed", exact: true }).click();
+  await page.getByRole("button", { name: "Refresh sources", exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: /Refresh is cooling down/ })).toBeVisible();
 });
 

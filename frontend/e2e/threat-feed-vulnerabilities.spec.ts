@@ -136,7 +136,7 @@ test("public News and Vulnerabilities tabs, filters, details and investigation h
   await expect(page).toHaveURL(/severity=critical/);
   await page.reload();
   await expect(page.getByRole("combobox", { name: "Vulnerability severity" })).toHaveValue("critical");
-  await page.getByRole("button", { name: "Refresh feed" }).click();
+  await page.getByRole("button", { name: "Refresh sources" }).click();
   await expect(page.getByRole("status").filter({ hasText: /cooling down/ })).toBeVisible();
   await page.getByRole("link", { name: "CVE-2026-12345", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Description", exact: true })).toBeVisible();
@@ -159,6 +159,11 @@ test("regional News view all and vulnerability stale fallback", async ({ page })
   await page.goto("/threat-feed?tab=vulnerabilities");
   await expect(page.getByRole("link", { name: "CVE-2026-12345", exact: true })).toBeVisible();
   await page.route("**/api/v1/threat-feed/vulnerabilities?*", (route) => route.abort());
+  await page.evaluate(() => {
+    const key = "threatlens.feed.vulnerabilities.v1", cache = JSON.parse(localStorage.getItem(key)!);
+    cache.entries.forEach((entry: { savedAt: number }) => { entry.savedAt -= 6 * 60000; });
+    localStorage.setItem(key, JSON.stringify(cache));
+  });
   await page.reload();
   await expect(page.getByRole("link", { name: "CVE-2026-12345", exact: true })).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: /last available/ })).toBeVisible();

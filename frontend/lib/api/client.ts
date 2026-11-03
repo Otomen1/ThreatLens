@@ -52,9 +52,11 @@ export async function authorizedFetch(
 ): Promise<Response> {
   const isPrivate = !path.startsWith("/threat-feed/") && !["/health", "/ready", "/version"].includes(path);
   const generation = privateGeneration();
-  const token = await accessToken();
+  const publicRead = path.startsWith("/threat-feed/") && ["GET", "HEAD"].includes(init.method ?? "GET");
+  const token = publicRead ? undefined : await accessToken();
   if (isPrivate && generation !== privateGeneration()) throw new DOMException("Session changed", "AbortError");
   const headers = new Headers(init.headers);
+  if (publicRead) headers.delete("Authorization");
   if (token) headers.set("Authorization", `Bearer ${token}`);
   const controller = new AbortController();
   const abort = () => controller.abort();
@@ -62,7 +64,8 @@ export async function authorizedFetch(
   if (init.signal?.aborted) controller.abort();
   const untrack = isPrivate ? trackPrivateRequest(controller) : () => undefined;
   try {
-    const response = await fetch(`${API_BASE}${path}`, { ...init, headers, signal: controller.signal });
+    // Keep the public caller's native signal attached through response-body reads.
+    const response = await fetch(`${API_BASE}${path}`, { ...init, ...(publicRead ? { credentials: "omit" as const } : {}), headers, signal: publicRead ? init.signal : controller.signal });
     if (isPrivate && generation !== privateGeneration()) throw new DOMException("Session changed", "AbortError");
     return response;
   } catch (error) {
@@ -73,7 +76,7 @@ export async function authorizedFetch(
   }
 }
 
-async function request<T>(
+async function requestOnce<T>(
   path: string,
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
   body?: unknown,
@@ -101,6 +104,57 @@ async function request<T>(
   const data = await response.json();
   if (!path.startsWith("/threat-feed/") && generation !== privateGeneration()) throw new DOMException("Session changed", "AbortError");
   return data as T;
+}
+
+// Public stored-data reads share work, but each caller owns its cancellation.
+// Mutations and private requests never join this cache or receive this deadline.
+type PendingRead = { promise: Promise<unknown>; controller: AbortController; users: number };
+const pendingReads = new Map<string, PendingRead>();
+export const PUBLIC_READ_TIMEOUT_MS = 12_000;
+
+function request<T>(path: string, method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE", body?: unknown, signal?: AbortSignal, cache?: RequestCache): Promise<T> {
+  if (method !== "GET" || !path.startsWith("/threat-feed/")) return requestOnce<T>(path, method, body, signal, cache);
+  if (signal?.aborted) return Promise.reject(new DOMException("Aborted", "AbortError"));
+  const key = `${cache ?? "default"}:${path}`;
+  let entry = pendingReads.get(key);
+  if (!entry) {
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout>;
+    const deadline = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => {
+        reject(new ApiError("Loading saved feed data timed out. Previous results are unchanged.", 408, { errorCode: "timeout" }));
+        controller.abort();
+      }, PUBLIC_READ_TIMEOUT_MS);
+    });
+    const created: PendingRead = { controller, users: 0, promise: Promise.resolve() };
+    created.promise = Promise.race([requestOnce<T>(path, method, body, controller.signal, cache), deadline]).finally(() => {
+      clearTimeout(timer);
+      if (pendingReads.get(key) === created) pendingReads.delete(key);
+    });
+    entry = created; pendingReads.set(key, entry);
+  }
+  const current = entry;
+  current.users++;
+  return new Promise<T>((resolve, reject) => {
+    let finished = false;
+    const release = () => {
+      if (finished) return false;
+      finished = true; signal?.removeEventListener("abort", abort);
+      if (--current.users === 0) {
+        // React development effects may immediately resubscribe. Give that
+        // subscriber one microtask without starting a duplicate network read.
+        queueMicrotask(() => {
+          if (current.users !== 0) return;
+          if (pendingReads.get(key) === current) pendingReads.delete(key);
+          current.controller.abort();
+        });
+      }
+      return true;
+    };
+    const abort = () => { if (release()) reject(new DOMException("Aborted", "AbortError")); };
+    signal?.addEventListener("abort", abort, { once: true });
+    current.promise.then((value) => { if (release()) resolve(value as T); }, (error: unknown) => { if (release()) reject(error); });
+  });
 }
 
 export function post<T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> {

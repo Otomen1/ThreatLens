@@ -33,10 +33,10 @@ describe("Threat Feed browser cache", () => {
     writeFeedHomeCache(params, response);
     expect(readFeedHomeCache({ ...params, source: "ahnlab" })).toBeNull();
     writeFeedHomeCache({ ...params, source: "ahnlab" }, { ...response, source_options: [{ id: "ahnlab", name: "AhnLab ASEC" }] });
-    expect(readFeedHomeCache(params)).toBeNull();
+    expect(readFeedHomeCache(params)).not.toBeNull();
     expect(readFeedHomeCache({ ...params, source: "ahnlab" })).not.toBeNull();
     writeFeedHomeCache(params, { ...response, source_options: [{ id: "bad/path", name: "Invalid" }] });
-    expect(readFeedHomeCache(params)).toBeNull();
+    expect(readFeedHomeCache(params)).not.toBeNull(); // Invalid replacement preserves the last good copy.
   });
 
   it("removes malformed cached data", () => {

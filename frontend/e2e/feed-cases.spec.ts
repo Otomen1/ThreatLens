@@ -7,7 +7,7 @@ test.afterEach(({ page }) => { expect(pageErrors.get(page)).toEqual([]); });
 
 const now = new Date().toISOString();
 const caseId = "00000000-0000-4000-8000-000000000003";
-const news = { id: "news-case", title: "Stored campaign report", source_id: "talos", source_name: "Cisco Talos", source_kind: "rss", summary: "Stored report summary", url: "https://example.test/report", published_at: now, region: "global", region_reasons: [], relevance: "general", topic: "research", entities: [] };
+const news = { id: "news-case", title: "Stored campaign report", source_id: "talos", source_name: "Cisco Talos", source_kind: "rss", summary: "Stored report summary", excerpt: "Stored metadata", url: "https://example.test/report", published_at: now, region: "global", region_reasons: [], relevance: "general", topic: "research", severity: null, entities: [] };
 const vulnerability = { id: "CVE-2026-1234", cve_id: "CVE-2026-1234", title: "Stored vulnerability", description: "Stored description", sources: ["NVD"], products: [], references: [], reports: [], scores: [], severity: null };
 const ioc = { id: "ioc-case", title: "Stored IOC report", vendor: "talos", source_url: "https://example.test/iocs", path: "iocs.txt", published_at: now, activity_at: now, collected_at: now, commit: "a".repeat(40), license: "CC0", license_url: "https://example.test/license", attribution: "Cisco Talos", warnings: [], types: [], indicator_count: 0 };
 

@@ -48,7 +48,7 @@ export default function NewsFeed({ region }: { region?: FeedRegion }) {
   const sort = region && params.get("sort") === "oldest" ? "oldest" : "newest";
   const hours = ["24", "168", "720"].includes(params.get("hours") ?? "") ? params.get("hours")! : "168";
   const page = Math.min(10000, Math.max(1, Math.floor(Number(params.get("page")) || 1)));
-  const { home, listing, loading, status, setStatus, load, previousFilters } = useNewsFeedData(region, query, topic, Number(hours), page, sort, source);
+  const { home, listing, loading, slow, status, setStatus, load, previousFilters } = useNewsFeedData(region, query, topic, Number(hours), page, sort, source);
   const [busy, setBusy] = useState(false);
   const mounted = useRef(true);
   const viewKey = JSON.stringify({ region, query, topic, source, hours, page, sort });
@@ -71,7 +71,7 @@ export default function NewsFeed({ region }: { region?: FeedRegion }) {
       const result = await refreshFeed();
       if (!mounted.current || refreshingView !== currentView.current) return;
       if (result.status === "cooldown") {
-        setStatus("Refresh is cooling down. Existing reports remain available.");
+        setStatus(`Refresh is cooling down. Existing reports remain available.${result.next_refresh_at ? ` Next eligible: ${new Date(result.next_refresh_at).toLocaleString()}.` : ""}`);
         notify("Threat Feed refresh is cooling down.", "warning");
       } else if (result.status === "failed") {
         setStatus("Sources could not be refreshed. Existing reports are unchanged.");
@@ -96,15 +96,16 @@ export default function NewsFeed({ region }: { region?: FeedRegion }) {
   const selectionPaused = loading || previousFilters;
   return <main data-list-ready={ready} className="min-h-screen px-4 py-10"><div className="mx-auto max-w-6xl space-y-6">
     {region && <div className="space-y-3"><Link className="text-sm text-sky-300 hover:underline focus-visible:outline focus-visible:outline-sky-400" href={newsHref(undefined, params)}>← Back to News</Link><h2 className="text-2xl font-semibold">{NEWS_REGION_DETAILS[region].label} news</h2><p className="text-sm text-zinc-500">10 reports per page. Regional placement is not proof of targeting.</p></div>}
-    <ActionToolbar context={<p className="max-w-2xl text-sm text-zinc-500">Cybersecurity reporting and official advisories, routed by regional relevance. Source-reported entities remain unverified until investigated.</p>}><button disabled={busy} onClick={() => void refresh()} className="rounded-lg border border-sky-500/30 px-4 py-2 text-sm text-sky-300 hover:bg-sky-500/10 disabled:opacity-50">{busy ? "Refreshing…" : "Refresh feed"}</button></ActionToolbar>
+    {!ready && slow && <p role="status" className="text-sm text-zinc-400">Loading is taking longer than usual. This read will stop after 12 seconds.</p>}
+    <ActionToolbar context={<p className="max-w-2xl text-sm text-zinc-500">Source-reported entities remain unverified until investigated. Reload reads saved reports. Refresh sources contacts publishers and respects the 30-minute cooldown.</p>}><button disabled={busy || loading} onClick={() => void load(true)} className="rounded-lg border border-zinc-700 px-4 py-2 text-sm disabled:opacity-50">Reload saved data</button><button disabled={busy} onClick={() => void refresh()} className="rounded-lg border border-sky-500/30 px-4 py-2 text-sm text-sky-300 hover:bg-sky-500/10 disabled:opacity-50">{busy ? "Refreshing sources…" : "Refresh sources"}</button></ActionToolbar>
     {!ready ? loading ? <FeedSkeleton regional={Boolean(region)} /> : <div role="alert" className="rounded-xl border border-zinc-800 p-6 text-sm text-zinc-400"><p>{status}</p><button onClick={() => void load()} className="mt-3 rounded-lg border border-zinc-700 px-3 py-2">Retry loading feed</button></div> : <>
       {home && <section key={home.generated_at} aria-label="News activity" className="animate-data-pulse grid gap-3 rounded-xl sm:grid-cols-3"><div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p className="text-xs text-zinc-500">New in 24 hours</p><p className="mt-1 text-2xl font-semibold">{Object.values(home.summary.regions).reduce((sum, value) => sum + value.recent, 0)}</p></div><div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p className="text-xs text-zinc-500">Source-reported entities</p><p className="mt-1 text-2xl font-semibold">{home.summary.new_iocs}</p></div><div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4"><p className="text-xs text-zinc-500">Last refresh</p><p className="mt-2 text-sm text-zinc-200">{home.summary.last_refreshed_at ? new Date(home.summary.last_refreshed_at).toLocaleString() : "Not refreshed yet"}</p></div></section>}
       <section className="space-y-4" aria-label="News listing">
         {home && <FeedBrief />}
         <FeedToolbar table="news" region={region}><NewsFilters query={query} topic={topic} source={source} sources={home?.source_options ?? listing?.source_options ?? []} hours={hours} update={update} /></FeedToolbar>
         {home && source && <p className="text-xs text-zinc-500">Activity cards cover all sources; reports below match your selected publisher.</p>}
-        <p role="status" aria-live="polite" className={status || previousFilters ? "text-sm text-zinc-400" : "sr-only"}>{previousFilters && "Previous filter results · "}{status}</p>
-        {!loading && status.startsWith("Could not update") && <button className="rounded-lg border border-zinc-700 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-sky-400" onClick={() => void load()}>Retry loading feed</button>}
+        <p role="status" aria-live="polite" className={status || previousFilters ? "text-sm text-zinc-400" : "sr-only"}>{previousFilters && "Previous filter results · "}{status}{slow && " This is taking longer than usual. Loading will stop after 12 seconds."}</p>
+        {!loading && /Could not|timed out|rate-limited/.test(status) && <button className="rounded-lg border border-zinc-700 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-sky-400" onClick={() => void load(true)}>Retry loading feed</button>}
         <FeedBulkActions key={viewKey} kind="news" items={items} selection={selection} disabled={selectionPaused} />
         <NewsTable title={title} items={items} total={total} offset={region ? (displayedPage - 1) * NEWS_PAGE_SIZE : 0} rowSelection={{ selection, disabled: selectionPaused }} />
       </section>
