@@ -19,6 +19,7 @@ test("public IOC reports, filters, provenance, export and explicit investigation
   const errors: string[] = []; page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/threat-feed?tab=iocs");
   await expect(page.getByRole("link", { name: "Example malware indicators" })).toBeVisible();
+  await page.getByText("Source coverage and synchronization", { exact: true }).click();
   await expect(page.getByText("Import disabled pending redistribution review.")).toBeVisible();
   await page.getByRole("button", { name: "Refresh IOC reports" }).click();
   await expect(page.getByRole("main").getByRole("status").filter({ hasText: "cooling down" })).toBeVisible();

@@ -14,6 +14,7 @@ export function FeedBadge({ children, tone = "neutral" }: { children?: ReactNode
 }
 export function FeedSeverityBadge({ severity }: { severity: string | null }) {
   const normalized = severity?.toLowerCase();
+  if (!normalized) return <span className="text-xs text-zinc-300">Not rated</span>;
   const tone: Tone = normalized === "critical" || normalized === "high" || normalized === "medium" || normalized === "low" ? normalized : "neutral";
   return <FeedBadge tone={tone}>{normalized || "Not rated"}</FeedBadge>;
 }

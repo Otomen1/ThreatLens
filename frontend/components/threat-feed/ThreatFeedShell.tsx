@@ -31,7 +31,7 @@ function FeedTabs({ region }: { region?: FeedRegion }) {
       <div className="mx-auto max-w-6xl px-4">
         <FeedViewNavigation selected={selected} headerRef={headerRef} />
         <FeedStatus manualPoc={selected === "poc"} />
-        {selected === "poc" && !params.has("view") && <div className="mt-4"><FeedFilters poc /></div>}
+        {selected === "poc" && !params.has("view") && Boolean(params.get("tool") || params.get("kind")) && <div className="mt-4"><FeedFilters poc /></div>}
       </div>
       {params.get("view") === "saved" ? <SavedFeed /> : params.get("view") === "search" ? <UnifiedFeedSearch /> : <FeedPanels selected={selected as FeedTab} newsRegion={region} />}
     </div>

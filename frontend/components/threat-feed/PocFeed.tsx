@@ -8,10 +8,11 @@ import { useOwnerSession } from "@/components/OwnerSessionProvider";
 import { ApiError } from "@/lib/api/client";
 import { lookupPoc, normalizePocCve, type PocSource, type PocSourceResult } from "@/lib/api/poc";
 import { LoadingRows } from "@/components/ui/Skeleton";
+import { FeedBadge } from "./FeedBadge";
 
 const sources: PocSource[] = ["metasploit", "nuclei"];
 const labels = { metasploit: "Metasploit", nuclei: "Nuclei" };
-const control = "rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-sky-400 disabled:opacity-40";
+const control = "feed-control";
 type SourceState = { checking: boolean; result?: PocSourceResult; error?: string };
 
 export function PocFeed() {
@@ -93,11 +94,10 @@ export function PocFeed() {
   const tool = params.get("tool") ?? "";
   const kind = params.get("kind") ?? "";
   const matches = sources.flatMap((source) => states[source]?.result?.matches ?? []).filter((item) => (!tool || item.source === tool) && (!kind || item.kind === kind));
-  return <main className="mx-auto min-h-screen max-w-6xl space-y-5 px-4 py-8">
-    <p className="max-w-3xl text-sm text-zinc-400">Search official Metasploit and Nuclei metadata for exact CVE references. Nothing is installed, downloaded as executable code, or run against a target.</p>
-    <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-xs leading-5 text-amber-200">CVE reference confirmed means the official metadata lists that CVE. It does not confirm a working exploit, a vulnerable system, or safety. Every resource is not locally tested. Nuclei templates are detection resources and are not necessarily passive or harmless.</div>
+  return <main className="feed-page mx-auto min-h-screen max-w-6xl space-y-5 px-4">
+    <p className="text-sm text-zinc-400">Find exact CVE references in official Metasploit and Nuclei metadata.</p>
     {signedIn === null ? <p role="status" className="text-sm text-zinc-500">Checking sign-in…</p> : !signedIn ? <div className="rounded-xl border border-zinc-800 p-5"><p className="text-sm text-zinc-400">Sign in to perform online PoC lookups. No source requests are made while signed out.</p><Link href={`/login?next=${encodeURIComponent(`/threat-feed?tab=poc${urlCve ? `&cve=${encodeURIComponent(urlCve)}` : ""}`)}`} className="mt-3 inline-block text-sm text-sky-300 hover:underline">Sign in for PoC lookup</Link></div> : <>
-      <form onSubmit={(event) => { event.preventDefault(); search(); }} className="flex flex-col gap-3 sm:flex-row"><label className="flex-1"><span className="sr-only">CVE identifier</span><input className={`${control} w-full`} value={input} onChange={(event) => setInput(event.target.value)} maxLength={32} placeholder="CVE-2021-44228" /></label><button className={control} type="submit">Search</button><button className={control} type="button" disabled={!submitted || checking} onClick={() => search(true)}>Check latest</button></form>
+      <form onSubmit={(event) => { event.preventDefault(); search(); }} className="feed-toolbar flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 sm:flex-row"><label className="flex-1"><span className="sr-only">CVE identifier</span><input className={`${control} w-full !justify-start font-mono`} value={input} onChange={(event) => setInput(event.target.value)} maxLength={32} placeholder="CVE-2021-44228" /></label><button className={`${control} feed-control-primary`} type="submit">Search</button><button className={control} type="button" disabled={!submitted || checking} onClick={() => search(true)}>Check latest</button></form>
       <p className="text-xs text-zinc-500">Temporary: lookup results stay in browser memory only. Source cache age and stale fallback are shown separately.</p>
       {notice && <p role="alert" className="text-sm text-amber-300">{notice}</p>}
       {submitted && <>
@@ -113,14 +113,15 @@ export function PocFeed() {
           </section>;
         })}</div>
         <div className="flex flex-wrap gap-3"><select aria-label="PoC tool filter" className={control} value={tool} onChange={(event) => updateFilter("tool", event.target.value)}><option value="">All tools</option><option value="metasploit">Metasploit</option><option value="nuclei">Nuclei</option></select><select aria-label="PoC resource type" className={control} value={kind} onChange={(event) => updateFilter("kind", event.target.value)}><option value="">All resource types</option><option value="exploit">Exploit module</option><option value="auxiliary">Auxiliary module</option><option value="detection">Detection template</option><option value="other">Other module</option></select></div>
-        {matches.length ? <div role="table" aria-label="Official PoC and tools matches" className="space-y-3">
-          <div role="row" className="hidden gap-3 px-4 text-xs text-zinc-500 md:grid md:grid-cols-[1fr_160px_190px]"><span role="columnheader">Resource / source link</span><span role="columnheader">Tool / type / platform</span><span role="columnheader">Source dates / verification</span></div>
-          {matches.map((item) => <div role="row" key={`${item.source}:${item.id}`} className="grid gap-3 rounded-xl border border-zinc-800 p-4 md:grid-cols-[1fr_160px_190px]">
+        {matches.length ? <div role="table" aria-label="Official PoC and tools matches" className="feed-table divide-y divide-zinc-800">
+          <div role="row" className="hidden gap-3 bg-zinc-900 px-4 py-3 text-xs text-zinc-400 md:grid md:grid-cols-[minmax(0,1fr)_150px_180px]"><span role="columnheader">Resource / source link</span><span role="columnheader">Tool / type / platform</span><span role="columnheader">Source dates / verification</span></div>
+          {matches.map((item) => <div role="row" key={`${item.source}:${item.id}`} className="grid gap-4 p-4 md:grid-cols-[minmax(0,1fr)_150px_180px]">
           <div role="cell"><a className="text-sm font-medium text-sky-300 hover:underline focus-visible:outline focus-visible:outline-sky-400" href={item.url} target="_blank" rel="noreferrer">{item.name} ↗</a><p className="mt-1 break-all font-mono text-xs text-zinc-500">{item.path}</p><p className="mt-2 text-xs leading-5 text-zinc-400">{item.description || "Not supplied"}</p></div>
           <div role="cell" className="space-y-2 text-xs text-zinc-400"><p>{labels[item.source]}</p><p>{item.kind === "detection" ? "Detection template" : `${item.module_type ?? "Other"} module`}</p><p>Platform: {item.platforms.join(", ") || "Not supplied"}</p>{item.severity && <p>Source severity: {item.severity}</p>}<p>Check support: {item.check_supported === null ? "Not supplied" : item.check_supported ? "Source reports yes" : "Source reports no"}</p></div>
-          <div role="cell" className="space-y-2 text-xs text-zinc-500"><p>Disclosed: {item.disclosure_date ?? "Not supplied"}</p><p>Modified: {item.modified_at ?? "Not supplied"}</p><p className="text-emerald-300">CVE reference confirmed</p><p>Official repository source</p><p className="text-amber-200">Not locally tested</p></div>
+          <div role="cell" className="space-y-2 text-xs text-zinc-400"><p>Disclosed: {item.disclosure_date ?? "Not supplied"}</p><p>Modified: {item.modified_at ?? "Not supplied"}</p><FeedBadge tone="info">CVE reference confirmed</FeedBadge><p>Official repository source</p><p className="text-amber-200">Not locally tested</p></div>
         </div>)}</div> : checking ? <LoadingRows rows={3} label="Checking PoC sources" /> : <p className="rounded-xl border border-zinc-800 p-6 text-sm text-zinc-500">No matching resources to display. Check the source statuses and selected filters; unavailable sources are not evidence that no PoC exists.</p>}
       </>}
     </>}
+    <section className="space-y-2 border-t border-zinc-800 pt-4 text-xs leading-5 text-zinc-400" aria-label="PoC verification limits"><p>Official CVE references only · Not locally tested · No tools or executable code are downloaded or run.</p><details><summary className="feed-interactive w-fit cursor-pointer rounded py-1">About verification</summary><p className="mt-2 max-w-3xl">CVE reference confirmed means the official metadata lists that CVE. It does not confirm a working exploit, a vulnerable system, or safety. Nuclei templates are detection resources and are not necessarily passive or harmless. Nothing is run against a target.</p></details></section>
   </main>;
 }

@@ -12,6 +12,40 @@
 No dependencies, paid services, external collection requests, or database
 migrations are added. Existing detail URLs and full-page navigation remain.
 
+## Feed layout and reading polish
+
+The four views share aligned toolbars, quiet status messages, compact activity
+cards and consistent controls. News keeps its three existing activity cards,
+followed by the visit brief, filters, latest ten reports and regional links.
+Vulnerability activity cards appear before the filters. Reload is visually primary;
+source collection remains a separate manual action. Explanations are expandable.
+Source diagnostics are collapsed initially and retain their existing loading policy.
+
+On screens at least 1280 pixels wide, the existing navigation can dock in the
+reserved side gutter. Smaller screens retain inline tabs and more reading width.
+Docking preserves the content edges. News rows keep two-line titles, full accessible
+link names and a separate, always-available preview button. Regional pages omit
+redundant placement badges; explicit targeting evidence remains separate. Missing
+severity is muted text, not an implied risk rating.
+
+Preview drawers keep a persistent Close control while the complete title and
+metadata scroll below it. Detail pages share title/action ordering and place
+source facts alongside the main reading column on desktop, stacking on smaller
+screens. IOC indicator tables keep the full content width. Saved bookmarks use
+compact typed rows and keep unavailable records visible. No bookmark, export,
+provider, scoring or authentication contract is changed.
+
+PoC searches keep their manual authenticated execution. The compact form and source
+panels use the same control style. Verification wording remains explicit, and an
+official CVE reference is informational provenance, not a successful exploit test.
+No tools are downloaded or executed by this presentation update.
+
+Browser coverage checks long-title previews, unchanged content edges while docking,
+mobile/tablet/desktop layouts, enlarged text, action accessibility and the absence
+of automatic investigations, collections or PoC lookups. Optional local screenshots
+use synthetic fixtures for visual review. These are local UI checks, not production
+deployment or live source verification. No dependencies or database changes are added.
+
 ## News and Vulnerabilities loading reliability
 
 Public Threat Feed GET requests skip authentication/session lookup, omit bearer

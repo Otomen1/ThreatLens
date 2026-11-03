@@ -42,8 +42,8 @@ export function FeedStatus({ manualPoc = false }: { manualPoc?: boolean }) {
     }).catch(() => { if (!controller.signal.aborted) setError(true); });
     return () => controller.abort();
   }, [attempt, manualPoc, open]);
-  if (manualPoc) return <p className="mt-4 text-xs text-zinc-500">PoC lookups are manual. Freshness follows each source’s checked time, cache age, and stale flag—not the feed collection schedule.</p>;
-  return <details onToggle={(event) => setOpen(event.currentTarget.open)} className="mt-4 rounded-xl border border-zinc-800 p-3 text-xs text-zinc-400">
+  if (manualPoc) return <p className="mt-3 text-xs text-zinc-400">Manual PoC lookups · Source freshness is shown with each result.</p>;
+  return <details onToggle={(event) => setOpen(event.currentTarget.open)} className="mt-3 border-b border-zinc-800 px-1 py-2 text-xs text-zinc-400">
     <summary className="cursor-pointer focus-visible:outline focus-visible:outline-sky-400">Collection freshness and coverage{data ? ` · ${data.sources.filter((s) => s.stale).length} stale · ${data.sources.filter((s) => s.pending > 0).length} pending` : ""}</summary>
     <p role="status" className="mt-3">{error ? "Status could not update; previous status retained." : data ? `Status retrieved ${date(data.generated_at)}. Article dates and browser cache age are separate.` : "Loading source status…"}</p>
     {error && <button className="mt-2 text-sky-300 focus-visible:outline" onClick={() => setAttempt((n) => n + 1)}>Retry source status</button>}

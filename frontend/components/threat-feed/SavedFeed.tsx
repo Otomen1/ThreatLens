@@ -9,6 +9,7 @@ import { triggerJsonDownload } from "@/lib/download";
 import { useToast } from "@/components/ui/ToastProvider";
 import { feedControl } from "./FeedWorkflow";
 import { useListFilters } from "@/hooks/useListFilters";
+import { FeedBadge } from "./FeedBadge";
 
 const SAVED_FILTERS = { saved_type: ["", "news", "vulnerability", "ioc"], page: [] };
 
@@ -77,8 +78,8 @@ export function SavedFeed() {
     } catch { setMessage("Couldn't save bookmarks in this browser. Existing bookmarks are unchanged."); }
   }
   const preview = incoming ? previewBookmarkMerge(incoming, items) : null;
-  return <main data-list-ready={hydrated && loaded} className="mx-auto max-w-6xl space-y-4 px-4 py-8">
-    <h2 className="text-xl">Saved intelligence</h2>
+  return <main data-list-ready={hydrated && loaded} className="feed-page mx-auto min-h-screen max-w-6xl space-y-4 px-4">
+    <h2 className="text-xl font-semibold">Saved intelligence</h2>
     <p className="text-xs text-zinc-500">Browser-local. No PoC results, full articles, IOC lists, or credentials are stored or exported here.</p>
     <div className="flex flex-wrap items-center gap-3">
       <select aria-label="Saved record type" className={`${feedControl} bg-zinc-950`} value={kind} onChange={(e) => update("saved_type", e.target.value)}><option value="">All types</option><option value="news">News</option><option value="vulnerability">Vulnerabilities</option><option value="ioc">IOC Reports</option></select>
@@ -91,11 +92,11 @@ export function SavedFeed() {
     {message && <p role="status" className="text-sm text-amber-200">{message}</p>}
     <p role="status" className="min-h-5 text-xs text-zinc-400">{checking ? "Checking saved availability…" : error ? "Availability couldn't update. Bookmarks and previous checks are retained." : ""}</p>
     {error && !checking && <button className={feedControl} onClick={() => setAttempt((n) => n + 1)}>Retry availability</button>}
-    {visible.slice((page - 1) * 20, page * 20).map((item) => {
+    {visible.length > 0 && <div className="overflow-hidden rounded-xl border border-zinc-800">{visible.slice((page - 1) * 20, page * 20).map((item) => {
       const result = availability.get(`${item.kind}:${item.id}`);
-      return <div key={`${item.kind}:${item.id}`} className="rounded-lg border border-zinc-800 p-4"><Link href={item.href} className="text-sky-300 focus-visible:outline">{result?.title ?? item.title}</Link><p className="mt-1 text-xs text-zinc-500">{item.kind} · {result ? result.available ? "Available" : "Unavailable or expired; bookmark retained" : "Availability not checked"} · Saved {new Date(item.saved_at).toLocaleDateString()}</p><button className={`${feedControl} mt-2`} onClick={() => { try { saveFeedBookmark(item.kind, item.id, item.title); notify("Bookmark removed."); } catch { setMessage("Browser storage unavailable; bookmark unchanged."); } }}>Remove</button></div>;
-    })}
-    <nav aria-label="Saved pagination" className="flex gap-3"><button className={feedControl} disabled={page <= 1} onClick={() => update("page", String(page - 1))}>Previous saved</button><span>Page {page}</span><button className={feedControl} disabled={page * 20 >= visible.length} onClick={() => update("page", String(page + 1))}>Next saved</button></nav>
+      return <div key={`${item.kind}:${item.id}`} className="feed-saved-row"><div className="min-w-0 flex-1"><div className="mb-2"><FeedBadge>{item.kind === "news" ? "News" : item.kind === "vulnerability" ? "Vulnerability" : "IOC Report"}</FeedBadge></div><Link href={item.href} title={result?.title ?? item.title} className="feed-title-clamp text-sm font-medium text-zinc-100 hover:text-sky-300 focus-visible:outline">{result?.title ?? item.title}</Link><p className={`mt-2 text-xs ${result && !result.available ? "text-amber-200" : "text-zinc-400"}`}>{result ? result.available ? "Available" : "Unavailable or expired; bookmark retained" : "Availability not checked"} · Saved {new Date(item.saved_at).toLocaleDateString()}</p></div><button className={feedControl} onClick={() => { try { saveFeedBookmark(item.kind, item.id, item.title); notify("Bookmark removed."); } catch { setMessage("Browser storage unavailable; bookmark unchanged."); } }}>Remove</button></div>;
+    })}</div>}
+    <nav aria-label="Saved pagination" className="feed-pagination"><button className={feedControl} disabled={page <= 1} onClick={() => update("page", String(page - 1))}>Previous saved</button><span>Page {page}</span><button className={feedControl} disabled={page * 20 >= visible.length} onClick={() => update("page", String(page + 1))}>Next saved</button></nav>
     {!visible.length && <p className="text-zinc-500">{items.length ? "No saved intelligence matches this type." : "No saved intelligence yet."}</p>}
   </main>;
 }

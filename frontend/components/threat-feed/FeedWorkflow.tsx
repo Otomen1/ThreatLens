@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { get } from "@/lib/api/client";
 
-export const feedControl = "rounded-lg border border-zinc-700 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-sky-400";
+export const feedControl = "feed-control";
 type Reference = { kind: "news" | "vulnerability" | "ioc"; id: string; title: string; href: string; source: string; activity_at: string };
 type Search = { groups: Record<string, { items: Reference[]; total: number; page: number; page_size: number }>; poc_cve: string | null };
 type Related = { items: { record: Reference; reason: string; supporting_values: string[] }[]; cves: string[] };
@@ -15,7 +15,7 @@ export function FeedSearchBox({ compact = false }: { compact?: boolean }) {
   return <form className={`${compact ? "mt-2" : "mt-5"} flex gap-2`} onSubmit={(e) => {
     e.preventDefault(); const query = String(new FormData(e.currentTarget).get("q") ?? "").trim();
     if (query) router.push(`/threat-feed?view=search&q=${encodeURIComponent(query)}`);
-  }}><input key={params.get("q") ?? ""} name="q" aria-label="Search all threat intelligence" maxLength={200} defaultValue={params.get("q") ?? ""} placeholder="Search a CVE, IOC, product, or report…" className={`${feedControl} min-w-0 flex-1 bg-zinc-950`} /><button aria-label="Search feed" className={feedControl}>Search</button><Link href="/threat-feed?view=saved" className={feedControl}>Saved</Link></form>;
+  }}><input key={params.get("q") ?? ""} name="q" aria-label="Search all threat intelligence" maxLength={200} defaultValue={params.get("q") ?? ""} placeholder="Search all intelligence: CVE, IOC, product, report…" className="feed-control min-w-0 flex-1 !justify-start" /><button aria-label="Search feed" className="feed-control feed-control-primary">Search</button><Link href="/threat-feed?view=saved" aria-current={params.get("view") === "saved" ? "page" : undefined} className={`feed-control ${params.get("view") === "saved" ? "feed-control-primary" : ""}`}>Saved</Link></form>;
 }
 
 export function UnifiedFeedSearch() {

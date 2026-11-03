@@ -12,7 +12,7 @@ export function FeedViewNavigation({ selected, headerRef }: {
   const [placement, setPlacement] = useState({ docked: false, top: 200, left: 32 });
 
   useEffect(() => {
-    const desktop = window.matchMedia("(min-width: 1024px)");
+    const desktop = window.matchMedia("(min-width: 1280px)");
     let frame = 0;
     let docked = false;
     const measure = () => {
