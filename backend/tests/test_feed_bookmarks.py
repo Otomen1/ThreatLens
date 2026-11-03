@@ -76,7 +76,9 @@ def test_postgres_uses_one_parameterized_combined_query(storage, monkeypatch):
         def __exit__(self, *_args):
             return None
 
-        def execute(self, query, parameters):
+        def execute(self, query, parameters=()):
+            if "set_config" in query:
+                return None  # Transaction-local timeout setup, not a data read.
             calls.append((query, parameters))
             return SimpleNamespace(fetchall=lambda: [("news", news.model_dump(mode="json"))])
 

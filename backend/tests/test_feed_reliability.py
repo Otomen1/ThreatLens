@@ -113,7 +113,8 @@ def test_every_feed_postgres_connection_disables_automatic_preparation(monkeypat
         pass
     assert driver.connect.call_count == 3
     for call in driver.connect.call_args_list:
-        assert call.kwargs == {"prepare_threshold": None, "connect_timeout": 10}
+        assert call.kwargs == {"prepare_threshold": None, "connect_timeout": 4}
+    assert "statement_timeout" in db.execute.call_args_list[0].args[0]
 
 
 @pytest.fixture(params=["memory", "sqlite"])

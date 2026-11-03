@@ -6,8 +6,8 @@ import importlib
 import json
 import os
 import sqlite3
-from collections.abc import Iterable
-from contextlib import closing
+from collections.abc import Callable, Iterable, Iterator
+from contextlib import closing, contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -37,21 +37,73 @@ class FeedStorage:
         self.psycopg: Any | None = None
         self._init()
 
-    def connect_postgres(self) -> Any:
+    @contextmanager
+    def connect_postgres(self) -> Iterator[Any]:
         """Use unnamed statements with transaction poolers (including Supavisor)."""
         if self.psycopg is None:
             raise RuntimeError("PostgreSQL is not configured")
-        return self.psycopg.connect(self.url, prepare_threshold=None, connect_timeout=10)
+        with self.psycopg.connect(self.url, prepare_threshold=None, connect_timeout=4) as db:
+            # SET LOCAL is transaction-pooler compatible; never change pooled session defaults.
+            db.execute(
+                "SELECT set_config('statement_timeout','6000',true),"
+                "set_config('lock_timeout','2000',true)"
+            )
+            yield db
+
+    def ensure_schema(self, name: str, setup: Callable[[Any], None]) -> None:
+        """Skip current schemas; serialize upgrades before acquiring any table locks."""
+        key = f"schema:{name}"
+        if self.psycopg is not None:
+
+            def current(db: Any) -> bool:
+                if not db.execute("SELECT to_regclass('threat_feed_state')").fetchone()[0]:
+                    return False
+                row = db.execute(
+                    "SELECT value FROM threat_feed_state WHERE key=%s", (key,)
+                ).fetchone()
+                return bool(row and row[0] == "ready")
+
+            with self.connect_postgres() as db:
+                if current(db):
+                    return
+            # End the marker-read transaction before waiting for the upgrade lock.
+            # Otherwise a waiter could retain a table lock needed by the upgrader.
+            with self.connect_postgres() as db:
+                db.execute("SELECT pg_advisory_xact_lock(748219631)")
+                if not current(db):
+                    setup(db)
+                    db.execute(
+                        "INSERT INTO threat_feed_state(key,value) VALUES (%s,'ready') "
+                        "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                        (key,),
+                    )
+        elif self.backend == "sqlite":
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            with closing(sqlite3.connect(self.path, timeout=2)) as db, db:
+                # Recheck under a database write lock across processes.
+                db.execute("BEGIN IMMEDIATE")
+                exists = db.execute(
+                    "SELECT 1 FROM sqlite_master WHERE type='table' AND name='threat_feed_state'"
+                ).fetchone()
+                row = (
+                    db.execute("SELECT value FROM threat_feed_state WHERE key=?", (key,)).fetchone()
+                    if exists
+                    else None
+                )
+                if not row or row[0] != "ready":
+                    setup(db)
+                    db.execute(
+                        "INSERT INTO threat_feed_state(key,value) VALUES (?,'ready') "
+                        "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                        (key,),
+                    )
 
     def _init(self) -> None:
         if self.backend == "postgres" and self.url:
             self.psycopg = cast(Any, importlib.import_module("psycopg"))
-            with self.connect_postgres() as db:
-                self._schema(db, postgres=True)
-        elif self.backend == "sqlite":
-            self.path.parent.mkdir(parents=True, exist_ok=True)
-            with closing(sqlite3.connect(self.path)) as db, db:
-                self._schema(db, postgres=False)
+        self.ensure_schema(
+            "feed_v1", lambda db: self._schema(db, postgres=self.psycopg is not None)
+        )
         if (self.psycopg is not None or self.backend == "sqlite") and self.state(
             "bounded_reads_v1"
         ) != "ready":

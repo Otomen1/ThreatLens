@@ -43,9 +43,12 @@ class IocStorage:
         if (feed.backend == "postgres" or os.getenv("VERCEL")) and not self.pg:
             raise ValueError("Durable IOC database is unavailable")
         if not self.memory:
-            with self.connection() as db:
+
+            def setup(db: Any) -> None:
                 for statement in schema(self.pg):
                     db.execute(statement)
+
+            feed.ensure_schema("ioc_v1", setup)
             if feed.state("ioc_read_references_v1") != "ready":
                 from ..threat_feed.reference_store import ioc_reference, write
 

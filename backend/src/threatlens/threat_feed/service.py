@@ -179,12 +179,13 @@ class ThreatFeedService:
         page: int = 1,
         page_size: int = 20,
         sort: str = "newest",
+        fresh: bool = False,
     ) -> VulnerabilityListResponse:
         key = (query.strip().lower(), category, severity, source, hours, page, page_size, sort)
         stamp = time.monotonic()
         with self._home_cache_lock:
             cached = self._vulnerability_cache.get(key)
-            if cached and cached[0] > stamp:
+            if not fresh and cached and cached[0] > stamp:
                 return cached[1]
         result = vulnerability_list(
             self.storage,
@@ -213,6 +214,7 @@ class ThreatFeedService:
         limit_per_region: int = 5,
         sort: str = "newest",
         source: str | None = None,
+        fresh: bool = False,
     ) -> FeedHomeResponse:
         key = (
             (query or "").strip().lower(),
@@ -225,7 +227,7 @@ class ThreatFeedService:
         now_monotonic = time.monotonic()
         with self._home_cache_lock:
             cached = self._home_cache.get(key)
-            if cached and cached[0] > now_monotonic:
+            if not fresh and cached and cached[0] > now_monotonic:
                 self._home_cache.move_to_end(key)
                 return cached[1]
             if cached:

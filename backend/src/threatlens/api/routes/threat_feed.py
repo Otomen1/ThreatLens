@@ -7,6 +7,8 @@ import hmac
 import json
 import os
 from datetime import UTC, datetime
+from threading import Lock
+from time import perf_counter
 from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response
@@ -39,12 +41,15 @@ from ...threat_feed.workflow import (
 
 router = APIRouter(prefix="/api/v1/threat-feed", tags=["threat-feed"])
 _service: ThreatFeedService | None = None
+_service_lock = Lock()
 
 
 def get_threat_feed_service() -> ThreatFeedService:
     global _service
     if _service is None:
-        _service = ThreatFeedService(FeedStorage())
+        with _service_lock:
+            if _service is None:
+                _service = ThreatFeedService(FeedStorage())
     return _service
 
 
@@ -132,7 +137,9 @@ def home(
     limit_per_region: Annotated[int, Query(ge=1, le=20)] = 5,
     sort: Literal["newest", "oldest"] = "newest",
     source: Annotated[str | None, Query(max_length=64)] = None,
+    fresh: bool = False,
 ) -> Any:
+    started = perf_counter()
     result = service.home(
         query=query,
         topic=topic,
@@ -140,6 +147,7 @@ def home(
         limit_per_region=limit_per_region,
         sort=sort,
         source=source,
+        fresh=fresh,
     )
     identity = json.dumps(
         {
@@ -152,21 +160,24 @@ def home(
             "limit": limit_per_region,
             "sort": sort,
             "source": source or "",
+            "content": result.model_dump(mode="json", exclude={"generated_at"}),
         },
         sort_keys=True,
         separators=(",", ":"),
     )
     etag = f'"{hashlib.sha256(identity.encode()).hexdigest()}"'
-    cache_control = "public, s-maxage=300, stale-while-revalidate=3600"
-    if request.headers.get("if-none-match") == etag:
+    cache_control = "no-store" if fresh else "public, s-maxage=300, stale-while-revalidate=3600"
+    if not fresh and request.headers.get("if-none-match") == etag:
         return Response(status_code=304, headers={"ETag": etag, "Cache-Control": cache_control})
     response.headers["ETag"] = etag
     response.headers["Cache-Control"] = cache_control
+    response.headers["Server-Timing"] = f"feed;dur={(perf_counter() - started) * 1000:.1f}"
     return result
 
 
 @router.get("/items", response_model=FeedListResponse)
 def list_items(
+    response: Response,
     service: Annotated[ThreatFeedService, Depends(get_threat_feed_service)],
     region: FeedRegion | None = None,
     source: str | None = None,
@@ -176,7 +187,11 @@ def list_items(
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
     sort: Literal["newest", "oldest"] = "newest",
+    fresh: bool = False,
 ) -> FeedListResponse:
+    response.headers["Cache-Control"] = (
+        "no-store" if fresh else "public, s-maxage=300, stale-while-revalidate=3600"
+    )
     return service.list_items(
         region=region,
         source=source,
@@ -218,9 +233,13 @@ def vulnerabilities(
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
     sort: Literal["newest", "oldest"] = "newest",
+    fresh: bool = False,
 ) -> VulnerabilityListResponse:
-    response.headers["Cache-Control"] = "public, s-maxage=300, stale-while-revalidate=3600"
-    return service.vulnerabilities(
+    started = perf_counter()
+    response.headers["Cache-Control"] = (
+        "no-store" if fresh else "public, s-maxage=300, stale-while-revalidate=3600"
+    )
+    result = service.vulnerabilities(
         category=category,
         severity=severity,
         source=source,
@@ -229,7 +248,10 @@ def vulnerabilities(
         page=page,
         page_size=page_size,
         sort=sort,
+        fresh=fresh,
     )
+    response.headers["Server-Timing"] = f"feed;dur={(perf_counter() - started) * 1000:.1f}"
+    return result
 
 
 @router.get("/vulnerabilities/{record_id}", response_model=FeedVulnerability)
