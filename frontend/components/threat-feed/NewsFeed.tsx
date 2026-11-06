@@ -10,7 +10,7 @@ import { useToast } from "@/components/ui/ToastProvider";
 import { SearchLoading } from "@/components/ui/SearchLoading";
 import { FeedToolbar } from "./FeedToolbar";
 import { useNewsFeedData } from "@/hooks/useNewsFeedData";
-import { NEWS_PAGE_SIZE, NEWS_REGIONS, NEWS_REGION_DETAILS, NEWS_TOPICS, latestNews, newsHref, validNewsSource } from "@/lib/newsFeed";
+import { NEWS_CATEGORIES, NEWS_PAGE_SIZE, NEWS_REGIONS, NEWS_REGION_DETAILS, NEWS_TOPICS, latestNews, newsHref, validNewsSource } from "@/lib/newsFeed";
 import { clearNewsRegionCache } from "@/lib/newsRegionCache";
 import { markRegionSeen } from "@/lib/threatFeedState";
 import { useFeedSelection } from "@/hooks/useFeedSelection";
@@ -43,16 +43,36 @@ export default function NewsFeed({ region }: { region?: FeedRegion }) {
   const params = useFeedParams();
   const router = useRouter();
   const { notify } = useToast();
+  const category = region ? undefined : NEWS_CATEGORIES.find(({ id }) => id === params.get("category"));
+  const categoryRegion = category ? NEWS_REGIONS.find((value) => value === params.get("region")) : undefined;
+  const paginated = Boolean(region || category);
   const query = params.get("query") ?? "";
   const source = validNewsSource(params.get("source"));
   const topic = NEWS_TOPICS.includes(params.get("topic") ?? "") ? params.get("topic")! : "";
   const sort = region && params.get("sort") === "oldest" ? "oldest" : "newest";
   const hours = ["24", "168", "720"].includes(params.get("hours") ?? "") ? params.get("hours")! : "168";
   const page = Math.min(10000, Math.max(1, Math.floor(Number(params.get("page")) || 1)));
-  const { home, listing, loading, slow, status, setStatus, load, previousFilters } = useNewsFeedData(region, query, topic, Number(hours), page, sort, source);
+  const { home, listing, loading, slow, status, setStatus, load, previousFilters } = useNewsFeedData(region ?? categoryRegion, query, topic, Number(hours), page, sort, source, category?.id);
+  const homeParams = new URLSearchParams(params.toString());
+  homeParams.delete("category");
+  homeParams.delete("region");
+  const savedHomeFilters = params.get("home_filters");
+  const returnParams = savedHomeFilters === null ? homeParams : new URLSearchParams(savedHomeFilters);
+  returnParams.delete("category");
+  const previousCategory = useRef<string | undefined>(undefined);
+  const categoryHeading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (category && previousCategory.current !== category.id) {
+      categoryHeading.current?.focus();
+      previousCategory.current = category.id;
+    } else if (!category && home && previousCategory.current) {
+      document.getElementById(`news-category-${previousCategory.current}`)?.focus();
+      previousCategory.current = undefined;
+    }
+  }, [category, home]);
   const [busy, setBusy] = useState(false);
   const mounted = useRef(true);
-  const viewKey = JSON.stringify({ region, query, topic, source, hours, page, sort });
+  const viewKey = JSON.stringify({ region, category: category?.id, categoryRegion, query, topic, source, hours, page, sort });
   const currentView = useRef(viewKey);
   useEffect(() => { currentView.current = viewKey; }, [viewKey]);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
@@ -89,30 +109,43 @@ export default function NewsFeed({ region }: { region?: FeedRegion }) {
       if (mounted.current && refreshingView === currentView.current) { setStatus("Refresh could not be started. Existing reports are unchanged."); notify("Threat Feed refresh failed; existing reports were kept.", "error"); }
     } finally { if (mounted.current) setBusy(false); }
   }
-  const title = region ? `${NEWS_REGION_DETAILS[region].label} reports` : "Latest 10 news";
-  const items = region ? listing?.items ?? [] : home ? latestNews(home) : [];
-  const total = region ? listing?.total ?? 0 : home ? NEWS_REGIONS.reduce((count, value) => count + home.sections[value].total, 0) : 0;
+  const title = category?.label ?? (region ? `${NEWS_REGION_DETAILS[region].label} reports` : "Latest 10 news");
+  const items = paginated ? listing?.items ?? [] : home ? latestNews(home) : [];
+  const total = paginated ? listing?.total ?? 0 : home ? NEWS_REGIONS.reduce((count, value) => count + home.sections[value].total, 0) : 0;
   const displayedPage = listing?.page ?? page;
   const selection = useFeedSelection(viewKey, items);
   const selectionPaused = loading || previousFilters;
   const actions = <><button disabled={busy || loading} onClick={() => void load(true)} className="feed-control feed-control-primary">Reload saved data</button><button disabled={busy} onClick={() => void refresh()} className="feed-control">{busy ? "Refreshing sources…" : "Refresh sources"}</button></>;
   return <main data-list-ready={ready} className="feed-page min-h-screen px-4"><div className="mx-auto max-w-6xl space-y-5">
+    {category && <div className="space-y-3"><Link href={newsHref(undefined, returnParams)} className="text-sm text-sky-300 hover:underline">← Back to latest news</Link><h2 ref={categoryHeading} tabIndex={-1} className="text-2xl font-semibold">{category.label} articles</h2></div>}
     {region && <div className="space-y-3"><Link className="text-sm text-sky-300 hover:underline focus-visible:outline focus-visible:outline-sky-400" href={newsHref(undefined, params)}>← Back to News</Link><h2 className="text-2xl font-semibold">{NEWS_REGION_DETAILS[region].label} news</h2><p className="text-sm text-zinc-500">10 reports per page. Regional placement is not proof of targeting.</p></div>}
     {!ready && slow && <p role="status" className="text-sm text-zinc-400">Loading is taking longer than usual. This read will stop after 12 seconds.</p>}
-    {!ready ? loading ? <FeedSkeleton regional={Boolean(region)} /> : <div role="alert" className="rounded-xl border border-zinc-800 p-6 text-sm text-zinc-400"><p>{status}</p><button onClick={() => void load()} className="mt-3 rounded-lg border border-zinc-700 px-3 py-2">Retry loading feed</button></div> : <>
+    {!ready ? loading ? <FeedSkeleton regional={paginated} /> : <div role="alert" className="rounded-xl border border-zinc-800 p-6 text-sm text-zinc-400"><p>{status}</p><button onClick={() => void load()} className="mt-3 rounded-lg border border-zinc-700 px-3 py-2">Retry loading feed</button></div> : <>
       {home && <FeedStats label="News activity" items={[{ label: "New in 24 hours", value: Object.values(home.summary.regions).reduce((sum, value) => sum + value.recent, 0) }, { label: "Source-reported entities", value: home.summary.new_iocs }, { label: "Last refresh", value: home.summary.last_refreshed_at ? <FeedDate value={home.summary.last_refreshed_at} relative /> : "Not refreshed yet", compact: true }]} />}
       <section className="space-y-4" aria-label="News listing">
         {home && <FeedBrief />}
         <FeedToolbar table="news" region={region} actions={actions}><NewsFilters query={query} topic={topic} source={source} sources={home?.source_options ?? listing?.source_options ?? []} hours={hours} update={update} /></FeedToolbar>
+        {category && <label className="flex items-center gap-3 text-sm">Region<select value={categoryRegion ?? ""} onChange={(event) => update("region", event.target.value)} className="feed-control"><option value="">All regions</option>{NEWS_REGIONS.map((value) => <option key={value} value={value}>{NEWS_REGION_DETAILS[value].label}</option>)}</select></label>}
         <FeedRefreshHelp />
         {home && source && <p className="text-xs text-zinc-500">Activity cards cover all sources; reports below match your selected publisher.</p>}
         <FeedNotice warning={/Could not|failed|timed out|cooling|rate-limited/.test(status)}>{status || previousFilters ? <>{previousFilters && "Previous filter results · "}{status}{slow && " This is taking longer than usual. Loading will stop after 12 seconds."}</> : null}</FeedNotice>
         {!loading && /Could not|timed out|rate-limited/.test(status) && <button className="rounded-lg border border-zinc-700 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-sky-400" onClick={() => void load(true)}>Retry loading feed</button>}
+        {!paginated && <section aria-labelledby="browse-news-categories" className="space-y-2">
+          <h2 id="browse-news-categories" className="text-sm font-semibold">Browse categories</h2>
+          <div className="grid grid-cols-3 gap-2 lg:grid-cols-7">{NEWS_CATEGORIES.map(({ id, label, icon }) => {
+            const next = new URLSearchParams(homeParams);
+            next.set("category", id);
+            next.set("home_filters", homeParams.toString());
+            return <Link id={`news-category-${id}`} key={id} href={newsHref(undefined, next)} className="flex aspect-square min-h-16 min-w-0 flex-col items-center justify-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 p-2 text-center text-xs font-medium hover:border-sky-500/50 focus-visible:outline focus-visible:outline-sky-400 max-lg:last:col-span-3 max-lg:last:aspect-auto">
+              <span aria-hidden="true" className="text-lg text-sky-400">{icon}</span>{label}
+            </Link>;
+          })}</div>
+        </section>}
         <FeedBulkActions key={viewKey} kind="news" items={items} selection={selection} disabled={selectionPaused} />
-        <NewsTable title={title} items={items} total={total} showRegion={!region} offset={region ? (displayedPage - 1) * NEWS_PAGE_SIZE : 0} rowSelection={{ selection, disabled: selectionPaused }} />
+        <NewsTable title={title} items={items} total={total} showRegion={!region} offset={paginated ? (displayedPage - 1) * NEWS_PAGE_SIZE : 0} rowSelection={{ selection, disabled: selectionPaused }} />
       </section>
       {home && <section aria-labelledby="browse-news-regions" className="space-y-3"><h2 id="browse-news-regions" className="text-lg font-semibold">Browse by region</h2><div className="grid gap-3 md:grid-cols-3">{NEWS_REGIONS.map((value) => <Link key={value} href={newsHref(value, params)} className="group rounded-xl border border-zinc-800 bg-zinc-900 p-5 transition-colors hover:border-sky-500/50 focus-visible:outline focus-visible:outline-sky-400"><div className="flex items-center justify-between gap-3"><h3 className="font-medium"><span aria-hidden="true" className="mr-2 text-sky-400">{NEWS_REGION_DETAILS[value].icon}</span>{NEWS_REGION_DETAILS[value].label}</h3><span aria-hidden="true" className="text-sky-400">→</span></div><p className="mt-2 text-xs text-zinc-400">{home.sections[value].total} matching reports</p><p className="mt-3 text-xs text-sky-300">Browse news</p></Link>)}</div></section>}
-      {region && <nav aria-label="Regional news pagination" className="feed-pagination"><button className="feed-control" disabled={page <= 1 || loading} onClick={() => update("page", String(page - 1))}>Previous</button><span>Page {page} of {Math.max(1, Math.ceil(total / NEWS_PAGE_SIZE))}</span><button className="feed-control" disabled={page * NEWS_PAGE_SIZE >= total || loading} onClick={() => update("page", String(page + 1))}>Next</button></nav>}
+      {paginated && <nav aria-label={category ? "Category news pagination" : "Regional news pagination"} className="feed-pagination"><button className="feed-control" disabled={page <= 1 || loading} onClick={() => update("page", String(page - 1))}>Previous</button><span>Page {page} of {Math.max(1, Math.ceil(total / NEWS_PAGE_SIZE))}</span><button className="feed-control" disabled={page * NEWS_PAGE_SIZE >= total || loading} onClick={() => update("page", String(page + 1))}>Next</button></nav>}
     </>}
   </div></main>;
 }

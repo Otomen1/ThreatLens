@@ -3,6 +3,15 @@ import { NEWS_REGIONS, latestNews, newsHref, newsPath, newsRegionFromSlug } from
 import type { FeedHomeResponse, FeedItem, FeedRegion } from "./api/threatFeed";
 import { isPrivateList, isRecoverableList, ListRecoveryStore } from "./listRecovery";
 
+it("keeps category, region and original home filters across pagination", () => {
+  const params = new URLSearchParams({
+    category: "general-news", region: "malaysia", page: "2", home_filters: "",
+  });
+  expect(newsHref(undefined, params, true)).toBe(
+    "/threat-feed?category=general-news&region=malaysia&home_filters=&page=2",
+  );
+});
+
 function item(id: string, region: FeedRegion, minute: number): FeedItem {
   return { id, region, published_at: new Date(Date.UTC(2026, 9, 15, 10, minute)).toISOString() } as FeedItem;
 }

@@ -6,12 +6,44 @@ import httpx
 import pytest
 
 from threatlens.threat_feed import service as module
+from threatlens.threat_feed.categories import NewsCategory
 from threatlens.threat_feed.logic import stable_id
-from threatlens.threat_feed.models import FeedRegion
+from threatlens.threat_feed.models import FeedRegion, FeedTopic, ThreatFeedItem
 from threatlens.threat_feed.sources import MAX_ITEMS, SOURCES, fetch_source, parse_rss
 from threatlens.threat_feed.storage import FeedStorage
 
 FIXTURES = Path(__file__).parent / "fixtures" / "news_sources"
+
+
+@pytest.mark.parametrize("backend", ["memory", "sqlite"])
+def test_news_categories_filter_before_pagination(monkeypatch, tmp_path, backend):
+    monkeypatch.setenv("THREATLENS_STORAGE_BACKEND", backend)
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.setenv("THREATLENS_DATABASE_PATH", str(tmp_path / "feed.sqlite"))
+    storage = FeedStorage()
+    now = datetime.now(UTC)
+    storage.save_items(
+        ThreatFeedItem(
+            id=str(index),
+            source_id=publisher,
+            source_name=publisher,
+            source_kind="rss",
+            title="Phishing warning",
+            summary="Phishing warning",
+            url=f"https://example.test/{index}",
+            published_at=now,
+            collected_at=now,
+            region=FeedRegion.MALAYSIA,
+            relevance="high",
+            topic=FeedTopic.PHISHING,
+        )
+        for index, publisher in enumerate(["bernama", "cna", "bleepingcomputer"])
+    )
+    service = module.ThreatFeedService(storage)
+    general = service.list_items(category=NewsCategory.GENERAL, page=2, page_size=1)
+    assert general.total == 2 and general.items[0].source_id == "bernama"
+    assert service.list_items(category=NewsCategory.SECURITY).total == 1
+    assert service.list_items(category=NewsCategory.SCAMS, region=FeedRegion.MALAYSIA).total == 3
 
 
 @pytest.mark.parametrize("name", ["ahnlab", "fortinet", "eset"])

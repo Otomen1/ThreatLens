@@ -13,6 +13,7 @@ from uuid import uuid4
 import httpx
 from pydantic import HttpUrl
 
+from .categories import CATEGORY_FILTERS, NewsCategory
 from .evidence import targeting
 from .logic import (
     canonical_url,
@@ -425,6 +426,7 @@ class ThreatFeedService:
         page: int = 1,
         page_size: int = 20,
         sort: str = "newest",
+        category: NewsCategory | None = None,
     ) -> FeedListResponse:
         from .queries import database_backed, news_page
 
@@ -439,10 +441,12 @@ class ThreatFeedService:
                 page=page,
                 page_size=page_size,
                 sort=sort,
+                category=category,
             )
         items = self.storage.list_items()
         cutoff = datetime.now(UTC) - timedelta(hours=hours) if hours else None
         needle = (query or "").strip().lower()
+        category_filter = CATEGORY_FILTERS.get(category) if category is not None else None
         filtered = [
             item
             for item in items
@@ -450,6 +454,10 @@ class ThreatFeedService:
                 (region is None or item.region == region)
                 and (source is None or item.source_id == source)
                 and (topic is None or item.topic is topic)
+                and (
+                    category_filter is None
+                    or getattr(item, category_filter[0]) in category_filter[1]
+                )
                 and (cutoff is None or item.published_at >= cutoff)
                 and (
                     not needle

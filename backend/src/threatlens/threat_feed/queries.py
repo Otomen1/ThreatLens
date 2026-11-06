@@ -7,6 +7,7 @@ from contextlib import closing
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
+from .categories import CATEGORY_FILTERS, NewsCategory
 from .models import (
     FeedHomeResponse,
     FeedHomeSection,
@@ -75,6 +76,7 @@ def news_where(
     hours: int | None,
     query: str | None,
     now: datetime,
+    category: NewsCategory | None = None,
 ) -> tuple[str, list[Any]]:
     clauses: list[str] = []
     values: list[Any] = []
@@ -82,6 +84,11 @@ def news_where(
         if value:
             clauses.append(f"{field(storage, key)}=?")
             values.append(str(value))
+    if category is not None:
+        key, choices = CATEGORY_FILTERS[category]
+        placeholders = ",".join("?" for _ in choices)
+        clauses.append(f"{field(storage, key)} IN ({placeholders})")
+        values.extend(choices)
     if hours:
         clauses.append("published_epoch>=?")
         values.append((now - timedelta(hours=hours)).timestamp())
@@ -105,8 +112,11 @@ def news_page(
     page: int = 1,
     page_size: int = 20,
     sort: str = "newest",
+    category: NewsCategory | None = None,
 ) -> FeedListResponse:
-    where, parameters = news_where(storage, region, source, topic, hours, query, datetime.now(UTC))
+    where, parameters = news_where(
+        storage, region, source, topic, hours, query, datetime.now(UTC), category
+    )
     order = "ASC" if sort == "oldest" else "DESC"
     rows = run(
         storage,

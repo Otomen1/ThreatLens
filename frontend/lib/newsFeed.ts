@@ -8,6 +8,15 @@ export const NEWS_REGION_DETAILS: Record<FeedRegion, { label: string; icon: stri
 };
 export const NEWS_TOPICS = ["advisory", "vulnerability", "active_exploitation", "phishing", "ransomware", "malware", "breach", "supply_chain", "threat_actor", "scam", "research"];
 export const NEWS_PAGE_SIZE = 10;
+export const NEWS_CATEGORIES = [
+  { id: "general-news", label: "General news", icon: "◎" },
+  { id: "security-news", label: "Security news", icon: "▤" },
+  { id: "cve-patches", label: "CVE & patches", icon: "◇" },
+  { id: "scams-phishing", label: "Scams & phishing", icon: "✉" },
+  { id: "threat-research", label: "Threat research", icon: "⌕" },
+  { id: "official-advisories", label: "Official advisories", icon: "⚠" },
+  { id: "policy-updates", label: "Policy & updates", icon: "▥" },
+] as const;
 export function validNewsSource(value: string | null): string {
   return value && /^[a-z0-9_]{1,64}$/.test(value) ? value : "";
 }
@@ -34,9 +43,10 @@ export function newsPath(region?: FeedRegion): string {
 }
 export function newsHref(region: FeedRegion | undefined, params: URLSearchParams, keepPage = false): string {
   const next = new URLSearchParams();
-  for (const key of ["query", "topic", "source", "hours", ...(region ? ["sort"] : []), ...(keepPage && region ? ["page"] : [])]) {
+  const category = !region && NEWS_CATEGORIES.some(({ id }) => id === params.get("category"));
+  for (const key of ["query", "topic", "source", "hours", ...(category ? ["category", "region", "home_filters"] : []), ...(region ? ["sort"] : []), ...(keepPage && (region || category) ? ["page"] : [])]) {
     const value = params.get(key);
-    if (value) next.set(key, value);
+    if (value || (key === "home_filters" && value !== null)) next.set(key, value);
   }
   const suffix = next.toString();
   return `${newsPath(region)}${suffix ? `?${suffix}` : ""}`;

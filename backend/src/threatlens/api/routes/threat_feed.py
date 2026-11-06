@@ -16,6 +16,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, R
 from ...threat_feed import FeedStorage, ThreatFeedService
 from ...threat_feed.activity import FeedActivity, activity
 from ...threat_feed.bookmarks import BookmarkAvailability, BookmarkRequest, availability
+from ...threat_feed.categories import NewsCategory
 from ...threat_feed.models import (
     FeedHomeResponse,
     FeedListResponse,
@@ -188,6 +189,7 @@ def list_items(
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
     sort: Literal["newest", "oldest"] = "newest",
     fresh: bool = False,
+    category: NewsCategory | None = None,
 ) -> FeedListResponse:
     response.headers["Cache-Control"] = (
         "no-store" if fresh else "public, s-maxage=300, stale-while-revalidate=3600"
@@ -201,6 +203,7 @@ def list_items(
         page=page,
         page_size=page_size,
         sort=sort,
+        category=category,
     )
 
 
